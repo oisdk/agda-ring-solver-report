@@ -1,1 +1,14 @@
 *.agdai
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.gz
+*.xml
+*.ptb
+*.dvi
+*.blg
+*.bbl
+*.bcf
+Code.tex
+*.el
