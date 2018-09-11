@@ -8,11 +8,15 @@ module Mul where
 
 %<*times>
 \begin{code}
-  conv : ∀ {a} {A B : Set a} → List A → List B → List (List (A × B))
+  conv : {A B : Set} → List A → List B → List (List (A × B))
   conv _ [] = []
-  conv {_} {A} {B} xs (yh ∷ ys) = foldr f [] xs
+  conv {A} {B} xs (yh ∷ ys) = foldr f [] xs
     where
-    g : A → B → (List (List (A × B)) → List (List (A × B))) → List (List (A × B)) → List (List (A × B))
+    g  : A
+       → B
+       → (List (List (A × B)) → List (List (A × B)))
+       → List (List (A × B))
+       → List (List (A × B))
     g x y a (z ∷ zs) = ((x , y) ∷ z) ∷ a zs
     g x y a [] = [(x , y)] ∷ a []
     f : A → List (List (A × B)) → List (List (A × B))

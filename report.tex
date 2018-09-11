@@ -1,4 +1,6 @@
 \documentclass{article}
+\usepackage{cite}
+\usepackage{url}
 \usepackage{catchfilebetweentags}
 \usepackage{amssymb}
 \usepackage{turnstile}
@@ -16,7 +18,9 @@ There's a particular function on lists that I'm a little obsessed with:
 
 \ExecuteMetaData[Code.tex]{times}
 
-It's an implementation of discrete convolution on lists. Previously I discussed it in relation to search patterns: it corresponds (somewhat) to breadth-first search (rather than depth-first).
+It's an implementation of discrete convolution on lists. Previously I discussed
+it in relation to search patterns: it corresponds (somewhat) to breadth-first
+search (rather than depth-first).
 
 Here though, I want to talk about its more traditional interpretation: the
 multiplication of two polynomials. Indeed, if you write out your polynomial
@@ -28,8 +32,10 @@ backwards:
 & = & - & 4x^0 & + & 1x^1 & + &   & 2x^2 & \{ \text{Reversed} \}
 \end{align}
 
--- Reflection
--- Counterexamples
+\cite{rivas_monoids_2015}
+
+% -- Reflection
+% -- Counterexamples
 % You can write the exponents in a list:
 
 % ```haskell
@@ -1386,4 +1392,6 @@ backwards:
 % # Other structures
 
 % Semiring has a free equivalent: [@rivas_monoids_2015]
+\bibliographystyle{IEEEtranS}
+\bibliography{horners-rule.bib}
 \end{document}
