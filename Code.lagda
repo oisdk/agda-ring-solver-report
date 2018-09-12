@@ -26,6 +26,9 @@ module MonIdent {c ℓ}
                 (M : Algebra.Monoid c ℓ) where
   open Algebra.Monoid M
   open import Relation.Binary.EqReasoning setoid
+  open import Data.Nat
+  open import Data.Fin
+  open import Data.Vec as Vec using (Vec; lookup)
 \end{code}
 %<*mon-ident>
 \begin{code}
@@ -51,29 +54,30 @@ module MonIdent {c ℓ}
 %<*list-def>
 \begin{code}
   infixr 5 _∷_
-  data List : Set c where
-    [] : List
-    _∷_ : Carrier → List → List
+  data List (i : ℕ) : Set where
+    [] : List i
+    _∷_ : Fin i → List i → List i
 \end{code}
 %</list-def>
 
 %<*list-monoid>
 \begin{code}
-  infixr 5 _++_
-  _++_ : List → List → List
-  [] ++ ys = ys
-  (x ∷ xs) ++ ys = x ∷ xs ++ ys
+  infixr 5 _⊙_
+  _⊙_ : ∀ {i} → List i → List i → List i
+  [] ⊙ ys = ys
+  (x ∷ xs) ⊙ ys = x ∷ xs ⊙ ys
 \end{code}
 %</list-monoid>
 \begin{code}
 \end{code}
 %<*list-trans>
 \begin{code}
-  _μ : List → Carrier
-  [] μ = ε
-  (x ∷ xs) μ = x ∙ xs μ
+  _μ : ∀ {i} → List i → Vec Carrier i → Carrier
+  ([] μ) ρ = ε
+  ((x ∷ xs) μ) ρ = lookup x ρ ∙ (xs μ) ρ
 
-  η : Carrier → List
+  infix 9 η_
+  η_ : ∀ {i} → Fin i → List i
   η x = x ∷ []
 \end{code}
 %</list-trans>
@@ -83,32 +87,53 @@ module MonIdent {c ℓ}
 %<*list-obvious>
 \begin{code}
   obvious
-    : ∀ {w x y z}
-    →  η w ++ (((η x ++ []) ++ η y) ++ η z)
-    ≡ (η w ++ η x) ++ (η y ++ η z)
+    : (List 4 ∋
+    η # 0 ⊙ (((η # 1 ⊙ []) ⊙ η # 2) ⊙ η # 3))
+    ≡ (η # 0 ⊙ η # 1) ⊙ (η # 2 ⊙ η # 3)
   obvious = ≡.refl
 \end{code}
 %</list-obvious>
 \begin{code}
-  open import Data.Nat
-  open import Data.Fin
-  open import Data.Vec
+  module Exprs where
 \end{code}
 %<*mon-ast>
 \begin{code}
-  data Expr (i : ℕ) : Set c where
-    _⊕_  : Expr i → Expr i → Expr i
-    e    : Expr i
-    ν    : Fin i → Expr i
-    κ    : Carrier → Expr i
+    data Expr (i : ℕ) : Set c where
+      _⊕_  : Expr i → Expr i → Expr i
+      e    : Expr i
+      ν    : Fin i → Expr i
 \end{code}
 %</mon-ast>
 %<*eval-ast>
 \begin{code}
-  ⟦_⟧ : ∀ {i} → Expr i → Vec Carrier i → Carrier
-  ⟦ x ⊕ y ⟧ ρ  = ⟦ x ⟧ ρ ∙ ⟦ y ⟧ ρ
-  ⟦ e ⟧ ρ      = ε
-  ⟦ ν i ⟧ ρ    = lookup i ρ
-  ⟦ κ x ⟧ ρ    = x
+    ⟦_⟧ : ∀ {i} → Expr i → Vec Carrier i → Carrier
+    ⟦ x ⊕ y ⟧ ρ  = ⟦ x ⟧ ρ ∙ ⟦ y ⟧ ρ
+    ⟦ e ⟧ ρ      = ε
+    ⟦ ν i ⟧ ρ    = lookup i ρ
 \end{code}
 %</eval-ast>
+\begin{code}
+  open import Algebra.Solver.Monoid M renaming (id to e)
+\end{code}
+%<*ident-auto-proof>
+\begin{code}
+  ident′  : ∀ w x y z
+          →  w ∙ (((x ∙ ε) ∙ y) ∙ z)
+          ≈ (w ∙ x) ∙ (y ∙ z)
+  ident′ = solve 4
+    (  λ w x y z
+       → w ⊕ (((x ⊕ e) ⊕ y) ⊕ z)
+       ⊜ (w ⊕ x) ⊕ (y ⊕ z))
+    refl
+\end{code}
+%</ident-auto-proof>
+%<*ident-infer-proof>
+\begin{code}
+  ident-infer : ∀ w x y z →  _
+  ident-infer = solve 4
+    (  λ w x y z
+       → w ⊕ (((x ⊕ e) ⊕ y) ⊕ z)
+       ⊜ (w ⊕ x) ⊕ (y ⊕ z))
+    refl
+\end{code}
+%</ident-infer-proof>

@@ -3,15 +3,17 @@
 \contentsline {section}{\numberline {2}Monoids}{1}
 \contentsline {subsection}{\numberline {2.1}Equality Proofs}{1}
 \contentsline {subsection}{\numberline {2.2}Canonical Forms}{2}
-\contentsline {subsection}{\numberline {2.3}Homomorphism}{2}
-\contentsline {section}{\numberline {3}Horner Normal Form}{3}
-\contentsline {subsection}{\numberline {3.1}Sparse}{3}
-\contentsline {section}{\numberline {4}Multivariate}{3}
-\contentsline {subsection}{\numberline {4.1}Sparse}{3}
-\contentsline {subsection}{\numberline {4.2}K}{3}
-\contentsline {section}{\numberline {5}Setoid Applications}{3}
-\contentsline {subsection}{\numberline {5.1}Traced}{3}
-\contentsline {subsection}{\numberline {5.2}Isomorphisms}{3}
-\contentsline {subsection}{\numberline {5.3}Counterexamples}{3}
-\contentsline {section}{\numberline {6}The Correct-by-Construction Approach}{3}
-\contentsline {section}{\numberline {7}Reflection}{3}
+\contentsline {subsection}{\numberline {2.3}Homomorphism}{3}
+\contentsline {subsection}{\numberline {2.4}Usage}{3}
+\contentsline {subsection}{\numberline {2.5}Reflection}{3}
+\contentsline {section}{\numberline {3}Horner Normal Form}{4}
+\contentsline {subsection}{\numberline {3.1}Sparse}{4}
+\contentsline {section}{\numberline {4}Multivariate}{4}
+\contentsline {subsection}{\numberline {4.1}Sparse}{4}
+\contentsline {subsection}{\numberline {4.2}K}{4}
+\contentsline {section}{\numberline {5}Setoid Applications}{4}
+\contentsline {subsection}{\numberline {5.1}Traced}{4}
+\contentsline {subsection}{\numberline {5.2}Isomorphisms}{4}
+\contentsline {subsection}{\numberline {5.3}Counterexamples}{4}
+\contentsline {section}{\numberline {6}The Correct-by-Construction Approach}{4}
+\contentsline {section}{\numberline {7}Reflection}{4}
