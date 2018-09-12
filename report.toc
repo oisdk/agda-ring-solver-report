@@ -15,8 +15,9 @@
 \contentsline {subsubsection}{\numberline {4.1.4}Termination}{7}
 \contentsline {section}{\numberline {5}Binary}{8}
 \contentsline {section}{\numberline {6}Multivariate}{8}
-\contentsline {subsection}{\numberline {6.1}Sparse}{9}
-\contentsline {subsection}{\numberline {6.2}K}{9}
+\contentsline {subsection}{\numberline {6.1}Sparse Nesting}{9}
+\contentsline {subsubsection}{\numberline {6.1.1}Inequalities}{9}
+\contentsline {subsubsection}{\numberline {6.1.2}K}{9}
 \contentsline {section}{\numberline {7}Setoid Applications}{9}
 \contentsline {subsection}{\numberline {7.1}Traced}{9}
 \contentsline {subsection}{\numberline {7.2}Isomorphisms}{9}

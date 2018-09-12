@@ -7,6 +7,7 @@
 \usepackage{bbm}
 \usepackage[greek, english]{babel}
 \usepackage{MnSymbol}
+\usepackage{csquotes}
 \newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
 \newcommand\mdoubleplus{\ensuremath{\mathbin{+\mkern-8mu+}}}
 \makeatletter
@@ -37,6 +38,7 @@
 \DeclareUnicodeCharacter{8857}{\mdoubleplus}
 \DeclareUnicodeCharacter{8860}{\oeq}
 \DeclareUnicodeCharacter{9043}{\ensuremath{\triangle}}
+\DeclareUnicodeCharacter{928}{\textgreek{\textPi}}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{autofe}
@@ -419,8 +421,37 @@ to be truly useful, though, we'd like to be able to extend it to many: luckily
 there's a well-known isomorphism we can use to extend our earlier
 implementation. A multivariate polynomial is one where its coefficients are
 polynomials with one fewer variable\cite{cheng_functional_2018}.
-\subsection{Sparse}
-\subsection{K}
+
+Before going any further, though, we should notice that this type is dense with
+regards to nesting the same way that the original monomial type was dense with
+regards to exponentiation. Every polynomial with \(n\) variables will be
+represented by \(n\) nested polynomials, regardless of how many of the variables
+in the expression are non-constant.
+\subsection{Sparse Nesting}
+It's immediately clear that removing the gaps from the nesting will be more
+difficult than it was for the exponents: the \(\AgdaDatatype{Poly}\) type is
+\emph{indexed} by the number of variables it contains, so any manipulation of
+that number will have to carefully prove its correctness.
+
+Our first approach might mimic the structure of \(\AgdaDatatype{Ordering}\),
+with an indexed type:
+\ExecuteMetaData[Poly.tex]{poly-slime}
+Where \(\AgdaDatatype{FlatPoly}\) is effectively the gappy type we had earlier.
+If you actually tried to use this type, though, you'd run into issues. Pattern
+matching on a pair of \(\AgdaDatatype{Poly}\)s won't work, as Agda cannot
+(usually) unify user-defined functions. How do we avoid this? ``Don't touch the
+green slime!''\cite{mcbride_polynomial_2018}:
+\begin{displayquote}
+  When combining prescriptive and descriptive indices, ensure both are in
+  constructor form. Exclude defined functions which yield difficult unification
+  problems.
+\end{displayquote}
+We'll have to take another route.
+\subsubsection{Inequalities}
+First, we'll define our polynomial like so:
+\ExecuteMetaData[Poly.tex]{poly}
+
+\subsubsection{K}
 \section{Setoid Applications} \label{setoid-applications}
 \subsection{Traced}
 \subsection{Isomorphisms}
