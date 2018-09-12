@@ -1,4 +1,4 @@
-\documentclass[draft]{article}
+\documentclass[draft, twocolumn]{article}
 \usepackage{cite}
 \usepackage{url}
 \usepackage{catchfilebetweentags}
@@ -12,28 +12,142 @@
 \DeclareUnicodeCharacter{951}{\textgreek{\texteta}}
 \DeclareUnicodeCharacter{737}{\ensuremath{^l}}
 \DeclareUnicodeCharacter{691}{\ensuremath{^r}}
+\DeclareUnicodeCharacter{8718}{\ensuremath{\blacksquare}}
+\DeclareUnicodeCharacter{957}{\textgreek{\textnu}}
+\DeclareUnicodeCharacter{961}{\textgreek{\textrho}}
+\DeclareUnicodeCharacter{954}{\textgreek{\textkappa}}
+\DeclareUnicodeCharacter{10214}{\ensuremath{\lsem}}
+\DeclareUnicodeCharacter{10215}{\ensuremath{\rsem}}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{autofe}
 \usepackage{agda}
-\usepackage{listings}
+\usepackage{bbding}
 \newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
 \newcommand\mdoubleplus{\ensuremath{\mathbin{+\mkern-10mu+}}}
 \author{D Oisín Kidney}
-\title{An Efficient and Flexible Evidence-Providing Solver for Polynomials in Agda}
+\title{An Efficient and Flexible Evidence-Providing Polynomial Solver for
+  Polynomials in Agda}
 \begin{document}
-\section{Evidence-Providing Solvers}
+\maketitle
+\begin{abstract}
+  We provide an efficient implementation of a polynomial solver in the
+  programming language Agda, and demonstrate its use in a variety of
+  applications.
+\end{abstract}
+\tableofcontents
+\section{Introduction}
+Dependently typed languages such as Agda\cite{norell_dependently_2008} and
+Coq\cite{the_coq_development_team_2018_1219885} allow programmers to write
+machine-checked proofs as programs. They provide a degree of reassurance that
+handwritten proofs cannot, and allow for exploration of abstract concepts in a
+machine-assisted environment.
+
+We will describe an efficient implementation of an automated prover for
+equalities in ring and ring-like structures, and show how it can be extended for
+use in settings more exotic than simple equality.
+\section{Monoids}
+Before describing the ring solver, first we will explain the simpler case of a
+monoid solver.
+
+A monoid is a set equipped with a binary operation, \(\bullet\), and a
+distinguished element \(\epsilon\), which obeys the laws:
+\begin{align}
+  x \bullet (y \bullet z) &= (x \bullet y) \bullet z \tag{Associativity} \\
+  x \bullet \epsilon      &= x \tag{Left Identity} \\
+  \epsilon \bullet x      &= x \tag{Right Identity}
+\end{align}
+\subsection{Equality Proofs}
+Monoids can be represented in Agda in a straightforward way, as a record (see
+figure~\ref{mon-def}).
+\begin{figure}
+  \ExecuteMetaData[Code.tex]{mon-def}
+  \caption{The definition of Monoid in the Agda Standard
+    Library\cite{danielsson_agda_2018}}
+  \label{mon-def}
+\end{figure}
+
+These come equipped with their own equivalence relation, according to which
+proofs for each of the monoid laws are provided. Using this, we can prove
+identities like the one in figure~\ref{mon-ident}.
+\begin{figure}[h]
+  \ExecuteMetaData[Code.tex]{mon-ident}
+  \caption{Example Identity}
+  \label{mon-ident}
+\end{figure}
+
+While it seems like an obvious identity, the proof is somewhat involved
+(figure~\ref{mon-proof}).
+\begin{figure}[!h]
+  \ExecuteMetaData[Code.tex]{mon-proof}
+  \caption{Proof of identity in figure~\ref{mon-ident}}
+  \label{mon-proof}
+\end{figure}
+
+The syntax mimics that of normal, handwritten proofs: the successive ``states''
+of the expression are interspersed with equivalence proofs (in the brackets).
+Perhaps surprisingly, the syntax is not built-in: it's simply defined in the
+standard library.
+
+Despite the powerful syntax, the proof is mechanical, and it's clear that
+similar proofs would become tedious with more variables or more complex algebras
+(like rings). Luckily, we can automate the procedure.
+\subsection{Canonical Forms}
+Automation of equality proofs like the one above can be accomplished by first
+rewriting both sides of the equation into a canonical form. This form depends on
+the particular algebra used in the pair of expressions. For instance, a suitable
+canonical form for monoids is lists.
+\ExecuteMetaData[Code.tex]{list-def}
+
+In the ``language of monoids'', the neutral element and binary operator have
+their equivalents in lists: \(\epsilon\) is simply the empty list, whereas
+\(\bullet\) is list concatenation.
+\ExecuteMetaData[Code.tex]{list-monoid}
+
+Translating between the language of lists and the language of monoids is
+accomplished with \(\mu\) and \(\eta\).
+\ExecuteMetaData[Code.tex]{list-trans}
+
+We have one half of the equality so far: that of the canonical forms. As such,
+we have an ``obvious'' proof of the identity in figure~\ref{mon-ident},
+expressed in the list language (figure~\ref{list-obvious}).
+\begin{figure}[!h]
+  \ExecuteMetaData[Code.tex]{list-obvious}
+  \caption{The identity in figure~\ref{mon-ident}, expressed in the list
+    language}
+  \label{list-obvious}
+\end{figure}
+Showing that the list language is equivalent to the monoid language is the next
+task.
+
+\subsection{Homomorphism}
+We need to show that the equality proof above is a valid proof of the same
+identity in figure~\ref{mon-ident}. To do that, we will need to prove the
+following:
+\begin{align}
+  (\eta x) \mu           &= x \\
+  (x \mdoubleplus y) \mu &= x \mu \bullet y \mu \\
+  [] \mu                 &= \epsilon
+\end{align}
+1 simply states that translation to and from doesn't change anything, while 2
+and 3 give us a monoid homomorphism. Once done, we can use a separate AST type,
+something potentially like:
+\ExecuteMetaData[Code.tex]{mon-ast}
+
+This AST can be evaluated in a straightforward way:
+\ExecuteMetaData[Code.tex]{eval-ast}
+
 \section{Horner Normal Form}
 \subsection{Sparse}
 \section{Multivariate}
 \subsection{Sparse}
 \subsection{K}
-\section{Homomorphism}
-\subsection{Equational Reasoning}
 \section{Setoid Applications}
 \subsection{Traced}
 \subsection{Isomorphisms}
 \subsection{Counterexamples}
 \section{The Correct-by-Construction Approach}
 \section{Reflection}
+\bibliographystyle{IEEEtranS}
+\bibliography{horners-rule.bib}
 \end{document}

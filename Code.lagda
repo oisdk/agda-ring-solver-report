@@ -1,139 +1,114 @@
 \begin{code}
 module Code where
-module OnLists where
-  open import Data.List as List using (List; []; _∷_; foldr; [_]; map)
-  open import Data.Product using (_×_; _,_)
-  open import Function
+open import Function
+import Algebra
+module MonDef where
+  open import Level
+  open import Relation.Binary
+  open import Algebra.FunctionProperties
+  open import Algebra.Structures
 \end{code}
-
-%<*times>
+%<*mon-def>
 \begin{code}
-  conv : {A B : Set} → List A → List B → List (List (A × B))
-  conv _ [] = []
-  conv {A} {B} xs (yh ∷ ys) = foldr f [] xs
-    where
-    g  : A
-       → B
-       → (List (List (A × B)) → List (List (A × B)))
-       → List (List (A × B))
-       → List (List (A × B))
-    g x y a (z ∷ zs) = ((x , y) ∷ z) ∷ a zs
-    g x y a [] = [(x , y)] ∷ a []
-    f : A → List (List (A × B)) → List (List (A × B))
-    f x zs = [ x , yh ] ∷ foldr (g x) id ys zs
+  record Monoid c ℓ : Set (suc (c ⊔ ℓ)) where
+    infixl 7 _∙_
+    infix  4 _≈_
+    field
+      Carrier   : Set c
+      _≈_       : Rel Carrier ℓ
+      _∙_       : Op₂ Carrier
+      ε         : Carrier
+      isMonoid  : IsMonoid _≈_ _∙_ ε
 \end{code}
-%</times>
-
-%<*add>
+%</mon-def>
 \begin{code}
-  add : ∀ {A : Set} → List A → List A → List (List A)
-  add [] ys = map [_] ys
-  add (x ∷ xs) [] = [ x ] ∷ map [_] xs
-  add (x ∷ xs) (y ∷ ys) = (x ∷ y ∷ []) ∷ add xs ys
+module MonIdent {c ℓ}
+                (M : Algebra.Monoid c ℓ) where
+  open Algebra.Monoid M
+  open import Relation.Binary.EqReasoning setoid
 \end{code}
-%</add>
+%<*mon-ident>
 \begin{code}
-module ListDef where
-  open import Relation.Binary.PropositionalEquality
-  open import Algebra
-  open import Level using (0ℓ)
-  open Monoid {{...}} public hiding (refl)
+  ident  : ∀ w x y z
+         →  w ∙ (((x ∙ ε) ∙ y) ∙ z)
+         ≈ (w ∙ x) ∙ (y ∙ z)
 \end{code}
-
-%<*list>
+%</mon-ident>
+%<*mon-proof>
+\begin{code}
+  ident w x y z =
+    begin
+      w ∙ (((x ∙ ε) ∙ y) ∙ z)
+    ≈⟨ refl ⟨ ∙-cong ⟩ assoc (x ∙ ε) y z ⟩
+      w ∙ ((x ∙ ε) ∙ (y ∙ z))
+    ≈⟨ sym (assoc w (x ∙ ε) (y ∙ z)) ⟩
+      (w ∙ (x ∙ ε)) ∙ (y ∙ z)
+    ≈⟨ (refl ⟨ ∙-cong ⟩ identityʳ x) ⟨ ∙-cong ⟩ refl ⟩
+      (w ∙ x) ∙ (y ∙ z)
+    ∎
+\end{code}
+%</mon-proof>
+%<*list-def>
 \begin{code}
   infixr 5 _∷_
-  data List (A : Set) : Set where
-    []   : List A
-    _∷_  : A → List A → List A
+  data List : Set c where
+    [] : List
+    _∷_ : Carrier → List → List
 \end{code}
-%</list>
+%</list-def>
 
-%<*list-add>
+%<*list-monoid>
 \begin{code}
   infixr 5 _++_
-  _++_ : ∀ {A} → List A → List A → List A
+  _++_ : List → List → List
   [] ++ ys = ys
-  (x ∷ xs) ++ ys = x ∷ (xs ++ ys)
+  (x ∷ xs) ++ ys = x ∷ xs ++ ys
 \end{code}
-%</list-add>
-
-%<*list-nil>
+%</list-monoid>
 \begin{code}
-  lzero : ∀ {A} (xs : List A) → [] ++ xs ≡ xs
-  lzero _ = refl
-
-  rzero : ∀ {A} (xs : List A) → xs ++ [] ≡ xs
-  rzero [] = refl
-  rzero (x ∷ xs) = cong (x ∷_) (rzero xs)
 \end{code}
-%</list-nil>
-
-%<*list-homo>
+%<*list-trans>
 \begin{code}
-  η : ∀ {A} → A → List A
+  _μ : List → Carrier
+  [] μ = ε
+  (x ∷ xs) μ = x ∙ xs μ
+
+  η : Carrier → List
   η x = x ∷ []
-
-  μ : {{_ : Monoid 0ℓ 0ℓ}} → List Carrier → Carrier
-  μ [] = ε
-  μ (x ∷ xs) = x ∙ μ xs
 \end{code}
-%</list-homo>
+%</list-trans>
 \begin{code}
-module Equality where
-  open import Relation.Binary.PropositionalEquality
-  open import Data.Nat using (ℕ; zero; suc)
+  open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
 \end{code}
-
-%<*nat-plus>
+%<*list-obvious>
 \begin{code}
-  _+_ : ℕ → ℕ → ℕ
-  zero + y = y
-  suc x + y = suc (x + y)
+  obvious
+    : ∀ {w x y z}
+    →  η w ++ (((η x ++ []) ++ η y) ++ η z)
+    ≡ (η w ++ η x) ++ (η y ++ η z)
+  obvious = ≡.refl
 \end{code}
-%</nat-plus>
-%<*nat-plus-proof>
+%</list-obvious>
 \begin{code}
-  +-identityˡ : ∀ x → 0 + x ≡ x
-  +-identityˡ _ = refl
-
-  +-identityʳ : ∀ x → x + 0 ≡ x
-  +-identityʳ zero = refl
-  +-identityʳ (suc x) = cong suc (+-identityʳ x)
+  open import Data.Nat
+  open import Data.Fin
+  open import Data.Vec
 \end{code}
-%</nat-plus-proof>
+%<*mon-ast>
 \begin{code}
-import Algebra
-module ComplexProp {ℓ₁ ℓ₂} (monoid : Algebra.Monoid ℓ₁ ℓ₂) where
-  open Algebra.Monoid monoid
-  open import Function
+  data Expr (i : ℕ) : Set c where
+    _⊕_  : Expr i → Expr i → Expr i
+    e    : Expr i
+    ν    : Fin i → Expr i
+    κ    : Carrier → Expr i
 \end{code}
-%<*complex-prop>
+%</mon-ast>
+%<*eval-ast>
 \begin{code}
-  prop : ∀ w x y z →  w ∙ (((x ∙ ε) ∙ y) ∙ z) ≈ (w ∙ x) ∙ (y ∙ z)
+  ⟦_⟧ : ∀ {i} → Expr i → Vec Carrier i → Carrier
+  ⟦ x ⊕ y ⟧ ρ  = ⟦ x ⟧ ρ ∙ ⟦ y ⟧ ρ
+  ⟦ e ⟧ ρ      = ε
+  ⟦ ν i ⟧ ρ    = lookup i ρ
+  ⟦ κ x ⟧ ρ    = x
 \end{code}
-%</complex-prop>
-%<*complex-proof>
-\begin{code}
-  prop w x y z =
-    (refl ⟨ ∙-cong ⟩ assoc (x ∙ ε) y z)
-      ⟨ trans ⟩
-    (sym (assoc w (x ∙ ε) (y ∙ z)))
-      ⟨ trans ⟩
-    (refl ⟨ ∙-cong ⟩ identityʳ x ⟨ ∙-cong ⟩ refl)
-\end{code}
-%</complex-proof>
-
-\begin{code}
-module ListProof where
-  open ListDef
-  open import Relation.Binary.PropositionalEquality
-\end{code}
-%<*list-proof-obvious>
-\begin{code}
-  prop : ∀ {A} {w x y z : A}
-       →  η w ++ (((η x ++ []) ++ η y) ++ η z)
-       ≡ (η w ++ η x) ++ (η y ++ η z)
-  prop = refl
-\end{code}
-%</list-proof-obvious>
+%</eval-ast>
