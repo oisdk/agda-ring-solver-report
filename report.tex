@@ -39,6 +39,10 @@
 \DeclareUnicodeCharacter{8860}{\oeq}
 \DeclareUnicodeCharacter{9043}{\ensuremath{\triangle}}
 \DeclareUnicodeCharacter{928}{\textgreek{\textPi}}
+\DeclareUnicodeCharacter{922}{\textgreek{\textKappa}}
+\DeclareUnicodeCharacter{931}{\textgreek{\textSigma}}
+\DeclareUnicodeCharacter{916}{\textgreek{\textDelta}}
+\DeclareUnicodeCharacter{8779}{\ensuremath{\backtriplesim}}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{autofe}
@@ -450,13 +454,105 @@ We'll have to take another route.
 \subsubsection{Inequalities}
 First, we'll define our polynomial like so:
 \ExecuteMetaData[Poly.tex]{poly}
+The gap is now implicit; instead, we store a proof that the nested polynomial
+has no more variables then the outer. Next, the rest of the types are similar to
+what they were before:
+\ExecuteMetaData[Poly.tex]{poly-types}
+New here is the \(\AgdaFunction{Norm}\) function, in
+\(\AgdaDatatype{FlatPoly}\). Like \(\AgdaFunction{Zero}\) in
+\(\AgdaDatatype{Coeff}\), it proves that there really are no gaps (here in the
+nesting, rather then exponentiation, though). Its definition is as follows:
+\ExecuteMetaData[Poly.tex]{poly-norm}
+Again, similarly to the sparse exponent encoding, we provide a smart
+constructor which ensures normalization.
+\subsubsection{Choosing an Inequality}
+Conspicuously missing above is a definition for \(\leq\).
+\begin{description}
+  \item[Option 1: The Standard Way] The most commonly used definition of
+    \(\leq\) is as follows:
+    \ExecuteMetaData[Poly.tex]{leq-1}
+    For our purposes, though, this type is dangerous: it actually
+    \emph{increases} the complexity from the dense encoding. To understand why,
+    remember the addition function above with the gapless exponent encoding. For
+    it to work, we needed to compare the gaps, and proceed based on that. We'll
+    need to do a similar comparison on variable counts for this gapless
+    encoding. However, we don't store the \emph{gaps} now, we store the number
+    of variables in the nested polynomial. Consider the following sequence of
+    nestings:
 
-\subsubsection{K}
+    \[ (5 ≤ 6), (4 ≤ 5), (3 ≤ 4), (1 ≤ 3), (0 ≤ 1) \]
+
+    The outer polynomial has 6 variables, but it has a gap to its inner
+    polynomial of 5, and so on. The comparisons will be made on 5, 4, 3, 1, and
+    0. Like repeatedly taking the length of the tail of a list, this is
+    quadratic. There must be a better way.
+
+
+  \item[Option 2: With Propositional Equality] Once you realize we need to be
+    comparing the gaps and not the tails, another encoding of \(\leq\) in
+    Data.Nat seems the best option:
+    \ExecuteMetaData[Poly.tex]{leq-2}
+    It stores the gap \emph{right there}: in \(k\)!
+
+    Unfortunately, though, we're still stuck. While you can indeed run your
+    comparison on \(k\), you're not left with much information about the rest.
+    Say, for instance, you find out that two respective \(k\)s are equal. What
+    about the \(m\)s? Of course, you \emph{can} show that they must be equal as
+    well, but it requires a proof. Similarly in the less-than or greater-than
+    cases: each time, you need to show that the information about \(k\)
+    corresponds to information about \(m\). Again, all of this can be done, but
+    it all requires propositional proofs, which are messy, and slow. Erasure is
+    an option, but I'm not sure of the correctness of that approach.
+  \item[Option 3] What we really want is to \emph{run} the comparison function
+    on the gap, but get the result on the tail. Turns out we can do exactly that
+    with the following:
+    \ExecuteMetaData[Poly.tex]{leq-3}
+    While this structure stores the inequality by induction on the gap. That
+    structure can be used to write a comparison function which was linear in the
+    size of the gap (even though it compares the length of the tail).
+    \todo{Explain more the path from this to the final version. Intermediate
+      comparison function and axiom K, especially}
+
+\end{description}
+\subsubsection{Indexed Ordering}
+Now that the inequality is an inductive type, which mimics a Peano number stored
+in the gap, the parallels with the sparse exponent encoding should be even more
+clear. To write a comparison function, then, we should first look for an
+equivalent to addition. This turns out to be transitivity:
+\ExecuteMetaData[Poly.tex]{trans}
+
+With this defined, the \(\AgdaDatatype{Ordering}\) type is obvious:
+\ExecuteMetaData[Poly.tex]{ind-ordering}
+
+\section{Writing The Proofs}
+The proofs are long (roughly 1000 lines), albeit mechanical. \todo{See if the
+  proofs can be improved with\cite{mu_algebra_2009}}
+\todo{Expand on the proofs. Operators used, etc.}
 \section{Setoid Applications} \label{setoid-applications}
+I mentioned that the notion of equality we were using was more general than
+propositional, and that we could use it more flexibly in different contexts.
 \subsection{Traced}
+One ``equivalence relation'' is simply a labeled path: a list of rewrite rules
+or identities, repeatedly applied until the left-hand-side has been changed to
+the right. Print out the labels when done, and you have a step-by-step computer
+algebra system à la Wolfram Alpha. The definition of this type is
+straightforward:
+\ExecuteMetaData[Setoids.tex]{trace-def}
+And it does indeed implement the expected properties of an equivalence relation:
+\ExecuteMetaData[Setoids.tex]{trace-impl}
+\todo{Expand on the traced version, maybe clean it up? Also provide some
+  examples.}
 \subsection{Isomorphisms}
+\todo{Use the proof to translate between types. Check out Conor McBride's work
+  on containers for this.}
 \subsection{Counterexamples}
+\todo{Possible to provide counterexamples if a proof fails?}
 \section{The Correct-by-Construction Approach}
+Correct-by-construction is another approach\cite{geuvers_automatically_2017}.
+\ExecuteMetaData[Constr.tex]{constr-def}
+\begin{figure*}[!h]
+  \ExecuteMetaData[Constr.tex]{constr-add}
+\end{figure*}
 \bibliographystyle{IEEEtranS}
 \bibliography{horners-rule.bib}
 \end{document}

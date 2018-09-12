@@ -17,9 +17,11 @@
 \contentsline {section}{\numberline {6}Multivariate}{8}
 \contentsline {subsection}{\numberline {6.1}Sparse Nesting}{9}
 \contentsline {subsubsection}{\numberline {6.1.1}Inequalities}{9}
-\contentsline {subsubsection}{\numberline {6.1.2}K}{9}
-\contentsline {section}{\numberline {7}Setoid Applications}{9}
-\contentsline {subsection}{\numberline {7.1}Traced}{9}
-\contentsline {subsection}{\numberline {7.2}Isomorphisms}{9}
-\contentsline {subsection}{\numberline {7.3}Counterexamples}{9}
-\contentsline {section}{\numberline {8}The Correct-by-Construction Approach}{9}
+\contentsline {subsubsection}{\numberline {6.1.2}Choosing an Inequality}{10}
+\contentsline {subsubsection}{\numberline {6.1.3}Indexed Ordering}{10}
+\contentsline {section}{\numberline {7}Writing The Proofs}{11}
+\contentsline {section}{\numberline {8}Setoid Applications}{11}
+\contentsline {subsection}{\numberline {8.1}Traced}{11}
+\contentsline {subsection}{\numberline {8.2}Isomorphisms}{12}
+\contentsline {subsection}{\numberline {8.3}Counterexamples}{12}
+\contentsline {section}{\numberline {9}The Correct-by-Construction Approach}{12}
