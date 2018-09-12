@@ -36,6 +36,7 @@
 \DeclareUnicodeCharacter{10215}{\ensuremath{\rsem}}
 \DeclareUnicodeCharacter{8857}{\mdoubleplus}
 \DeclareUnicodeCharacter{8860}{\oeq}
+\DeclareUnicodeCharacter{9043}{\ensuremath{\triangle}}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{autofe}
@@ -134,7 +135,7 @@ We can translate between the language of lists and monoid expressions
   the Relation.Binary.Reflection module of Agda's standard
   library\cite{danielsson_agda_2018}.
 }
-with \(\mu\) and \(\eta\).
+with \(\AgdaFunction{μ}\) and \(\AgdaFunction{η}\).
 \ExecuteMetaData[Monoids.tex]{list-trans}
 
 We have one half of the equality so far: that of the canonical forms. As such,
@@ -173,10 +174,10 @@ The proofs labeled \(a\) and \(b\) are the task of this section.
 
 First, we'll define a concrete AST for the monoid language
 (figure~\ref{mon-ast}). It has constructors for each of the monoid operations
-(\(\oplus\) and \(\text{e}\) are \(\bullet\) and \(\epsilon\), respectively),
-and it's indexed by the number of variables it contains, which are constructed
-with \(\nu\). Converting back to an opaque function is accomplished in
-figure~\ref{eval-ast}.
+(\(\AgdaInductiveConstructor{⊕}\) and \(\AgdaInductiveConstructor{e}\) are
+\(\bullet\) and \(\epsilon\), respectively), and it's indexed by the number of
+variables it contains, which are constructed with \(\nu\). Converting back to an
+opaque function is accomplished in figure~\ref{eval-ast}.
 
 \begin{figure}
   \ExecuteMetaData[Monoids.tex]{mon-ast}
@@ -204,8 +205,8 @@ the Monoid record, and the equivalence relation is kept abstract. The fact that
 we're not simply using propositional equality allows for some interesting
 applications (see section~\ref{setoid-applications}), but it also removes some
 familiar tools we may reach for in proofs. Congruence in particular must be
-specified explicitly: the combinator \(\bullet\)-cong is provided for this
-purpose. With this understood, the proofs can be written:
+specified explicitly: the combinator \(\AgdaFunction{∙-cong}\) is provided for
+this purpose. With this understood, the proofs can be written:
 \ExecuteMetaData[Monoids.tex]{correct-ast}
 \subsection{Usage}
 Combining all of the components above, with some plumbing provided by the
@@ -260,9 +261,22 @@ representation will begin like so:
 The entire module is parameterized by the choice of coefficient. This
 coefficient should support the ring operations, but it is ``raw'', i.e. it
 doesn't prove the ring laws. The operations on the polynomial itself are defined
-like so:
+like so\footnote{
+  Symbols chosen for operators use the following mnemonic:
+  \begin{enumerate}
+    \item Operators preceded with ``\(\mathbb{N}.\)'' are defined over
+      \(\mathbb{N}\); e.g. \(\mathbb{N}.+\), \(\mathbb{N}.*\).
+    \item Plain operators, like \(+\) and \(*\), are defined over the
+      coefficients.
+    \item Boxed operators, like \(\boxplus\) and \(\boxtimes\), are defined over
+      polynomials.
+    \item Operators which are boxed on one side are defined over polynomials on
+      the corresponding side, and the coefficient on the other; e.g.
+      \(\ltimes\), \(\rtimes\).
+  \end{enumerate}
+}:
 \ExecuteMetaData[Rings.tex]{dense-impl}
-\subsection{Sparse}
+\subsection{Sparse Horner Normal Form}
 As it stands, the above representation has two problems:
 
 \begin{description}
@@ -303,9 +317,108 @@ Will be represented as:
 \[ (3,0),(2,1),(4,2),(2,1) \]
 Or, mathematically:
 \[ x^0 (3 + x x^1 (2 + x x^2 * (4 + x x^1 (2 + x 0)))) \]
+\subsubsection{Uniqueness}
+While this form solves our efficiency problem, we still have redundant
+representations of the same polynomials. In\cite{hutchison_proving_2005}, care
+is taken to ensure all operations include a normalizing step, but this is not
+verified: in other words, it is not proven that the polynomials are always in
+normal form.
 
+Expressing that a polynomial is in normal form turns out to be as simple as
+disallowing zeroes: without them, there can be no trailing zeroes, and all gaps
+must be represented by power indices. To check for zero, we require the user
+supply a decidable predicate on the coefficients. This changes the module
+declaration like so:
+\ExecuteMetaData[Rings.tex]{sparse-opening}
 
+Finally, we can define a sparse encoding of Horner Normal Form:
+\ExecuteMetaData[Rings.tex]{sparse-decl}
+
+The proof of nonzero is marked irrelevant (preceded with a dot) to avoid
+computing it at runtime.
+
+We can wrap up the implementation with a cleaner interface by providing a
+normalizing version of \(\squaredots\):
+\ExecuteMetaData[Rings.tex]{sparse-norm}
+\subsubsection{Comparison}
+Our addition and multiplication functions will need to properly deal with the
+new gapless formulation. First things first, we'll need a way to match the power
+indices. We can use a function from\cite{mcbride_view_2004} to do so.
+\ExecuteMetaData[Rings.tex]{compare}
+This is a classic example of a ``leftist'' function: after pattern matching on
+one of the constructors of \(\AgdaDatatype{Ordering}\), it gives you information
+on type variables to the \emph{left} of the pattern. In other words, when you
+run the function on some variables, the result of the function will give you
+information on its arguments.
+\subsubsection{Efficiency}
+The implementation of \(\AgdaFunction{compare}\) may raise suspicion with
+regards to efficiency: if this encoding of polynomials improves time complexity
+by skipping the gaps, don't we lose all of that when we encode the gaps as Peano
+numbers?
+
+The answer is a tentative no. Firstly, since we are comparing gaps, the
+complexity can be no larger than that of the dense implementation. Secondly, the
+operations we're most concerned about are those on the underlying coefficient;
+and, indeed, this sparse encoding does reduce the number of those significantly.
+Thirdly, if a fast implementation of \(\AgdaFunction{compare}\) is really and
+truly demanded, there are tricks we can employ.
+
+Agda has a number of built-in functions on the natural numbers: when applied to
+closed terms, these call to an implementation on Haskell's \texttt{Integer}
+type, rather than the unary implementation. For our uses, the functions of
+interest are \(\AgdaFunction{-}\), \(\AgdaFunction{+}\), \(\AgdaFunction{<}\),
+and \(\AgdaFunction{==}\). The comparison functions provide booleans rather than
+evidence, but we can prove they correspond to the evidence-providing versions.
+Combined with judicious use of \(\AgdaFunction{erase}\), we get the following:
+\ExecuteMetaData[Rings.tex]{unsafe-compare}
+\subsubsection{Termination}
+Unfortunately, we cannot yet define addition and multiplication. Using
+\(\AgdaFunction{compare}\) above in the most obvious way won't pass the
+termination checker.
+\ExecuteMetaData[Rings.tex]{nonterminating-addition}
+
+Agda needs to be able to see that one of the numbers returned by
+\(\AgdaFunction{compare}\) always reduces in size: however, since the difference
+is immediately packed up in a list in the recursive call, it's buried too deeply
+in constructors for the termination checker to see it.
+
+The solution is twofold: unpack any constructors into function arguments as soon
+as possible, and eliminate any redundant pattern matches in the offending
+functions. Taken together, these form an optimization known as ``call pattern
+specialization''\cite{jones_call-pattern_2007}: it's performed automatically in
+GHC, here we're doing it manually. Perhaps a similar transformation could be
+automatically applied before termination checking in Agda's compiler.
+
+Until then, the structurally terminating function is defined like so:
+\ExecuteMetaData[Rings.tex]{addition}
+Ever helper function in the mutual block matches on exactly one argument,
+eliminating redundancy. Happily, this makes the function more efficient, as well
+as more obviously terminating.
+\section{Binary}
+Before continuing with polynomials, we'll take a short detour to look at binary
+numbers. These have a number of uses in dependently typed programming: as well
+as being a more efficient alternative to Peano numbers, their structure informs
+that of many data structures, such as binomial heaps, and as such they're used
+in proofs about those structures.
+
+Similarly to polynomials, though, the naïve representation suffers from
+redundancy in the form of trailing zeroes. There are a number of ways to
+overcome this (see\cite{meshveliani_binary-4_2018}
+and\cite{escardo_libraries_2018}, for example); yet another is the repurposing
+of our sparse polynomial from above.
+\ExecuteMetaData[Binary.tex]{binary-def}
+We don't need to store any coefficients, because 1 is the only permitted
+coefficient. Effectively, all we store is the distance to another 1.
+
+Addition (elided here for brevity) is linear in the number of bits, as expected,
+and multiplication takes full advantage of the sparse representation:
+\ExecuteMetaData[Binary.tex]{binary-mul}
 \section{Multivariate}
+Up until now our polynomial has been an expression in just one variable. For it
+to be truly useful, though, we'd like to be able to extend it to many: luckily
+there's a well-known isomorphism we can use to extend our earlier
+implementation. A multivariate polynomial is one where its coefficients are
+polynomials with one fewer variable\cite{cheng_functional_2018}.
 \subsection{Sparse}
 \subsection{K}
 \section{Setoid Applications} \label{setoid-applications}
