@@ -79,7 +79,7 @@ distinguished element \(\epsilon\), which obeys the laws:
 Monoids can be represented in Agda in a straightforward way, as a record (see
 figure~\ref{mon-def}).
 \begin{figure}
-  \ExecuteMetaData[Code.tex]{mon-def}
+  \ExecuteMetaData[Monoids.tex]{mon-def}
   \caption{The definition of Monoid in the Agda Standard
     Library\cite{danielsson_agda_2018}}
   \label{mon-def}
@@ -89,7 +89,7 @@ These come equipped with their own equivalence relation, according to which
 proofs for each of the monoid laws are provided. Using this, we can prove
 identities like the one in figure~\ref{mon-ident}.
 \begin{figure}[h]
-  \ExecuteMetaData[Code.tex]{mon-ident}
+  \ExecuteMetaData[Monoids.tex]{mon-ident}
   \caption{Example Identity}
   \label{mon-ident}
 \end{figure}
@@ -97,7 +97,7 @@ identities like the one in figure~\ref{mon-ident}.
 While it seems like an obvious identity, the proof is somewhat involved
 (figure~\ref{mon-proof}).
 \begin{figure}[!h]
-  \ExecuteMetaData[Code.tex]{mon-proof}
+  \ExecuteMetaData[Monoids.tex]{mon-proof}
   \caption{Proof of identity in figure~\ref{mon-ident}}
   \label{mon-proof}
 \end{figure}
@@ -115,7 +115,7 @@ Automation of equality proofs like the one above can be accomplished by first
 rewriting both sides of the equation into a canonical form. This form depends on
 the particular algebra used in the pair of expressions. For instance, a suitable
 canonical form for monoids is lists.
-\ExecuteMetaData[Code.tex]{list-def}
+\ExecuteMetaData[Monoids.tex]{list-def}
 
 This type can be thought of as an AST for the ``language of lists''. Crucially,
 it's equivalent to the ``language of monoids'': this is the language of
@@ -123,7 +123,7 @@ expressions written using only variables and the monoid operations, like the
 expressions in figure~\ref{mon-ident}. The neutral element and binary operator
 have their equivalents in lists: \(\epsilon\) is simply the empty list, whereas
 \(\bullet\) is list concatenation.
-\ExecuteMetaData[Code.tex]{list-monoid}
+\ExecuteMetaData[Monoids.tex]{list-monoid}
 
 We can translate between the language of lists and monoid expressions
 \footnote{
@@ -136,13 +136,13 @@ We can translate between the language of lists and monoid expressions
   library\cite{danielsson_agda_2018}.
 }
 with \(\mu\) and \(\eta\).
-\ExecuteMetaData[Code.tex]{list-trans}
+\ExecuteMetaData[Monoids.tex]{list-trans}
 
 We have one half of the equality so far: that of the canonical forms. As such,
 we have an ``obvious'' proof of the identity in figure~\ref{mon-ident},
 expressed in the list language (figure~\ref{list-obvious}).
 \begin{figure}[!h]
-  \ExecuteMetaData[Code.tex]{list-obvious}
+  \ExecuteMetaData[Monoids.tex]{list-obvious}
   \caption{The identity in figure~\ref{mon-ident}, expressed in the list
     language}
   \label{list-obvious}
@@ -180,12 +180,12 @@ with \(\nu\). Converting back to an opaque function is accomplished in
 figure~\ref{eval-ast}.
 
 \begin{figure}
-  \ExecuteMetaData[Code.tex]{mon-ast}
+  \ExecuteMetaData[Monoids.tex]{mon-ast}
   \caption{The AST for the Monoid Language}
   \label{mon-ast}
 \end{figure}
 \begin{figure}
-  \ExecuteMetaData[Code.tex]{eval-ast}
+  \ExecuteMetaData[Monoids.tex]{eval-ast}
   \caption{Evaluating the Monoid Language AST}
   \label{eval-ast}
 \end{figure}
@@ -199,16 +199,25 @@ This consists of the following proofs:
   [] \mu \rho                 &= \left\lsem e \right\rsem \rho
 \end{align}
 The latter two proofs comprise a monoid homomorphism.
+
+The proofs are constrained: we are only permitted to use the laws provided in
+the Monoid record, and the equivalence relation is kept abstract. The fact that
+we're not simply using propositional equality allows for some interesting
+applications (see section~\ref{setoid-applications}), but it also removes some
+familiar tools we may reach for in proofs. Congruence in particular must be
+specified explicitly: the combinator \(\bullet\)-cong is provided for this
+purpose. With this understood, the proofs can be written:
+\ExecuteMetaData[Monoids.tex]{correct-ast}
 \subsection{Usage}
 Combining all of the components above, with some plumbing provided by the
 Relation.Binary.Reflection module, we can finally automate the solving of the
 original identity in figure~\ref{mon-ident}:
-\ExecuteMetaData[Code.tex]{ident-auto-proof}
+\ExecuteMetaData[Monoids.tex]{ident-auto-proof}
 \subsection{Reflection}
 One annoyance of the automated solver is that we have to write the expression we
 want to solve twice: once in the type signature, and again in the argument
 supplied to solve. Agda can infer the type signature:
-\ExecuteMetaData[Code.tex]{ident-infer-proof}
+\ExecuteMetaData[Monoids.tex]{ident-infer-proof}
 But we would prefer to write the expression in the type signature, and have it
 infer the argument to solve, as the expression in the type signature is the
 desired equality, and the argument to solve is something of an implementation
@@ -216,18 +225,43 @@ detail.
 
 \todo{Fill in reflection section} This inference can be accomplished using
 Agda's reflection mechanisms.
+\section{A Polynomial Solver}
+We now know the components required for an automatic solver for some algebra: a
+canonical form, a concrete representation of expressions, and a proof of
+correctness. We now turn our focus to polynomials.
 
+Prior work in this area includes\cite{geuvers_automatically_2017},
+\cite{meshveliani_dependent_2013}, \cite{zalakain_evidence-providing_2017},
+\cite{cheng_functional_2018}, and \cite{russino_polynomial_2017}, but perhaps
+the state-of-the-art (at least in terms of efficiency) is Coq's \texttt{ring}
+tactic\cite{the_coq_development_team_2018_1219885}, which is based on an
+implementation described in\cite{hutchison_proving_2005}.
+
+That implementation has a number of optimizations which dramatically improve the
+complexity of evaluation, but it also includes a careful choice of algebra which
+allows for maximum reuse. The choice of algebra has been glossed over thus far,
+but it is an important design decision: choose one with too many laws, and the
+solver becomes unusable for several types; too few, and we may miss out on
+normalization opportunities.
+
+The algebra defined in \cite{hutchison_proving_2005} is that of an
+\emph{almost-ring}. This is a ring-like algebra, which discards the requirement
+that negation is an inverse (\(x + (-x) = 0\)). Instead, it merely requires that
+negation distribute over addiction and multiplication appropriately. This
+allows the solver to be used with non-negative types, like \(\mathbb{N}\), where
+negation is simply the identity function. Also, because the implementation uses
+coefficients in the underlying ring, we lose no opportunities for normalization,
+as identities like \(x + (-x) = 0\) will indeed compute.
 \section{Horner Normal Form}
 \subsection{Sparse}
 \section{Multivariate}
 \subsection{Sparse}
 \subsection{K}
-\section{Setoid Applications}
+\section{Setoid Applications} \label{setoid-applications}
 \subsection{Traced}
 \subsection{Isomorphisms}
 \subsection{Counterexamples}
 \section{The Correct-by-Construction Approach}
-\section{Reflection}
 \bibliographystyle{IEEEtranS}
 \bibliography{horners-rule.bib}
 \end{document}

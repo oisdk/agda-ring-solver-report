@@ -1,5 +1,5 @@
 \begin{code}
-module Code where
+module Monoids where
 open import Function
 import Algebra
 module MonDef where
@@ -112,6 +112,42 @@ module MonIdent {c ℓ}
     ⟦ ν i ⟧ ρ    = lookup i ρ
 \end{code}
 %</eval-ast>
+%<*correct-ast>
+\begin{code}
+    conv : ∀ {i} → Expr i → List i
+    conv (x ⊕ y) = conv x ⊙ conv y
+    conv e = []
+    conv (ν x) = η x
+
+    ⊙-hom  : ∀ {i} (x y : List i)
+           → (ρ : Vec Carrier i)
+           → ((x ⊙ y) μ) ρ ≈ (x μ) ρ ∙ (y μ) ρ
+    ⊙-hom [] y ρ = sym (identityˡ _)
+    ⊙-hom (x ∷ xs) y ρ =
+      begin
+        lookup x ρ ∙ ((xs ⊙ y) μ) ρ
+      ≈⟨ refl ⟨ ∙-cong ⟩ ⊙-hom xs y ρ ⟩
+        lookup x ρ ∙ ((xs μ) ρ ∙ (y μ) ρ)
+      ≈⟨ sym (assoc _ _ _) ⟩
+        lookup x ρ ∙ (xs μ) ρ ∙ (y μ) ρ
+      ∎
+
+    correct  : ∀ {i}
+             → (x : Expr i)
+             → (ρ : Vec Carrier i)
+             →  (conv x μ) ρ ≈ ⟦ x ⟧ ρ
+    correct (x ⊕ y) ρ =
+      begin
+        ((conv x ⊙ conv y) μ) ρ
+      ≈⟨ ⊙-hom (conv x) (conv y) ρ ⟩
+        (conv x μ) ρ ∙ (conv y μ) ρ
+      ≈⟨ ∙-cong (correct x ρ) (correct y ρ) ⟩
+        ⟦ x ⟧ ρ ∙ ⟦ y ⟧ ρ
+      ∎
+    correct e ρ = refl
+    correct (ν x) ρ = identityʳ _
+\end{code}
+%</correct-ast>
 \begin{code}
   open import Algebra.Solver.Monoid M renaming (id to e)
 \end{code}
