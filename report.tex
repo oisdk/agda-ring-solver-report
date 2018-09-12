@@ -44,8 +44,7 @@
 \setlength{\marginparwidth}{2cm}
 \usepackage[obeyDraft]{todonotes}
 \author{D Oisín Kidney}
-\title{An Efficient and Flexible Evidence-Providing Polynomial Solver for
-  Polynomials in Agda}
+\title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -128,11 +127,11 @@ have their equivalents in lists: \(\epsilon\) is simply the empty list, whereas
 We can translate between the language of lists and monoid expressions
 \footnote{
   For simplicity's sake, instead of curried functions of \(n\)
-  arguments, we'll instead deal with functions which take a vector of length
-  \(n\), that refer to each variable by position, using Fin, the type of finite
-  sets. Of course these two representations are equivalent, but the translation
-  is not directly relevant to what we're doing here: we refer the interested
-  reader to the Relation.Binary.Reflection module of Agda's standard
+  arguments, we'll deal with functions which take a vector of length \(n\), that
+  refer to each variable by position, using Fin, the type of finite sets. Of
+  course these two representations are equivalent, but the translation is not
+  directly relevant to what we're doing here: we refer the interested reader to
+  the Relation.Binary.Reflection module of Agda's standard
   library\cite{danielsson_agda_2018}.
 }
 with \(\mu\) and \(\eta\).
@@ -253,7 +252,59 @@ negation is simply the identity function. Also, because the implementation uses
 coefficients in the underlying ring, we lose no opportunities for normalization,
 as identities like \(x + (-x) = 0\) will indeed compute.
 \section{Horner Normal Form}
+The canonical representation of polynomials is a list of coefficients, least
+significant first (``Horner Normal Form''). Our initial attempt at encoding this
+representation will begin like so:
+\ExecuteMetaData[Rings.tex]{dense-opening}
+
+The entire module is parameterized by the choice of coefficient. This
+coefficient should support the ring operations, but it is ``raw'', i.e. it
+doesn't prove the ring laws. The operations on the polynomial itself are defined
+like so:
+\ExecuteMetaData[Rings.tex]{dense-impl}
 \subsection{Sparse}
+As it stands, the above representation has two problems:
+
+\begin{description}
+  \item[Redundancy] The representation suffers from the problem of trailing
+    zeroes. In other words, the polynomial $2x$ could be represented by any of
+    the following:
+  
+    \begin{align*}
+      & 0, 2 \\
+      & 0, 2, 0 \\
+      & 0, 2, 0, 0 \\
+      & 0, 2, 0, 0, 0, 0, 0
+    \end{align*}
+    
+    This is a problem for a solver: the whole \emph{point} is that equivalent
+    expressions are represented the same way.
+
+  \item[Inefficiency] Expressions will tend to have large gaps, full only of
+    zeroes. Something like $x^5$ will be represented as a list with 6 elements,
+    only the last one being of interest. Since addition is linear in the length
+    of the list, and multiplication quadratic, this is a major concern.
+\end{description}
+
+In\cite{hutchison_proving_2005}, the problem is addressed primarily from the
+efficiency perspective: they add a field for the ``power index''. For our case,
+we'll just store a list of pairs, where the second element of the pair is the
+power index\footnote{
+  In\cite{hutchison_proving_2005}, the expression \((c , i) \squaredots P\)
+  represents \(P \times X^i + c\). We found that \(X^i \times (c + X \times P)\)
+  is a more natural translation, and it's what we use here. A power index of
+  \(i\) in this representation is equivalent to a power index of \(i+1\)
+  in\cite{hutchison_proving_2005}.
+}.
+
+As an example, the polynomial:
+\[ 3 + 2x^2 + 4x^5 + 2x^7 \]
+Will be represented as:
+\[ (3,0),(2,1),(4,2),(2,1) \]
+Or, mathematically:
+\[ x^0 (3 + x x^1 (2 + x x^2 * (4 + x x^1 (2 + x 0)))) \]
+
+
 \section{Multivariate}
 \subsection{Sparse}
 \subsection{K}
