@@ -649,9 +649,46 @@ And it does indeed implement the expected properties of an equivalence relation:
 \subsection{Counterexamples}
 \todo{Possible to provide counterexamples if a proof fails?}
 \section{The Correct-by-Construction Approach}
-Correct-by-construction is another approach\cite{geuvers_automatically_2017}.
+The Agda and Coq communities exhibit something of a cultural difference when it
+comes to proving things. Coq users seem to prefer writing simpler, almost
+non-dependent code and algorithms, to separately prove properties about that
+code in auxiliary lemmas. Agda users, on the other hand, seem to prefer baking
+the properties into the definition of the types themselves, and writing the
+functions in such a way that they prove those properties as they go (the
+``correct-by-construction'' approach).
+
+There are advantages and disadvantages to each approach. The Coq approach, for
+instance, allows you to reuse the same functions in different settings,
+verifying different properties about them depending on what's required. In Agda,
+this is more difficult: you usually need a new type for every invariant you
+maintain (lists, and then length-indexed lists, and then sorted lists, etc.). On
+the other hand, the proofs themselves often contain a lot of duplication of the
+logic in the implementation: in the Agda style, you avoid this duplication, by
+doing both at once. Also worth noting is that occasionally attempting to write a
+function that is correct by construction will lead to a much more elegant
+formulation of the original algorithm, or expose symmetries between the proof
+and implementation that would have been difficult to see otherwise.
+
+\cite{hutchison_proving_2005}, as an example, is very much in the Coq style: the
+definition of the polynomial type has no type indices, and makes no requirements
+on its internal structure:
+\begin{verbatim}
+Inductive Pol (C:Set) : Set :=
+| Pc : C -> Pol C
+| Pinj : positive -> Pol C -> Pol C
+| PX : Pol C -> positive -> Pol C -> Pol C.
+\end{verbatim}
+
+The implementation presented here straddles both camps: some properties, like
+the canonical form, or the number of variables in the polynomial, are baked into
+the type. The homomorphism properties, however, are proven in separate lemmas.
+
+Performing the same task in a correct-by-construction way is explored
+in\cite{geuvers_automatically_2017} (in Idris\cite{brady_idris_2013}).
+
+
 \ExecuteMetaData[Constr.tex]{constr-def}
-\begin{figure*}[!h]
+\begin{figure*}
   \ExecuteMetaData[Constr.tex]{constr-add}
 \end{figure*}
 \bibliographystyle{IEEEtranS}

@@ -71,8 +71,8 @@ module Lemmas where
   open AlmostCommutativeRing coeffs
   open import Relation.Binary.EqReasoning setoid
 
-  +-distrib : ∀ x xs y ys ρ → (x + ρ * xs) + (y + ρ * ys) ≈ x + y + ρ * (xs + ys)
-  +-distrib x xs y ys ρ =
+  +-distrib : ∀ {x xs y ys} ρ → (x + ρ * xs) + (y + ρ * ys) ≈ x + y + ρ * (xs + ys)
+  +-distrib {x} {xs} {y} {ys} ρ =
     begin
       (x + ρ * xs) + (y + ρ * ys)
     ≈⟨ +-assoc x _ _ ⟩
@@ -85,16 +85,6 @@ module Lemmas where
       x + y + ρ * (xs + ys)
     ∎
 
-  ⋊-distrib : ∀ x y ys ρ → x * (y + ρ * ys) ≈ x * y + ρ * (x * ys)
-  ⋊-distrib x y ys ρ =
-    begin
-      x * (y + ρ * ys)
-    ≈⟨ distribˡ x y _ ⟩
-      x * y + x * (ρ * ys)
-    ≈⟨ refl ⟨ +-cong ⟩ (sym (*-assoc x ρ ys) ⟨ trans ⟩ (*-comm x ρ ⟨ *-cong ⟩ refl) ⟨ trans ⟩ *-assoc _ _ _) ⟩
-      x * y + ρ * (x * ys)
-    ∎
-
 open Lemmas
 open Context
 open AlmostCommutativeRing exprRing
@@ -103,30 +93,35 @@ open import Relation.Binary.EqReasoning setoid
 \end{code}
 %<*constr-def>
 \begin{code}
-infixr 0 ⟦⟧⇐_ ⟦_∷_⟨_⟩⟧⇐_
-data Poly (expr : Carrier) : Set (a ⊔ ℓ) where
-  ⟦⟧⇐_ : expr ≋ 0#
-       → Poly expr
-  ⟦_∷_⟨_⟩⟧⇐_
+data Poly (expr : Carrier) : Carrier → Set (a ⊔ ℓ)
+infixr 0 _⇐_
+record Expr (expr : Carrier) : Set (a ⊔ ℓ) where
+  inductive
+  constructor _⇐_
+  field
+    {norm} : Carrier
+    poly   : Poly expr norm
+    proof  : expr ≋ norm
+open Expr
+data Poly (expr : Carrier) where
+  ⟦⟧ : Poly expr 0#
+  ⟦_∷_⟨_⟩⟧
     : ∀ x xs
-    → Poly xs
-    → expr ≋ (λ ρ → x Coeff.+ ρ Coeff.* xs ρ)
-    → Poly expr
+    → (e : Expr xs)
+    → Poly expr (λ ρ → x Coeff.+ ρ Coeff.* norm e ρ)
 \end{code}
 %</constr-def>
 %<*constr-add>
 \begin{code}
-_⊞_ : ∀ {x y} → Poly x → Poly y → Poly (x + y)
-(⟦⟧⇐ xp) ⊞ (⟦⟧⇐ yp) = ⟦⟧⇐ xp ⟨ +-cong ⟩ yp ⟨ trans ⟩ +-identityˡ _
-(⟦⟧⇐ xp) ⊞ (⟦ y ∷ ys ⟨ ys′ ⟩⟧⇐ yp) = ⟦ y ∷ ys ⟨ ys′ ⟩⟧⇐ xp ⟨ +-cong ⟩ yp ⟨ trans ⟩ +-identityˡ _
-(⟦ x ∷ xs ⟨ xs′ ⟩⟧⇐ xp) ⊞ (⟦⟧⇐ yp) = ⟦ x ∷ xs ⟨ xs′ ⟩⟧⇐ xp ⟨ +-cong ⟩ yp ⟨ trans ⟩ +-identityʳ _
-(⟦ x ∷ xs ⟨ xs′ ⟩⟧⇐ xp) ⊞ (⟦ y ∷ ys ⟨ ys′ ⟩⟧⇐ yp) = ⟦ x Coeff.+ y ∷ xs + ys ⟨ xs′ ⊞ ys′ ⟩⟧⇐
-  xp ⟨ +-cong ⟩ yp ⟨ trans ⟩  λ ρ → +-distrib _ _ _ _ ρ
+_⊞_ : ∀ {x y} → Expr x → Expr y → Expr (x + y)
+(⟦⟧ ⇐ xp) ⊞ (⟦⟧ ⇐ yp) = ⟦⟧ ⇐  xp ⟨ +-cong ⟩ yp ⟨ trans ⟩ +-identityˡ _
+(⟦⟧ ⇐ xp) ⊞ (⟦ y ∷ ys ⟨ ys′ ⟩⟧ ⇐ yp) = ⟦ y ∷ ys ⟨ ys′ ⟩⟧ ⇐ xp ⟨ +-cong ⟩ yp ⟨ trans ⟩ +-identityˡ _
+(⟦ x ∷ xs ⟨ xs′ ⟩⟧ ⇐ xp) ⊞ (⟦⟧ ⇐ yp) = ⟦ x ∷ xs ⟨ xs′ ⟩⟧ ⇐ xp ⟨ +-cong ⟩ yp ⟨ trans ⟩ +-identityʳ _
+(⟦ x ∷ xs ⟨ xs′ ⟩⟧ ⇐ xp) ⊞ (⟦ y ∷ ys ⟨ ys′ ⟩⟧ ⇐ yp) with xs′ ⊞ ys′
+... | zs ⇐ zp = ⟦ x Coeff.+ y ∷ xs + ys ⟨ zs ⇐ zp ⟩⟧ ⇐
+  xp ⟨ +-cong ⟩ yp ⟨ trans ⟩ ((λ ρ → +-distrib ρ) ⟨ trans ⟩ λ ρ → Coeff.refl ⟨ Coeff.+-cong ⟩ (Coeff.refl ⟨ Coeff.*-cong ⟩ {!!}))
+
 \end{code}
 %</constr-add>
 \begin{code}
-_⋊_ : ∀ x {ys} → Poly ys → Poly (λ ρ → x Coeff.* ys ρ)
-x ⋊ (⟦⟧⇐ yp) = ⟦⟧⇐ λ _ →  Coeff.refl ⟨ Coeff.*-cong ⟩ yp _ ⟨ Coeff.trans ⟩ Coeff.zeroʳ _
-x ⋊ (⟦ y ∷ ys ⟨ ys′ ⟩⟧⇐ yp) = ⟦ x Coeff.* y ∷ (λ ρ → x Coeff.* ys ρ) ⟨ x ⋊ ys′ ⟩⟧⇐
-  λ _ → Coeff.refl ⟨ Coeff.*-cong ⟩ yp _ ⟨ Coeff.trans ⟩ ⋊-distrib x y _ _
 \end{code}
