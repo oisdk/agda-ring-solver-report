@@ -615,6 +615,7 @@ equivalent to addition. This turns out to be transitivity:
 
 With this defined, the \(\AgdaDatatype{Ordering}\) type is obvious:
 \ExecuteMetaData[Poly.tex]{ind-ordering}
+\subsection{Operations}
 
 \section{Writing The Proofs}
 The proofs are long (roughly 1000 lines), albeit mechanical.
@@ -679,9 +680,10 @@ Inductive Pol (C:Set) : Set :=
 | PX : Pol C -> positive -> Pol C -> Pol C.
 \end{verbatim}
 
-The implementation presented here straddles both camps: some properties, like
-the canonical form, or the number of variables in the polynomial, are baked into
-the type. The homomorphism properties, however, are proven in separate lemmas.
+The implementation presented here straddles both camps: we verify homomorphism
+in separate lemmas, but the type itself does carry information: it's indexed by
+the number of variables it contains, for instance, and it statically ensures
+it's always in canonical form.
 
 Performing the same task in a correct-by-construction way is explored
 in\cite{geuvers_automatically_2017} (in Idris\cite{brady_idris_2013}).

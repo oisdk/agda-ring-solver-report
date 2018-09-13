@@ -48,9 +48,9 @@ module LEQ2 where
 \end{code}
 %</leq-2>
 \begin{code}
-open RawRing coeffs
 
 module Slime where
+  open RawRing coeffs
   FlatPoly : ℕ → Set
   FlatPoly _ = ⊤
 \end{code}
@@ -117,6 +117,7 @@ z≤n {zero} = m≤m
 z≤n {suc n} = ≤-s z≤n
 
 module Full where
+  open RawRing coeffs
   mutual
 \end{code}
 %<*poly>
@@ -177,3 +178,149 @@ module Full where
     Norm (_ Δ suc _  ∷ _)      = ⊤
 \end{code}
 %</poly-norm>
+\begin{code}
+  zero? : ∀ {n} → (p : Poly n) → Dec (Zero p)
+  zero? (Κ x       Π _) = zero-c? x
+  zero? (Σ []      Π _) = yes (lift tt)
+  zero? (Σ (_ ∷ _) Π _) = no lower
+
+  infixr 8 _⍓_
+  _⍓_ : ∀ {n} → Coeffs n → ℕ → Coeffs n
+  [] ⍓ i = []
+  (x Δ j ∷ xs) ⍓ i = x Δ (j ℕ.+ i) ∷ xs
+
+  infixr 5 _^_∷↓_
+  _^_∷↓_ : ∀ {n} → Poly n → ℕ → Coeffs n → Coeffs n
+  x ^ i ∷↓ xs with zero? x
+  ... | yes p = xs ⍓ suc i
+  ... | no ¬p = _≠0 x {¬p} Δ i ∷ xs
+
+  _Π↑_ : ∀ {n m} → Poly n → (suc n ≤ m) → Poly m
+  (xs Π i≤n) Π↑ n≤m = xs Π (≤-s i≤n ⋈ n≤m)
+
+  infixr 4 _Π↓_
+  _Π↓_ : ∀ {i n} → Coeffs i → suc i ≤ n → Poly n
+  []                       Π↓ i≤n = Κ 0# Π z≤n
+  (x ≠0 Δ zero  ∷ [])      Π↓ i≤n = x Π↑ i≤n
+  (x₁   Δ zero  ∷ x₂ ∷ xs) Π↓ i≤n = Σ (x₁ Δ zero  ∷ x₂ ∷ xs) Π i≤n
+  (x    Δ suc j ∷ xs)      Π↓ i≤n = Σ (x  Δ suc j ∷ xs) Π i≤n
+
+  mutual
+    infixl 6 _⊞_
+    _⊞_ : ∀ {n} → Poly n → Poly n → Poly n
+    (xs Π i≤n) ⊞ (ys Π j≤n) = ⊞-match (i≤n cmp j≤n) xs ys
+
+    ⊞-match : ∀ {i j n}
+          → {i≤n : i ≤ n}
+          → {j≤n : j ≤ n}
+          → Ordering i≤n j≤n
+          → FlatPoly i
+          → FlatPoly j
+          → Poly n
+    ⊞-match (eq i&j≤n)    (Κ x)  (Κ y)  = Κ (x + y)         Π  i&j≤n
+    ⊞-match (eq i&j≤n)    (Σ xs) (Σ ys) = ⊞-coeffs    xs ys Π↓ i&j≤n
+    ⊞-match (i≤j-1 < j≤n)  xs    (Σ ys) = ⊞-inj i≤j-1 xs ys Π↓ j≤n
+    ⊞-match (i≤n > j≤i-1) (Σ xs)  ys    = ⊞-inj j≤i-1 ys xs Π↓ i≤n
+
+    ⊞-inj : ∀ {i k}
+        → (i ≤ k)
+        → FlatPoly i
+        → Coeffs k
+        → Coeffs k
+    ⊞-inj i≤k xs [] = xs Π i≤k ^ zero ∷↓ []
+    ⊞-inj i≤k xs (y Π j≤k ≠0 Δ zero ∷ ys) =
+      ⊞-match (j≤k cmp i≤k) y xs ^ zero ∷↓ ys
+    ⊞-inj i≤k xs (y Δ suc j ∷ ys) =
+      xs Π i≤k ^ zero ∷↓ y Δ j ∷ ys
+
+    ⊞-coeffs : ∀ {n} → Coeffs n → Coeffs n → Coeffs n
+    ⊞-coeffs [] ys = ys
+    ⊞-coeffs (x Δ i ∷ xs) = ⊞-zip-r x i xs
+
+    ⊞-zip : ∀ {p q n}
+          → ℕ.Ordering p q
+          → Coeff n
+          → Coeffs n
+          → Coeff n
+          → Coeffs n
+          → Coeffs n
+    ⊞-zip (ℕ.less    i k) x xs y ys = x Δ i ∷ ⊞-zip-r y k ys xs
+    ⊞-zip (ℕ.greater j k) x xs y ys = y Δ j ∷ ⊞-zip-r x k xs ys
+    ⊞-zip (ℕ.equal   i  ) (x ≠0) xs (y ≠0) ys =
+      (x ⊞ y) ^ i ∷↓ ⊞-coeffs xs ys
+
+    ⊞-zip-r : ∀ {n} → Coeff n → ℕ → Coeffs n → Coeffs n → Coeffs n
+    ⊞-zip-r x i xs [] = x Δ i ∷ xs
+    ⊞-zip-r x i xs (y Δ j ∷ ys) = ⊞-zip (compare i j) x xs y ys
+
+  mutual
+    infixl 7 _⊠_
+    _⊠_ : ∀ {n} → Poly n → Poly n → Poly n
+    (xs Π i≤n) ⊠ (ys Π j≤n) = ⊠-match (i≤n cmp j≤n) xs ys
+
+    ⊠-inj : ∀ {i k}
+          → i ≤ k
+          → FlatPoly i
+          → Coeffs k
+          → Coeffs k
+    ⊠-inj _ _ [] = []
+    ⊠-inj i≤k x (y Π j≤k ≠0 Δ p ∷ ys) =
+      ⊠-match (i≤k cmp j≤k) x y ^ p ∷↓ ⊠-inj i≤k x ys
+
+    ⊠-match : ∀ {i j n}
+            → {i≤n : i ≤ n}
+            → {j≤n : j ≤ n}
+            → Ordering i≤n j≤n
+            → FlatPoly i
+            → FlatPoly j
+            → Poly n
+    ⊠-match (eq i&j≤n) (Κ x)  (Κ y)  = Κ (x * y)         Π  i&j≤n
+    ⊠-match (eq i&j≤n) (Σ xs) (Σ ys) = ⊠-coeffs xs ys    Π↓ i&j≤n
+    ⊠-match (i≤j-1 < j≤n) xs (Σ ys)  = ⊠-inj i≤j-1 xs ys Π↓ j≤n
+    ⊠-match (i≤n > j≤i-1) (Σ xs) ys  = ⊠-inj j≤i-1 ys xs Π↓ i≤n
+
+    ⊠-coeffs : ∀ {n} → Coeffs n → Coeffs n → Coeffs n
+    ⊠-coeffs _ [] = []
+    ⊠-coeffs xs (y ≠0 Δ j ∷ ys) = ⊠-step y ys xs ⍓ j
+
+    ⊠-step : ∀ {n} → Poly n → Coeffs n → Coeffs n → Coeffs n
+    ⊠-step y ys [] = []
+    ⊠-step y ys (x Π j≤n ≠0 Δ i ∷ xs) =
+      (x Π j≤n) ⊠ y ^ i ∷↓ ⊞-coeffs (⊠-inj j≤n x ys) (⊠-step y ys xs)
+
+module Semantics
+  {r₃ r₄}
+  (ring : AlmostCommutativeRing r₃ r₄)
+  (morphism : coeffs -Raw-AlmostCommutative⟶ ring)
+  where
+
+  open import Data.Product
+  open AlmostCommutativeRing ring
+  open Full
+  open _-Raw-AlmostCommutative⟶_ morphism using () renaming (⟦_⟧ to ⟦_⟧ᵣ)
+
+  -- Exponentiation
+  infixr 8 _^_
+  _^_ : Carrier → ℕ → Carrier
+  x ^ zero = 1#
+  x ^ suc n = x * x ^ n
+
+  drop : ∀ {i n} → i ≤ n → Vec Carrier n → Vec Carrier i
+  drop m≤m Ρ = Ρ
+  drop (≤-s si≤n) (_ ∷ Ρ) = drop si≤n Ρ
+
+  vec-uncons : ∀ {n} → Vec Carrier (suc n) → Carrier × Vec Carrier n
+  vec-uncons (x ∷ xs) = x , xs
+
+  drop-1 : ∀ {i n} → suc i ≤ n → Vec Carrier n → Carrier × Vec Carrier i
+  drop-1 si≤n xs = vec-uncons (drop si≤n xs)
+
+  mutual
+    Σ⟦_⟧ : ∀ {n} → Coeffs n → (Carrier × Vec Carrier n) → Carrier
+    Σ⟦ x ≠0 Δ i ∷ xs ⟧ (ρ , Ρ) = (⟦ x ⟧ Ρ + Σ⟦ xs ⟧ (ρ , Ρ) * ρ) * ρ ^ i
+    Σ⟦ [] ⟧ _ = 0#
+
+    ⟦_⟧ : ∀ {n} → Poly n → Vec Carrier n → Carrier
+    ⟦ Κ x  Π i≤n ⟧ _ = ⟦ x ⟧ᵣ
+    ⟦ Σ xs Π i≤n ⟧ Ρ = Σ⟦ xs ⟧ (drop-1 i≤n Ρ)
+\end{code}

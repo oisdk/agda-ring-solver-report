@@ -20,6 +20,7 @@
 \contentsline {subsubsection}{\numberline {6.1.1}Inequalities}{10}
 \contentsline {subsubsection}{\numberline {6.1.2}Choosing an Inequality}{11}
 \contentsline {subsubsection}{\numberline {6.1.3}Indexed Ordering}{11}
+\contentsline {subsection}{\numberline {6.2}Operations}{12}
 \contentsline {section}{\numberline {7}Writing The Proofs}{12}
 \contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{12}
 \contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{12}
