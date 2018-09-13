@@ -27,8 +27,8 @@
 \usepackage{ucs}
 \DeclareUnicodeCharacter{8759}{\ensuremath{\squaredots}}
 \DeclareUnicodeCharacter{951}{\textgreek{\texteta}}
-\DeclareUnicodeCharacter{737}{\ensuremath{^l}}
-\DeclareUnicodeCharacter{691}{\ensuremath{^r}}
+\DeclareUnicodeCharacter{737}{\ensuremath{^\text{l}}}
+\DeclareUnicodeCharacter{691}{\ensuremath{^\text{r}}}
 \DeclareUnicodeCharacter{8718}{\ensuremath{\blacksquare}}
 \DeclareUnicodeCharacter{957}{\textgreek{\textnu}}
 \DeclareUnicodeCharacter{961}{\textgreek{\textrho}}
@@ -98,42 +98,52 @@ into a canonical form, and a proof that the conversion preserves the semantics
 of the expression. This can then be used to automatically construct equivalence
 proofs for equivalent expressions.
 \section{A Case Study in Monoids}
-Before describing the ring solver, first we will explain the simpler case of a
-monoid solver.
+Before describing the ring solver, first we will explain the technique of
+writing a solver in Agda in the simpler case of monoids.
 
 A monoid is a set equipped with a binary operation, \(\bullet\), and a
-distinguished element \(\epsilon\), which obeys the laws:
+distinguished element \(\epsilon\), such that the following equations hold:
 \begin{align}
   x \bullet (y \bullet z) &= (x \bullet y) \bullet z \tag{Associativity} \\
   x \bullet \epsilon      &= x \tag{Left Identity} \\
   \epsilon \bullet x      &= x \tag{Right Identity}
 \end{align}
-\subsection{Equality Proofs}
+Addition and multiplication (with 0 and 1 being the respective identity
+elements) are perhaps the most obvious candidates, as well as boolean
+conjunction and disjunction. In computer science, monoids have proved a useful
+abstraction for formalizing concurrency (associativity can be thought of as a
+kind of ``order-independence'').
+
 Monoids can be represented in Agda in a straightforward way, as a record (see
-figure~\ref{mon-def}).
+Figure~\ref{mon-def}). Immediately it should be noted that we're no longer
+talking about a monoid over a set, but rather one over a setoid. In other words,
+rather than using propositional equality (indicated by the \(\AgdaDatatype{≡}\)
+symbol), we will use a user-supplied equivalence relation (\(\AgdaField{≈}\) in
+Figure~\ref{mon-def}) in our proofs.
 \begin{figure}
   \ExecuteMetaData[Monoids.tex]{mon-def}
   \caption{The definition of Monoid in the Agda Standard
     Library\cite{danielsson_agda_2018}}
   \label{mon-def}
 \end{figure}
-
-These come equipped with their own equivalence relation, according to which
-proofs for each of the monoid laws are provided. Using this, we can prove
-identities like the one in figure~\ref{mon-ident}.
+\subsection{Equivalence Proofs}
+Propositions are stated in type signatures in dependently typed languages.
+Figure~\ref{mon-ident} is an example of such a proposition.
 \begin{figure}[h]
   \ExecuteMetaData[Monoids.tex]{mon-ident}
   \caption{Example Identity}
   \label{mon-ident}
 \end{figure}
 
-While it seems like an obvious identity, the proof is somewhat involved
-(figure~\ref{mon-proof}).
-\begin{figure}[!h]
-  \ExecuteMetaData[Monoids.tex]{mon-proof}
-  \caption{Proof of identity in figure~\ref{mon-ident}}
-  \label{mon-proof}
-\end{figure}
+To a human, the fact that the identity holds may well be obvious:
+\(\AgdaField{∙}\) is associative, so scrub out all the parentheses, and
+\(\AgdaField{ε}\) is the identity element, so scrub it out too. After that, both
+sides are equal, so voilà!
+
+Unfortunately, to convince the compiler we need to specify every instance of
+associativity and identity, rewriting the left-hand-side repeatedly until it
+matches the right:
+\ExecuteMetaData[Monoids.tex]{mon-proof}
 
 The syntax mimics that of normal, handwritten proofs: the successive ``states''
 of the expression are interspersed with equivalence proofs (in the brackets).

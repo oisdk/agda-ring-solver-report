@@ -1,19 +1,19 @@
 \babel@toc {english}{}
 \contentsline {section}{\numberline {1}Introduction}{1}
 \contentsline {section}{\numberline {2}A Case Study in Monoids}{2}
-\contentsline {subsection}{\numberline {2.1}Equality Proofs}{2}
+\contentsline {subsection}{\numberline {2.1}Equivalence Proofs}{2}
 \contentsline {subsection}{\numberline {2.2}Canonical Forms}{3}
 \contentsline {subsection}{\numberline {2.3}Homomorphism}{3}
 \contentsline {subsection}{\numberline {2.4}Usage}{4}
-\contentsline {subsection}{\numberline {2.5}Reflection}{4}
+\contentsline {subsection}{\numberline {2.5}Reflection}{5}
 \contentsline {section}{\numberline {3}A Polynomial Solver}{5}
 \contentsline {section}{\numberline {4}Horner Normal Form}{5}
-\contentsline {subsection}{\numberline {4.1}Sparse Horner Normal Form}{5}
+\contentsline {subsection}{\numberline {4.1}Sparse Horner Normal Form}{6}
 \contentsline {subsubsection}{\numberline {4.1.1}Uniqueness}{6}
 \contentsline {subsubsection}{\numberline {4.1.2}Comparison}{7}
 \contentsline {subsubsection}{\numberline {4.1.3}Efficiency}{7}
 \contentsline {subsubsection}{\numberline {4.1.4}Termination}{8}
-\contentsline {section}{\numberline {5}Binary}{8}
+\contentsline {section}{\numberline {5}Binary}{9}
 \contentsline {section}{\numberline {6}Multivariate}{9}
 \contentsline {subsection}{\numberline {6.1}Sparse Nesting}{9}
 \contentsline {subsubsection}{\numberline {6.1.1}Inequalities}{9}
@@ -23,7 +23,7 @@
 \contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{11}
 \contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{11}
 \contentsline {section}{\numberline {8}Setoid Applications}{11}
-\contentsline {subsection}{\numberline {8.1}Traced}{11}
+\contentsline {subsection}{\numberline {8.1}Traced}{12}
 \contentsline {subsection}{\numberline {8.2}Isomorphisms}{12}
 \contentsline {subsection}{\numberline {8.3}Counterexamples}{12}
 \contentsline {section}{\numberline {9}The Correct-by-Construction Approach}{12}

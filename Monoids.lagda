@@ -33,7 +33,7 @@ module MonIdent {c ℓ}
 %<*mon-ident>
 \begin{code}
   ident  : ∀ w x y z
-         →  w ∙ (((x ∙ ε) ∙ y) ∙ z)
+         → ((w ∙ ε) ∙ (x ∙ y)) ∙ z
          ≈ (w ∙ x) ∙ (y ∙ z)
 \end{code}
 %</mon-ident>
@@ -41,12 +41,12 @@ module MonIdent {c ℓ}
 \begin{code}
   ident w x y z =
     begin
-      w ∙ (((x ∙ ε) ∙ y) ∙ z)
-    ≈⟨ refl ⟨ ∙-cong ⟩ assoc (x ∙ ε) y z ⟩
-      w ∙ ((x ∙ ε) ∙ (y ∙ z))
-    ≈⟨ sym (assoc w (x ∙ ε) (y ∙ z)) ⟩
-      (w ∙ (x ∙ ε)) ∙ (y ∙ z)
-    ≈⟨ (refl ⟨ ∙-cong ⟩ identityʳ x) ⟨ ∙-cong ⟩ refl ⟩
+      ((w ∙ ε) ∙ (x ∙ y)) ∙ z
+    ≈⟨ assoc (w ∙ ε) (x ∙ y) z ⟩
+      (w ∙ ε) ∙ ((x ∙ y) ∙ z)
+    ≈⟨ identityʳ w ⟨ ∙-cong ⟩ assoc x y z ⟩
+      w ∙ (x ∙ (y ∙ z))
+    ≈⟨ sym (assoc w x (y ∙ z)) ⟩
       (w ∙ x) ∙ (y ∙ z)
     ∎
 \end{code}
@@ -88,7 +88,7 @@ module MonIdent {c ℓ}
 \begin{code}
   obvious
     : (List 4 ∋
-    η # 0 ⊙ (((η # 1 ⊙ []) ⊙ η # 2) ⊙ η # 3))
+    ((η # 0 ⊙ []) ⊙ (η # 1 ⊙ η # 2)) ⊙ η # 3)
     ≡ (η # 0 ⊙ η # 1) ⊙ (η # 2 ⊙ η # 3)
   obvious = ≡.refl
 \end{code}
@@ -154,11 +154,11 @@ module MonIdent {c ℓ}
 %<*ident-auto-proof>
 \begin{code}
   ident′  : ∀ w x y z
-          →  w ∙ (((x ∙ ε) ∙ y) ∙ z)
+          → ((w ∙ ε) ∙ (x ∙ y)) ∙ z
           ≈ (w ∙ x) ∙ (y ∙ z)
   ident′ = solve 4
     (  λ w x y z
-       → w ⊕ (((x ⊕ e) ⊕ y) ⊕ z)
+       → ((w ⊕ e) ⊕ (x ⊕ y)) ⊕ z
        ⊜ (w ⊕ x) ⊕ (y ⊕ z))
     refl
 \end{code}
@@ -168,7 +168,7 @@ module MonIdent {c ℓ}
   ident-infer : ∀ w x y z →  _
   ident-infer = solve 4
     (  λ w x y z
-       → w ⊕ (((x ⊕ e) ⊕ y) ⊕ z)
+       → ((w ⊕ e) ⊕ (x ⊕ y)) ⊕ z
        ⊜ (w ⊕ x) ⊕ (y ⊕ z))
     refl
 \end{code}
