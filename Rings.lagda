@@ -3,7 +3,7 @@ module Rings where
 open import Relation.Unary
 open import Level using (_⊔_)
 open import Relation.Nullary
-open import Data.List as List using (List; _∷_; []; map)
+open import Data.List as List using (List; _∷_; []; map; foldr)
 open import Data.Nat as ℕ using (ℕ; zero; suc)
 open import Data.Product using (_×_; _,_)
 \end{code}
@@ -33,6 +33,12 @@ module Dense {ℓ} (coeff : RawRing ℓ) where
     x * y ∷ (map (x *_) ys ⊞ (xs ⊠ (y ∷ ys)))
 \end{code}
 %</dense-impl>
+%<*dense-eval>
+\begin{code}
+  ⟦_⟧ : Poly → Carrier → Carrier
+  ⟦ x ⟧ ρ = foldr (λ y ys → y + ρ * ys) 0# x
+\end{code}
+%</dense-eval>
 \begin{code}
 module UnsafeCompare where
   open import Agda.Builtin.Nat using (_<_; _-_; _+_; _==_)

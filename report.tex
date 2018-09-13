@@ -52,6 +52,9 @@
 \usepackage[obeyDraft]{todonotes}
 \usepackage{lineno}
 \setlength\linenumbersep{-0.5cm}
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
 \author{D Oisín Kidney}
 \title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
 \begin{document}
@@ -94,27 +97,29 @@ position apply distributivity of \(*\) over \(+\)'' and so on, when really the
 programmer wants to say ``rearrange the expression into this form, checking it's
 correct''.
 
-Luckily, since our proof assistant is also a programming language, we can
-provide the desired capability, by writing a function which converts expressions
+However, since our proof assistant is also a programming language, we can
+provide the desired capability by writing a function which converts expressions
 into a canonical form, and a proof that the conversion preserves the semantics
 of the expression. This can then be used to automatically construct equivalence
 proofs for equivalent expressions.
 \section{A Case Study in Monoids}
 Before describing the ring solver, first we will explain the technique of
-writing a solver in Agda in the simpler case of monoids.
+writing a solver in Agda in the simpler setting of monoids.
 
-A monoid is a set equipped with a binary operation, \(\bullet\), and a
-distinguished element \(\epsilon\), such that the following equations hold:
-\begin{align}
-  x \bullet (y \bullet z) &= (x \bullet y) \bullet z \tag{Associativity} \\
-  x \bullet \epsilon      &= x \tag{Left Identity} \\
-  \epsilon \bullet x      &= x \tag{Right Identity}
-\end{align}
+\begin{definition}{Monoids}
+  A monoid is a set equipped with a binary operation, \(\bullet\), and a
+  distinguished element \(\epsilon\), such that the following equations hold:
+  \begin{align}
+    x \bullet (y \bullet z) &= (x \bullet y) \bullet z \tag{Associativity} \\
+    x \bullet \epsilon      &= x \tag{Left Identity} \\
+    \epsilon \bullet x      &= x \tag{Right Identity}
+  \end{align}
+\end{definition}
 Addition and multiplication (with 0 and 1 being the respective identity
-elements) are perhaps the most obvious candidates, as well as boolean
-conjunction and disjunction. In computer science, monoids have proved a useful
-abstraction for formalizing concurrency (associativity can be thought of as a
-kind of ``order-independence'').
+elements) are perhaps the most obvious instances of the algebra. In computer
+science, monoids have proved a useful abstraction for formalizing concurrency
+(in a sense, an associative operator is one which can be evaluated in any
+order).
 
 Monoids can be represented in Agda in a straightforward way, as a record (see
 Figure~\ref{mon-def}). Immediately it should be noted that we're no longer
@@ -162,17 +167,17 @@ the associative property of \(\AgdaField{∙}\) is used on line 4.
 Because we're not using propositional equality, some familiar tools are
 unavailable, like Agda's rewrite mechanism, or function congruence (this is why
 we have to explicitly specify the congruence we're using on line 6). The purpose
-of this particular hair shirt is flexibility: users can still use the solver,
+of this particular hair shirt is flexibility: users can still use the solver
 even if their type only satisfies the monoid laws modulo some equivalence
 relation (perhaps they are have an implementation of finite, mergeable sets as
-balanced trees, and want too treat two sets as equivalent if their elements are
+balanced trees, and want to treat two sets as equivalent if their elements are
 equal, even if their internal structures are not). Beyond flexibility, we get
 some other interesting applications, which are explored in
 section~\ref{setoid-applications}.
 
 Despite the pleasant syntax, the proof is mechanical, and it's clear that
 similar proofs would become tedious with more variables or more complex algebras
-(like rings). Luckily, we can automate the procedure.
+(like rings). To avoid the tedium, then, we automate the procedure.
 \subsection{Canonical Forms}
 Automation of equality proofs like the one above can be accomplished by first
 rewriting both sides of the equation into a canonical form. Not every algebra
@@ -219,7 +224,7 @@ What we want, though, is the following:
   \label{mon-mon}
   \text{lhs}_{mon} = \text{rhs}_{mon}
 \end{equation}
-Equation~\ref{list-list} can be used to build equation~\ref{mon-mon}, if we
+Equation~\ref{list-list} can be used to build Equation~\ref{mon-mon}, if we
 supply two extra proofs:
 \begin{equation}
   \label{mon-list-mon}
@@ -300,22 +305,22 @@ Prior work in this area includes\cite{geuvers_automatically_2017},
 the state-of-the-art (at least in terms of efficiency) is Coq's \texttt{ring}
 tactic\cite{the_coq_development_team_2018_1219885}, which is based on an
 implementation described in\cite{hutchison_proving_2005}.
-
-That implementation has a number of optimizations which dramatically improve the
-complexity of evaluation, but it also includes a careful choice of algebra which
-allows for maximum reuse. The choice of algebra has been glossed over thus far,
-but it is an important design decision: choose one with too many laws, and the
-solver becomes unusable for several types; too few, and we may miss out on
-normalization opportunities.
+\subsection{Choice of Algebra}
+The choice of algebra has been glossed over thus far, but it is an important
+design decision: choose one with too many laws, and the solver becomes unusable
+for several types; too few, and we may miss out on normalization opportunities.
 
 The algebra defined in \cite{hutchison_proving_2005} is that of an
-\emph{almost-ring}. This is a ring-like algebra, which discards the requirement
-that negation is an inverse (\(x + (-x) = 0\)). Instead, it merely requires that
-negation distribute over addiction and multiplication appropriately. This
-allows the solver to be used with non-negative types, like \(\mathbb{N}\), where
-negation is simply the identity function. Also, because the implementation uses
-coefficients in the underlying ring, we lose no opportunities for normalization,
-as identities like \(x + (-x) = 0\) will indeed compute.
+\emph{almost-ring}. It's very close in definition too a ring, but it discards
+the requirement that negation is an inverse (\(x + (-x) = 0\)). Instead, it
+merely requires that negation distribute over addition and multiplication
+appropriately. This allows the solver to be used with non-negative types, like
+\(\mathbb{N}\), where negation is simply the identity function.
+
+A potential worry is that because we don't require \(x + (-x) = 0\)
+axiomatically, it won't be provable in our system. This is not so: as long as
+\(1 - 1\) reduces to \(0\) in the coefficient set, the solver will verify the
+identity.
 \section{Horner Normal Form}
 The canonical representation of polynomials is a list of coefficients, least
 significant first (``Horner Normal Form''). Our initial attempt at encoding this
@@ -325,7 +330,9 @@ representation will begin like so:
 The entire module is parameterized by the choice of coefficient. This
 coefficient should support the ring operations, but it is ``raw'', i.e. it
 doesn't prove the ring laws. The operations on the polynomial itself are defined
-like so\footnote{
+like so\footnotemark:
+\ExecuteMetaData[Rings.tex]{dense-impl}
+\footnotetext{
   Symbols chosen for operators use the following mnemonic:
   \begin{enumerate}
     \item Operators preceded with ``\(\mathbb{N}.\)'' are defined over
@@ -338,8 +345,11 @@ like so\footnote{
       the corresponding side, and the coefficient on the other; e.g.
       \(\ltimes\), \(\rtimes\).
   \end{enumerate}
-}:
-\ExecuteMetaData[Rings.tex]{dense-impl}
+}
+
+Finally, evaluation of the polynomial uses ``Horner's rule'' to minimize
+multiplications:
+\ExecuteMetaData[Rings.tex]{dense-eval}
 \subsection{Sparse Horner Normal Form}
 As it stands, the above representation has two problems:
 
@@ -402,7 +412,7 @@ The proof of nonzero is marked irrelevant (preceded with a dot) to avoid
 computing it at runtime.
 
 We can wrap up the implementation with a cleaner interface by providing a
-normalizing version of \(\squaredots\):
+normalizing version of \(\AgdaInductiveConstructor{\_∷\_}\):
 \ExecuteMetaData[Rings.tex]{sparse-norm}
 \subsubsection{Comparison}
 Our addition and multiplication functions will need to properly deal with the
