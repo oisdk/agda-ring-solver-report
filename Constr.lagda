@@ -93,7 +93,13 @@ open import Relation.Binary.EqReasoning setoid
 \end{code}
 %<*constr-def>
 \begin{code}
-data Poly : Carrier → Set (a ⊔ ℓ)
+data Poly : Carrier → Set (a ⊔ ℓ) where
+  ⟦⟧ : Poly 0#
+  ⟦_∷_⟧
+    : ∀ x {xs}
+    → Poly xs
+    → Poly (λ ρ → x Coeff.+ ρ Coeff.* xs ρ)
+
 infixr 0 _⇐_
 record Expr (expr : Carrier) : Set (a ⊔ ℓ) where
   inductive
@@ -103,28 +109,24 @@ record Expr (expr : Carrier) : Set (a ⊔ ℓ) where
     poly   : Poly norm
     proof  : expr ≋ norm
 
-data Poly where
-  ⟦⟧ : Poly 0#
-  ⟦_∷_⟧
-    : ∀ x {xs}
-    → Poly xs
-    → Poly (λ ρ → x Coeff.+ ρ Coeff.* xs ρ)
+infixr 0 _⟸_
+_⟸_ : ∀ {x y} → x ≋ y → Expr y → Expr x
+_⟸_ x≋y (xs ⇐ xp) = xs ⇐ x≋y ⟨ trans ⟩ xp
 \end{code}
 %</constr-def>
 %<*constr-add>
 \begin{code}
-_⊞_ : ∀ {x y} → Poly x → Poly y → Expr (x + y)
-⟦⟧ ⊞ ys = ys ⇐ +-identityˡ _
-⟦ x ∷ xs ⟧ ⊞ ⟦⟧ = ⟦ x ∷ xs ⟧ ⇐ +-identityʳ _
-⟦ x ∷ xs ⟧ ⊞ ⟦ y ∷ ys ⟧ with xs ⊞ ys
-... | zs ⇐ zp = ⟦ x Coeff.+ y ∷ zs ⟧ ⇐
-    (λ ρ → +-distrib ρ)
-  ⟨ trans ⟩
-    (refl ⟨ +-cong ⟩ (refl ⟨ *-cong ⟩ zp))
-
-_⊕_ : ∀ {x y} → Expr x → Expr y → Expr (x + y)
-(x ⇐ xp) ⊕ (y ⇐ yp) with x ⊞ y
-... | z ⇐ zp = z ⇐ xp ⟨ +-cong ⟩ yp ⟨ trans ⟩ zp
+_⊞_ : ∀ {x y} → Expr x → Expr y → Expr (x + y)
+(x ⇐ xp) ⊞ (y ⇐ yp) = xp ⟨ +-cong ⟩ yp ⟸ x ⊕ y
+  where
+  _⊕_ : ∀ {x y} → Poly x → Poly y → Expr (x + y)
+  ⟦⟧ ⊕ ys = ys ⇐ +-identityˡ _
+  ⟦ x ∷ xs ⟧ ⊕ ⟦⟧ = ⟦ x ∷ xs ⟧ ⇐ +-identityʳ _
+  ⟦ x ∷ xs ⟧ ⊕ ⟦ y ∷ ys ⟧ with xs ⊕ ys
+  ... | zs ⇐ zp = ⟦ x Coeff.+ y ∷ zs ⟧ ⇐
+      (λ ρ → +-distrib ρ)
+    ⟨ trans ⟩
+      (refl ⟨ +-cong ⟩ (refl ⟨ *-cong ⟩ zp))
 \end{code}
 %</constr-add>
 \begin{code}
