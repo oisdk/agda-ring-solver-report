@@ -116,10 +116,17 @@ _⟸_ x≋y (xs ⇐ xp) = xs ⇐ x≋y ⟨ trans ⟩ xp
 %</constr-def>
 %<*constr-add>
 \begin{code}
-_⊞_ : ∀ {x y} → Expr x → Expr y → Expr (x + y)
-(x ⇐ xp) ⊞ (y ⇐ yp) = xp ⟨ +-cong ⟩ yp ⟸ x ⊕ y
+_⊞_ : ∀ {x y}
+    → Expr x
+    → Expr y
+    → Expr (x + y)
+(x ⇐ xp) ⊞ (y ⇐ yp) =
+  xp ⟨ +-cong ⟩ yp ⟸ x ⊕ y
   where
-  _⊕_ : ∀ {x y} → Poly x → Poly y → Expr (x + y)
+  _⊕_ : ∀ {x y}
+      → Poly x
+      → Poly y
+      → Expr (x + y)
   ⟦⟧ ⊕ ys = ys ⇐ +-identityˡ _
   ⟦ x ∷ xs ⟧ ⊕ ⟦⟧ = ⟦ x ∷ xs ⟧ ⇐ +-identityʳ _
   ⟦ x ∷ xs ⟧ ⊕ ⟦ y ∷ ys ⟧ with xs ⊕ ys
