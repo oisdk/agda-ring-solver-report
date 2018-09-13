@@ -110,7 +110,7 @@ record Expr (expr : Carrier) : Set (a ⊔ ℓ) where
 
 infixr 0 _⟸_
 _⟸_ : ∀ {x y} → x ≋ y → Expr y → Expr x
-_⟸_ x≋y (xs ⇐ xp) = xs ⇐ x≋y ⟨ trans ⟩ xp
+x≋y ⟸ xs ⇐ xp = xs ⇐ x≋y ⟨ trans ⟩ xp
 \end{code}
 %</constr-def>
 %<*constr-add>
