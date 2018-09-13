@@ -194,17 +194,21 @@ module Full where
   x ^ i ∷↓ xs with zero? x
   ... | yes p = xs ⍓ suc i
   ... | no ¬p = _≠0 x {¬p} Δ i ∷ xs
-
+\end{code}
+%<*poly-norm-inj>
+\begin{code}
   _Π↑_ : ∀ {n m} → Poly n → (suc n ≤ m) → Poly m
   (xs Π i≤n) Π↑ n≤m = xs Π (≤-s i≤n ⋈ n≤m)
 
   infixr 4 _Π↓_
   _Π↓_ : ∀ {i n} → Coeffs i → suc i ≤ n → Poly n
-  []                       Π↓ i≤n = Κ 0# Π z≤n
-  (x ≠0 Δ zero  ∷ [])      Π↓ i≤n = x Π↑ i≤n
-  (x₁   Δ zero  ∷ x₂ ∷ xs) Π↓ i≤n = Σ (x₁ Δ zero  ∷ x₂ ∷ xs) Π i≤n
-  (x    Δ suc j ∷ xs)      Π↓ i≤n = Σ (x  Δ suc j ∷ xs) Π i≤n
-
+  []                         Π↓ i≤n = Κ 0#                     Π   z≤n
+  (x ≠0 Δ zero   ∷ [])       Π↓ i≤n = x                        Π↑  i≤n
+  (x₁   Δ zero   ∷ x₂ ∷ xs)  Π↓ i≤n = Σ (x₁ Δ zero ∷ x₂ ∷ xs)  Π   i≤n
+  (x    Δ suc j  ∷ xs)       Π↓ i≤n = Σ (x Δ suc j ∷ xs)       Π   i≤n
+\end{code}
+%</poly-norm-inj>
+\begin{code}
   mutual
     infixl 6 _⊞_
     _⊞_ : ∀ {n} → Poly n → Poly n → Poly n
@@ -252,11 +256,17 @@ module Full where
     ⊞-zip-r : ∀ {n} → Coeff n → ℕ → Coeffs n → Coeffs n → Coeffs n
     ⊞-zip-r x i xs [] = x Δ i ∷ xs
     ⊞-zip-r x i xs (y Δ j ∷ ys) = ⊞-zip (compare i j) x xs y ys
-
+\end{code}
+%<*poly-mult>
+\begin{code}
   mutual
     infixl 7 _⊠_
-    _⊠_ : ∀ {n} → Poly n → Poly n → Poly n
-    (xs Π i≤n) ⊠ (ys Π j≤n) = ⊠-match (i≤n cmp j≤n) xs ys
+    _⊠_ : ∀ {n}
+        → Poly n
+        → Poly n
+        → Poly n
+    (xs Π i≤n) ⊠ (ys Π j≤n) =
+      ⊠-match (i≤n cmp j≤n) xs ys
 
     ⊠-inj : ∀ {i k}
           → i ≤ k
@@ -265,7 +275,8 @@ module Full where
           → Coeffs k
     ⊠-inj _ _ [] = []
     ⊠-inj i≤k x (y Π j≤k ≠0 Δ p ∷ ys) =
-      ⊠-match (i≤k cmp j≤k) x y ^ p ∷↓ ⊠-inj i≤k x ys
+      ⊠-match (i≤k cmp j≤k) x y ^ p ∷↓
+        ⊠-inj i≤k x ys
 
     ⊠-match : ∀ {i j n}
             → {i≤n : i ≤ n}
@@ -274,20 +285,30 @@ module Full where
             → FlatPoly i
             → FlatPoly j
             → Poly n
-    ⊠-match (eq i&j≤n) (Κ x)  (Κ y)  = Κ (x * y)         Π  i&j≤n
-    ⊠-match (eq i&j≤n) (Σ xs) (Σ ys) = ⊠-coeffs xs ys    Π↓ i&j≤n
-    ⊠-match (i≤j-1 < j≤n) xs (Σ ys)  = ⊠-inj i≤j-1 xs ys Π↓ j≤n
-    ⊠-match (i≤n > j≤i-1) (Σ xs) ys  = ⊠-inj j≤i-1 ys xs Π↓ i≤n
+    ⊠-match (eq i&j≤n)     (Κ x)   (Κ y)   = Κ (x * y)          Π   i&j≤n
+    ⊠-match (eq i&j≤n)     (Σ xs)  (Σ ys)  = ⊠-coeffs xs ys     Π↓  i&j≤n
+    ⊠-match (i≤j-1 < j≤n)  xs      (Σ ys)  = ⊠-inj i≤j-1 xs ys  Π↓  j≤n
+    ⊠-match (i≤n > j≤i-1)  (Σ xs)  ys      = ⊠-inj j≤i-1 ys xs  Π↓  i≤n
 
-    ⊠-coeffs : ∀ {n} → Coeffs n → Coeffs n → Coeffs n
+    ⊠-coeffs : ∀ {n}
+             → Coeffs n
+             → Coeffs n
+             → Coeffs n
     ⊠-coeffs _ [] = []
     ⊠-coeffs xs (y ≠0 Δ j ∷ ys) = ⊠-step y ys xs ⍓ j
 
-    ⊠-step : ∀ {n} → Poly n → Coeffs n → Coeffs n → Coeffs n
+    ⊠-step : ∀ {n}
+           → Poly n
+           → Coeffs n
+           → Coeffs n
+           → Coeffs n
     ⊠-step y ys [] = []
     ⊠-step y ys (x Π j≤n ≠0 Δ i ∷ xs) =
-      (x Π j≤n) ⊠ y ^ i ∷↓ ⊞-coeffs (⊠-inj j≤n x ys) (⊠-step y ys xs)
-
+      (x Π j≤n) ⊠ y ^ i ∷↓
+        ⊞-coeffs (⊠-inj j≤n x ys) (⊠-step y ys xs)
+\end{code}
+%</poly-mult>
+\begin{code}
 module Semantics
   {r₃ r₄}
   (ring : AlmostCommutativeRing r₃ r₄)

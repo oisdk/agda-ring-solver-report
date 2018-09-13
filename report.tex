@@ -1,6 +1,6 @@
 \documentclass[draft, twocolumn]{article}
+\usepackage[unicode,draft=false,hidelinks]{hyperref}
 \usepackage{cite}
-\usepackage{url}
 \usepackage{catchfilebetweentags}
 \usepackage{amssymb}
 \usepackage{turnstile}
@@ -141,11 +141,11 @@ Figure~\ref{mon-ident} is an example of such a proposition.
   \caption{Example Identity}
   \label{mon-ident}
 \end{figure}
-
 To a human, the fact that the identity holds may well be obvious:
 \(\AgdaField{∙}\) is associative, so scrub out all the parentheses, and
 \(\AgdaField{ε}\) is the identity element, so scrub it out too. After that, both
 sides are equal, so voilà!
+
 
 Unfortunately, to convince the compiler we need to specify every instance of
 associativity and identity, rewriting the left-hand-side repeatedly until it
@@ -578,8 +578,6 @@ Conspicuously missing above is a definition for \(\leq\).
     polynomial of 5, and so on. The comparisons will be made on 5, 4, 3, 1, and
     0. Like repeatedly taking the length of the tail of a list, this is
     quadratic. There must be a better way.
-
-
   \item[Option 2: With Propositional Equality] Once you realize we need to be
     comparing the gaps and not the tails, another encoding of \(\leq\) in
     Data.Nat seems the best option:
@@ -616,11 +614,18 @@ equivalent to addition. This turns out to be transitivity:
 With this defined, the \(\AgdaDatatype{Ordering}\) type is obvious:
 \ExecuteMetaData[Poly.tex]{ind-ordering}
 \subsection{Operations}
-
+After adding the injection index optimization, we use a normalizing version of
+\(\AgdaInductiveConstructor{Π}\), like we did for the power indices
+(Figure~\ref{inj-norm}). Operations now perform two ``match-up'' operations: one
+for the injection indices and one for the power indices (Figure~\ref{full-mul}).
+\todo{Maybe unify the two match-up functions?}
 \section{Writing The Proofs}
 The proofs are long (roughly 1000 lines), albeit mechanical.
 \subsection{Equational Reasoning Techniques}
-\todo{Expand on the proofs. Operators used, etc.}
+\subsubsection{Operators}
+\subsubsection{Examples}
+\todo{Expand on the proofs. Operators used, etc. Maybe include an example
+  proof?}
 \subsection{The Algebra of Programming and List Homomorphisms}
 \todo{
   I haven't actually been able to apply the ``algebra of
@@ -687,9 +692,24 @@ it's always in canonical form.
 
 Performing the same task in a correct-by-construction way is explored
 in\cite{geuvers_automatically_2017} (in Idris\cite{brady_idris_2013}).
+\todo{Expand on this section.}
 
+Here we provide a similar implementation:
 \ExecuteMetaData[Constr.tex]{constr-def}
 \ExecuteMetaData[Constr.tex]{constr-add}
 \bibliographystyle{IEEEtranS}
 \bibliography{horners-rule.bib}
+\appendix
+\section{Extra Code Examples}
+\begin{figure*}
+  \ExecuteMetaData[Poly.tex]{poly-norm-inj}
+  \caption{Normalizing Version of \(\AgdaInductiveConstructor{Π}\)}
+  \label{inj-norm}
+\end{figure*}
+\begin{figure*}
+  \ExecuteMetaData[Poly.tex]{poly-mult}
+  \caption{Full Implementation of Multiplication on the Final Encoding of
+    \(\AgdaDatatype{Poly}\)}
+  \label{full-mul}
+\end{figure*}
 \end{document}
