@@ -32,9 +32,8 @@ module MonIdent {c ℓ}
 \end{code}
 %<*mon-ident>
 \begin{code}
-  ident  : ∀ w x y z
-         → ((w ∙ ε) ∙ (x ∙ y)) ∙ z
-         ≈ (w ∙ x) ∙ (y ∙ z)
+  ident : ∀ w x y z
+    → ((w ∙ ε) ∙ (x ∙ y)) ∙ z ≈ (w ∙ x) ∙ (y ∙ z)
 \end{code}
 %</mon-ident>
 %<*mon-proof>
@@ -68,19 +67,20 @@ module MonIdent {c ℓ}
   (x ∷ xs) ⊙ ys = x ∷ xs ⊙ ys
 \end{code}
 %</list-monoid>
+%<*list-eval>
 \begin{code}
+  _μ_ : ∀ {i} → List i → Vec Carrier i → Carrier
+  [] μ ρ = ε
+  (x ∷ xs) μ ρ = lookup x ρ ∙ xs μ ρ
 \end{code}
-%<*list-trans>
+%</list-eval>
+%<*list-vars>
 \begin{code}
-  _μ : ∀ {i} → List i → Vec Carrier i → Carrier
-  ([] μ) ρ = ε
-  ((x ∷ xs) μ) ρ = lookup x ρ ∙ (xs μ) ρ
-
   infix 9 η_
   η_ : ∀ {i} → Fin i → List i
   η x = x ∷ []
 \end{code}
-%</list-trans>
+%</list-vars>
 \begin{code}
   open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
 \end{code}
@@ -112,36 +112,48 @@ module MonIdent {c ℓ}
     ⟦ ν i ⟧ ρ    = lookup i ρ
 \end{code}
 %</eval-ast>
+%<*ast-norm>
+\begin{code}
+    norm : ∀ {i} → Expr i → List i
+    norm (x ⊕ y) = norm x ⊙ norm y
+    norm e = []
+    norm (ν x) = η x
+\end{code}
+%</ast-norm>
+%<*ast-norm-interp>
+\begin{code}
+    ⟦_⇓⟧ : ∀ {i}
+         → Expr i
+         → Vec Carrier i
+         → Carrier
+    ⟦ x ⇓⟧ ρ = norm x μ ρ
+\end{code}
+%</ast-norm-interp>
 %<*correct-ast>
 \begin{code}
-    conv : ∀ {i} → Expr i → List i
-    conv (x ⊕ y) = conv x ⊙ conv y
-    conv e = []
-    conv (ν x) = η x
-
     ⊙-hom  : ∀ {i} (x y : List i)
            → (ρ : Vec Carrier i)
-           → ((x ⊙ y) μ) ρ ≈ (x μ) ρ ∙ (y μ) ρ
+           → (x ⊙ y) μ ρ ≈ x μ ρ ∙ y μ ρ
     ⊙-hom [] y ρ = sym (identityˡ _)
     ⊙-hom (x ∷ xs) y ρ =
       begin
-        lookup x ρ ∙ ((xs ⊙ y) μ) ρ
+        lookup x ρ ∙ (xs ⊙ y) μ ρ
       ≈⟨ refl ⟨ ∙-cong ⟩ ⊙-hom xs y ρ ⟩
-        lookup x ρ ∙ ((xs μ) ρ ∙ (y μ) ρ)
+        lookup x ρ ∙ (xs μ ρ ∙ y μ ρ)
       ≈⟨ sym (assoc _ _ _) ⟩
-        lookup x ρ ∙ (xs μ) ρ ∙ (y μ) ρ
+        lookup x ρ ∙ xs μ ρ ∙ y μ ρ
       ∎
 
     correct  : ∀ {i}
              → (x : Expr i)
              → (ρ : Vec Carrier i)
-             →  (conv x μ) ρ ≈ ⟦ x ⟧ ρ
+             → ⟦ x ⇓⟧ ρ ≈ ⟦ x ⟧ ρ
     correct (x ⊕ y) ρ =
       begin
-        ((conv x ⊙ conv y) μ) ρ
-      ≈⟨ ⊙-hom (conv x) (conv y) ρ ⟩
-        (conv x μ) ρ ∙ (conv y μ) ρ
-      ≈⟨ ∙-cong (correct x ρ) (correct y ρ) ⟩
+        (norm x ⊙ norm y) μ ρ
+      ≈⟨ ⊙-hom (norm x) (norm y) ρ ⟩
+        norm x μ ρ ∙ norm y μ ρ
+      ≈⟨ correct x ρ ⟨ ∙-cong ⟩ correct y ρ ⟩
         ⟦ x ⟧ ρ ∙ ⟦ y ⟧ ρ
       ∎
     correct e ρ = refl

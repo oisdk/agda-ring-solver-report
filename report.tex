@@ -50,6 +50,8 @@
 \usepackage{bbding}
 \setlength{\marginparwidth}{2cm}
 \usepackage[obeyDraft]{todonotes}
+\usepackage{lineno}
+\setlength\linenumbersep{-0.5cm}
 \author{D Oisín Kidney}
 \title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
 \begin{document}
@@ -143,114 +145,133 @@ sides are equal, so voilà!
 Unfortunately, to convince the compiler we need to specify every instance of
 associativity and identity, rewriting the left-hand-side repeatedly until it
 matches the right:
-\ExecuteMetaData[Monoids.tex]{mon-proof}
 
-The syntax mimics that of normal, handwritten proofs: the successive ``states''
-of the expression are interspersed with equivalence proofs (in the brackets).
-Perhaps surprisingly, the syntax is not built-in: it's simply defined in the
-standard library.
+\begin{samepage}
+  \begin{linenumbers}
+    \ExecuteMetaData[Monoids.tex]{mon-proof}
+  \end{linenumbers}
+\end{samepage}
 
-Despite the powerful syntax, the proof is mechanical, and it's clear that
+The syntax is designed to mimic that of a handwritten proof: line 3 is the
+expression on the left-hand side of \(\AgdaField{≈}\) in the type, and line 9
+the right-hand-side. In between, the expression is repeatedly rewritten into
+equivalent forms, with justification provided inside the angle brackets. For
+instance, to translate the expression from the form on line 3 to that on line 5,
+the associative property of \(\AgdaField{∙}\) is used on line 4.
+
+Because we're not using propositional equality, some familiar tools are
+unavailable, like Agda's rewrite mechanism, or function congruence (this is why
+we have to explicitly specify the congruence we're using on line 6). The purpose
+of this particular hair shirt is flexibility: users can still use the solver,
+even if their type only satisfies the monoid laws modulo some equivalence
+relation (perhaps they are have an implementation of finite, mergeable sets as
+balanced trees, and want too treat two sets as equivalent if their elements are
+equal, even if their internal structures are not). Beyond flexibility, we get
+some other interesting applications, which are explored in
+section~\ref{setoid-applications}.
+
+Despite the pleasant syntax, the proof is mechanical, and it's clear that
 similar proofs would become tedious with more variables or more complex algebras
 (like rings). Luckily, we can automate the procedure.
 \subsection{Canonical Forms}
 Automation of equality proofs like the one above can be accomplished by first
-rewriting both sides of the equation into a canonical form. This form depends on
-the particular algebra used in the pair of expressions. For instance, a suitable
-canonical form for monoids is lists.
+rewriting both sides of the equation into a canonical form. Not every algebra
+has a canonical form: monoids do, though, and it's the simple list.
 \ExecuteMetaData[Monoids.tex]{list-def}
-
-This type can be thought of as an AST for the ``language of lists''. Crucially,
-it's equivalent to the ``language of monoids'': this is the language of
-expressions written using only variables and the monoid operations, like the
-expressions in figure~\ref{mon-ident}. The neutral element and binary operator
-have their equivalents in lists: \(\epsilon\) is simply the empty list, whereas
-\(\bullet\) is list concatenation.
+We're going to treat this type like an AST for a simple ``language of lists''.
+This language supports two functions: the empty list, and concatenation.
 \ExecuteMetaData[Monoids.tex]{list-monoid}
+The type itself parameterized by the number of variables it contains. Users can
+refer to variables by their index:
+\ExecuteMetaData[Monoids.tex]{list-vars}
+And we can interpret this language with values for each variable supplied in a
+vector:
+\ExecuteMetaData[Monoids.tex]{list-eval}
 
-We can translate between the language of lists and monoid expressions
-\footnote{
-  For simplicity's sake, instead of curried functions of \(n\)
-  arguments, we'll deal with functions which take a vector of length \(n\), that
-  refer to each variable by position, using Fin, the type of finite sets. Of
-  course these two representations are equivalent, but the translation is not
+Compare this language to the language of monoid expressions that
+Figure~\ref{mon-ident} uses: both have identity elements and a binary operator,
+and both refer to variables. Our language of lists, however, has one significant
+advantage, which can be seen when we rewrite the identity in
+Figure~\ref{mon-ident} in it:
+\ExecuteMetaData[Monoids.tex]{list-obvious}
+The equivalence of each side is obvious to Agda, and so we don't need to write
+it out as we did before.
+
+Proving that the language of lists and the language of monoid
+expressions\footnotemark are equivalent is the task of the next section.
+\footnotetext{
+  For simplicity's sake, from now on when we talk about the ``language of monoid
+  expressions'', we won't be referring to curried functions of \(n\) arguments,
+  rather we'll deal with functions which take a vector of length \(n\), that
+  refer to each variable by position. Translating between those two forms is not
   directly relevant to what we're doing here: we refer the interested reader to
   the Relation.Binary.Reflection module of Agda's standard
   library\cite{danielsson_agda_2018}.
 }
-with \(\AgdaFunction{μ}\) and \(\AgdaFunction{η}\).
-\ExecuteMetaData[Monoids.tex]{list-trans}
-
-We have one half of the equality so far: that of the canonical forms. As such,
-we have an ``obvious'' proof of the identity in figure~\ref{mon-ident},
-expressed in the list language (figure~\ref{list-obvious}).
-\begin{figure}[!h]
-  \ExecuteMetaData[Monoids.tex]{list-obvious}
-  \caption{The identity in figure~\ref{mon-ident}, expressed in the list
-    language}
-  \label{list-obvious}
-\end{figure}
 \subsection{Homomorphism}
-Figure~\ref{list-obvious} gives us a proof of the form:
-
+Our \(\AgdaFunction{\text{obvious}}\) proof has the form:
 \begin{equation}
   \label{list-list}
   \text{lhs}_{list} = \text{rhs}_{list}
 \end{equation}
-
 What we want, though, is the following:
-
 \begin{equation}
   \label{mon-mon}
   \text{lhs}_{mon} = \text{rhs}_{mon}
 \end{equation}
-
 Equation~\ref{list-list} can be used to build equation~\ref{mon-mon}, if we
 supply two extra proofs:
-
 \begin{equation}
+  \label{mon-list-mon}
   \text{lhs}_{mon} \overset{a}{=} \text{lhs}_{list} = \text{rhs}_{list}
   \overset{b}{=} \text{rhs}_{mon}
 \end{equation}
 
-The proofs labeled \(a\) and \(b\) are the task of this section.
+The proofs labeled \(a\) and \(b\) are the homomorphism proofs, and it's what we
+tackle next.
 
-First, we'll define a concrete AST for the monoid language
-(figure~\ref{mon-ast}). It has constructors for each of the monoid operations
+First, we'll define a concrete AST for the monoid language:
+\ExecuteMetaData[Monoids.tex]{mon-ast}
+It has constructors for each of the monoid operations
 (\(\AgdaInductiveConstructor{⊕}\) and \(\AgdaInductiveConstructor{e}\) are
 \(\bullet\) and \(\epsilon\), respectively), and it's indexed by the number of
-variables it contains, which are constructed with \(\nu\). Converting back to an
-opaque function is accomplished in figure~\ref{eval-ast}.
+variables it contains, which are constructed with
+\(\AgdaInductiveConstructor{ν}\). Similarly to the list language, we can
+interpret it with a vector of values for the variables.
+\ExecuteMetaData[Monoids.tex]{eval-ast}
+This interpreter will result in an unnormalized expression like the one in
+Figure~\ref{mon-ident}; in other words, the outer sides of
+Equation~\ref{mon-list-mon}. To get the normalized expressions, we'll first need
+to convert a monoid AST to a list AST:
+\ExecuteMetaData[Monoids.tex]{ast-norm}
+Combining that with the fact that we know how to interpret the list AST, we get
+a normalizing interpreter for the monoid AST:
+\ExecuteMetaData[Monoids.tex]{ast-norm-interp}
+With this, we can see that the proofs needed by \(a\) and \(b\) are actually
+proofs of equivalence of these two interpreter functions.
 
-\begin{figure}
-  \ExecuteMetaData[Monoids.tex]{mon-ast}
-  \caption{The AST for the Monoid Language}
-  \label{mon-ast}
-\end{figure}
-\begin{figure}
-  \ExecuteMetaData[Monoids.tex]{eval-ast}
-  \caption{Evaluating the Monoid Language AST}
-  \label{eval-ast}
-\end{figure}
-
-Finally, then, we must prove the equivalence of the monoid and list languages.
-This consists of the following proofs:
-
+Taking the non-normalizing interpreter as a template, the three cases are as
+follows\footnotemark:
 \begin{align}
-  (\eta x) \mu \rho           &= \left\lsem \nu x \right\rsem \rho      \\
-  (x \mdoubleplus y) \mu \rho &= \left\lsem x \oplus y \right\rsem \rho \\
-  [] \mu \rho                 &= \left\lsem e \right\rsem \rho
+  \AgdaFunction{⟦} x \AgdaInductiveConstructor{⊕} y \AgdaFunction{⟧} \rho \;
+    &\AgdaField{≈} \; \AgdaFunction{⟦} x \AgdaInductiveConstructor{⊕} y
+    \AgdaFunction{⇓⟧} \rho \label{plus-hom} \\
+  \AgdaFunction{⟦} \AgdaInductiveConstructor{e} \AgdaFunction{⟧} \rho \;
+    &\AgdaField{≈} \; \AgdaFunction{⟦} \AgdaInductiveConstructor{e}
+    \AgdaFunction{⇓⟧} \rho \label{e-hom} \\
+  \AgdaFunction{⟦} \AgdaInductiveConstructor{ν} i \AgdaFunction{⟧} \rho \;
+    &\AgdaField{≈} \; \AgdaFunction{⟦} \AgdaInductiveConstructor{ν} i
+    \AgdaFunction{⇓⟧} \rho \label{var-hom}
 \end{align}
-The latter two proofs comprise a monoid homomorphism.
+\footnotetext{
+  Equations \ref{plus-hom} and \ref{e-hom} comprise a monoid
+  homomorphism.
+}
 
-The proofs are constrained: we are only permitted to use the laws provided in
-the Monoid record, and the equivalence relation is kept abstract. The fact that
-we're not simply using propositional equality allows for some interesting
-applications (see section~\ref{setoid-applications}), but it also removes some
-familiar tools we may reach for in proofs. Congruence in particular must be
-specified explicitly: the combinator \(\AgdaFunction{∙-cong}\) is provided for
-this purpose. With this understood, the proofs can be written:
+Proving each of these cases in turn finally verifies the correctness of our list
+language.
 \ExecuteMetaData[Monoids.tex]{correct-ast}
+
 \subsection{Usage}
 Combining all of the components above, with some plumbing provided by the
 Relation.Binary.Reflection module, we can finally automate the solving of the
