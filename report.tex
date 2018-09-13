@@ -55,21 +55,25 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-  We provide an efficient implementation of a polynomial solver in the
-  programming language Agda, and demonstrate its use in a variety of
-  applications.
+  Dependently typed programming languages allow programmers and mathematicians
+  alike to write proofs which can be executed. For programmers, this often means
+  being able to formally verify the properties of their programs; for
+  mathematicians, it provides a system of machine-checked verification not
+  available to handwritten proofs.
+
+  Naïve usage of these systems can be tedious: the typechecker is often
+  over-zealous in its rigor, demanding justification for every minute step in a
+  proof, no matter how obvious or trivial it may seem to a human. For algebraic
+  proofs, this kind of thing usually consists of long chains of rewrites, of the
+  style ``apply commutativity of \(+\), then associativity of \(+\), then at
+  this position apply distributivity of \(*\) over \(+\)'' and so on, when
+  really the programmer wants to say ``rearrange the expression into this
+  form, checking it's correct''.
+
+  Luckily, since our proof assistant is also a programming language, we can
+  provide the desired capability, by writing a function which constructs 
 \end{abstract}
 \tableofcontents
-\section{Introduction}
-Dependently typed languages such as Agda\cite{norell_dependently_2008} and
-Coq\cite{the_coq_development_team_2018_1219885} allow programmers to write
-machine-checked proofs as programs. They provide a degree of reassurance that
-handwritten proofs cannot, and allow for exploration of abstract concepts in a
-machine-assisted environment.
-
-We will describe an efficient implementation of an automated prover for
-equalities in ring and ring-like structures, and show how it can be extended for
-use in settings more exotic than simple equality.
 \section{Monoids}
 Before describing the ring solver, first we will explain the simpler case of a
 monoid solver.
