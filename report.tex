@@ -446,9 +446,8 @@ evidence, but we can prove they correspond to the evidence-providing versions.
 Combined with judicious use of \(\AgdaFunction{erase}\), we get the following:
 \ExecuteMetaData[Rings.tex]{unsafe-compare}
 \subsubsection{Termination}
-Unfortunately, we cannot yet define addition and multiplication. Using
-\(\AgdaFunction{compare}\) above in the most obvious way won't pass the
-termination checker.
+Unfortunately, using \(\AgdaFunction{compare}\) in the most obvious way won't
+pass the termination checker.
 \ExecuteMetaData[Rings.tex]{nonterminating-addition}
 
 Agda needs to be able to see that one of the numbers returned by
@@ -458,16 +457,21 @@ in constructors for the termination checker to see it.
 
 The solution is twofold: unpack any constructors into function arguments as soon
 as possible, and eliminate any redundant pattern matches in the offending
-functions. Taken together, these form an optimization known as ``call pattern
-specialization''\cite{jones_call-pattern_2007}: it's performed automatically in
-GHC, here we're doing it manually. Perhaps a similar transformation could be
-automatically applied before termination checking in Agda's compiler.
+functions. Taken together, these form an transformation known as ``call pattern
+specialization''\cite{jones_call-pattern_2007}\footnotemark. Happily, this
+transformation both makes termination more obvious \emph{and} improves
+performance.
 
-Until then, the structurally terminating function is defined like so:
+\footnotetext{
+  This transformation is performed automatically by GHC as an optimization:
+  perhaps a similar transformation could be performed by Agda's termination
+  checker to reveal more terminating programs.
+}
+
 \ExecuteMetaData[Rings.tex]{addition}
-Ever helper function in the mutual block matches on exactly one argument,
-eliminating redundancy. Happily, this makes the function more efficient, as well
-as more obviously terminating.
+Every helper function in the mutual block matches on exactly one argument,
+eliminating redundancy. This also simplifies some of the homomorphism proofs
+later on.
 \section{Binary}
 Before continuing with polynomials, we'll take a short detour to look at binary
 numbers. These have a number of uses in dependently typed programming: as well
@@ -491,28 +495,39 @@ and multiplication takes full advantage of the sparse representation:
 Up until now our polynomial has been an expression in just one variable. For it
 to be truly useful, though, we'd like to be able to extend it to many: luckily
 there's a well-known isomorphism we can use to extend our earlier
-implementation. A multivariate polynomial is one where its coefficients are
-polynomials with one fewer variable\cite{cheng_functional_2018}.
+implementation. For a polynomial with two variables, we will represent it as a
+polynomial whose coefficients are themselves polynomials of one variable. For
+three, it'll be a polynomial whose coefficients are polynomials in two
+variables, and so on. Generally speaking, a multivariate polynomial is one where
+its coefficients are polynomials with one fewer
+variable\cite{cheng_functional_2018}.
 
-Before going any further, though, we should notice that this type is dense with
-regards to nesting the same way that the original monomial type was dense with
-regards to exponentiation. Every polynomial with \(n\) variables will be
-represented by \(n\) nested polynomials, regardless of how many of the variables
-in the expression are non-constant.
+Before jumping to implement this, though, we should notice an opportunity for
+optimization (also pointed out in\cite{hutchison_proving_2005}). Just like how
+the monomials had gaps of zeroes between non-zero terms, this type will have
+gaps of constant polynomials between non-constant polynomials. In other words,
+in a expression of \(n\) variables, information about the last variable will be
+hidden behind \(n\) layers of nesting. If those \(n\) layers don't contain any
+information (i.e. they're all constant), we want to skip all that nesting with
+an \emph{injection} index (like the power index).
 \subsection{Sparse Nesting}
 It's immediately clear that removing the gaps from the nesting will be more
 difficult than it was for the exponents: the \(\AgdaDatatype{Poly}\) type is
 \emph{indexed} by the number of variables it contains, so any manipulation of
-that number will have to carefully prove its correctness.
+the injection index will have to correspond carefully to the
+\(\AgdaDatatype{Poly}\)'s index.
 
 Our first approach might mimic the structure of \(\AgdaDatatype{Ordering}\),
 with an indexed type:
 \ExecuteMetaData[Poly.tex]{poly-slime}
 Where \(\AgdaDatatype{FlatPoly}\) is effectively the gappy type we had earlier.
-If you actually tried to use this type, though, you'd run into issues. Pattern
-matching on a pair of \(\AgdaDatatype{Poly}\)s won't work, as Agda cannot
-(usually) unify user-defined functions. How do we avoid this? ``Don't touch the
-green slime!''\cite{mcbride_polynomial_2018}:
+If you actually tried to use this type, though, you'd run into issues: because
+it's an indexed type, pattern matching on it will force unification of the index
+with whatever type variable it was bound to. This is problematic because the
+index is defined by a function: pattern match on a pair of
+\(\AgdaDatatype{Poly}\)s and you're asking Agda to unify \(i_1 + j_1\) and
+\(i_2 + j_2\), a task it will likely find too difficult. How do we avoid this?
+``Don't touch the green slime!''\cite{mcbride_polynomial_2018}:
 \begin{displayquote}
   When combining prescriptive and descriptive indices, ensure both are in
   constructor form. Exclude defined functions which yield difficult unification
@@ -522,15 +537,24 @@ We'll have to take another route.
 \subsubsection{Inequalities}
 First, we'll define our polynomial like so:
 \ExecuteMetaData[Poly.tex]{poly}
-The gap is now implicit; instead, we store a proof that the nested polynomial
-has no more variables then the outer. Next, the rest of the types are similar to
-what they were before:
-\ExecuteMetaData[Poly.tex]{poly-types}
-New here is the \(\AgdaFunction{Norm}\) function, in
-\(\AgdaDatatype{FlatPoly}\). Like \(\AgdaFunction{Zero}\) in
-\(\AgdaDatatype{Coeff}\), it proves that there really are no gaps (here in the
-nesting, rather then exponentiation, though). Its definition is as follows:
+The type is now parameterized, rather than indexed: our pattern-matching woes
+have been solved. Also, the gap is now implicit; instead, we store a proof that
+the nested polynomial has no more variables then the outer. Next,
+\(\AgdaDatatype{FlatPoly}\):
+\ExecuteMetaData[Poly.tex]{flat-poly}
+We're back to an indexed type here, so you may be concerned about similar
+unification problems like the ones we had above: not to worry, though, as these
+indices are in constructor form, which prove much easier to unify than
+functions.
+
+Also new here is the \(\AgdaFunction{Norm}\) function. It serves the same
+purpose that \(\AgdaFunction{Zero}\) did in the monomial, ensuring that there
+are no constant polynomials which could be replaced by incrementing the
+injection index. Its definition is as follows:
 \ExecuteMetaData[Poly.tex]{poly-norm}
+
+The rest of types are similar to what they were before:
+\ExecuteMetaData[Poly.tex]{poly-types}
 Again, similarly to the sparse exponent encoding, we provide a smart
 constructor which ensures normalization.
 \subsubsection{Choosing an Inequality}

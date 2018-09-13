@@ -689,7 +689,7 @@
 \AgdaBound{n}\<%
 \end{code}
 %</poly>
-%<*poly-types>
+%<*flat-poly>
 \begin{code}%
 %
 \>[4]\AgdaKeyword{data}\AgdaSpace{}%
@@ -709,7 +709,7 @@
 \AgdaFunction{Carrier}\AgdaSpace{}%
 \AgdaSymbol{→}\AgdaSpace{}%
 \AgdaDatatype{FlatPoly}\AgdaSpace{}%
-\AgdaNumber{0}\<%
+\AgdaInductiveConstructor{zero}\<%
 \\
 %
 \>[6]\AgdaInductiveConstructor{Σ}%
@@ -736,9 +736,10 @@
 \AgdaDatatype{FlatPoly}\AgdaSpace{}%
 \AgdaSymbol{(}\AgdaInductiveConstructor{suc}\AgdaSpace{}%
 \AgdaBound{n}\AgdaSymbol{)}\<%
-\\
-%
-\\[\AgdaEmptyExtraSkip]%
+\end{code}
+%</flat-poly>
+%<*poly-types>
+\begin{code}%
 %
 \>[4]\AgdaKeyword{infixl}\AgdaSpace{}%
 \AgdaNumber{6}\AgdaSpace{}%
@@ -840,10 +841,9 @@
 \AgdaOperator{\AgdaFunction{¬}}\AgdaSpace{}%
 \AgdaFunction{Zero}\AgdaSpace{}%
 \AgdaField{poly}\<%
-\end{code}
-%</poly-types>
-%<*poly-norm>
-\begin{code}%
+\\
+%
+\\[\AgdaEmptyExtraSkip]%
 %
 \>[4]\AgdaFunction{Zero}\AgdaSpace{}%
 \AgdaSymbol{:}\AgdaSpace{}%
@@ -889,9 +889,10 @@
 \AgdaRecord{Lift}\AgdaSpace{}%
 \AgdaBound{ℓ}\AgdaSpace{}%
 \AgdaDatatype{⊥}\<%
-\\
-%
-\\[\AgdaEmptyExtraSkip]%
+\end{code}
+%</poly-types>
+%<*poly-norm>
+\begin{code}%
 %
 \>[4]\AgdaFunction{Norm}\AgdaSpace{}%
 \AgdaSymbol{:}\AgdaSpace{}%
@@ -943,4 +944,3 @@
 \AgdaRecord{⊤}\<%
 \end{code}
 %</poly-norm>
-

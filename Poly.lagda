@@ -131,15 +131,18 @@ module Full where
         i≤n   : i ≤ n
 \end{code}
 %</poly>
-%<*poly-types>
+%<*flat-poly>
 \begin{code}
     data FlatPoly : ℕ → Set (a ⊔ ℓ) where
-      Κ  : Carrier → FlatPoly 0
+      Κ  : Carrier → FlatPoly zero
       Σ  : ∀ {n}
          → (xs : Coeffs n)
          → .{xn : Norm xs}
          → FlatPoly (suc n)
-
+\end{code}
+%</flat-poly>
+%<*poly-types>
+\begin{code}
     infixl 6 _Δ_
     record CoeffExp (i : ℕ) : Set (a ⊔ ℓ) where
       inductive
@@ -158,15 +161,15 @@ module Full where
       field
         poly : Poly i
         .{poly≠0} : ¬ Zero poly
-\end{code}
-%</poly-types>
-%<*poly-norm>
-\begin{code}
+
     Zero : ∀ {n} → Poly n → Set ℓ
     Zero (Κ x        Π _) = Zero-C x
     Zero (Σ []       Π _) = Lift ℓ ⊤
     Zero (Σ (_ ∷ _)  Π _) = Lift ℓ ⊥
-
+\end{code}
+%</poly-types>
+%<*poly-norm>
+\begin{code}
     Norm : ∀ {i} → Coeffs i → Set
     Norm []                    = ⊥
     Norm (_ Δ zero   ∷ [])     = ⊥
@@ -174,4 +177,3 @@ module Full where
     Norm (_ Δ suc _  ∷ _)      = ⊤
 \end{code}
 %</poly-norm>
-

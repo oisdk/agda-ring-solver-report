@@ -18,13 +18,13 @@
 \contentsline {section}{\numberline {6}Multivariate}{9}
 \contentsline {subsection}{\numberline {6.1}Sparse Nesting}{9}
 \contentsline {subsubsection}{\numberline {6.1.1}Inequalities}{10}
-\contentsline {subsubsection}{\numberline {6.1.2}Choosing an Inequality}{10}
+\contentsline {subsubsection}{\numberline {6.1.2}Choosing an Inequality}{11}
 \contentsline {subsubsection}{\numberline {6.1.3}Indexed Ordering}{11}
 \contentsline {section}{\numberline {7}Writing The Proofs}{12}
 \contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{12}
 \contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{12}
 \contentsline {section}{\numberline {8}Setoid Applications}{12}
 \contentsline {subsection}{\numberline {8.1}Traced}{12}
-\contentsline {subsection}{\numberline {8.2}Isomorphisms}{12}
-\contentsline {subsection}{\numberline {8.3}Counterexamples}{12}
+\contentsline {subsection}{\numberline {8.2}Isomorphisms}{13}
+\contentsline {subsection}{\numberline {8.3}Counterexamples}{13}
 \contentsline {section}{\numberline {9}The Correct-by-Construction Approach}{13}
