@@ -55,26 +55,49 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-  Dependently typed programming languages allow programmers and mathematicians
-  alike to write proofs which can be executed. For programmers, this often means
-  being able to formally verify the properties of their programs; for
-  mathematicians, it provides a system of machine-checked verification not
-  available to handwritten proofs.
+  We present a new implementation of a ring solver in the programming language
+  Agda\cite{norell_dependently_2008}. The efficiency is improved over the
+  version included in the standard library\cite{danielsson_agda_2018} by
+  including optimizations described in\cite{hutchison_proving_2005}, among
+  others.
 
-  Naïve usage of these systems can be tedious: the typechecker is often
-  over-zealous in its rigor, demanding justification for every minute step in a
-  proof, no matter how obvious or trivial it may seem to a human. For algebraic
-  proofs, this kind of thing usually consists of long chains of rewrites, of the
-  style ``apply commutativity of \(+\), then associativity of \(+\), then at
-  this position apply distributivity of \(*\) over \(+\)'' and so on, when
-  really the programmer wants to say ``rearrange the expression into this
-  form, checking it's correct''.
-
-  Luckily, since our proof assistant is also a programming language, we can
-  provide the desired capability, by writing a function which constructs 
+  We demonstrate techniques for constructing proofs based on the theory of
+  lists, show how Agda's reflection system can be used to provide a safe and
+  simple interface to the solver, and compare the ``correct by construction''
+  approach to that of auxiliary proofs.
+  
+  We also show that, as a by-product of proving equivalences rather than
+  equalities, the generated proofs can be instantiated into a number of exotic
+  settings, including:
+  \begin{enumerate}
+    \item Pretty-printing step-by-step solutions.
+    \item Providing human-readable counterexamples when a proof fails.
+    \item Constructing isomorphisms between types represented as polynomials.
+  \end{enumerate}
 \end{abstract}
 \tableofcontents
-\section{Monoids}
+\section{Introduction}
+Dependently typed programming languages allow programmers and mathematicians
+alike to write proofs which can be executed. For programmers, this often means
+being able to formally verify the properties of their programs; for
+mathematicians, it provides a system of machine-checked verification not
+available to handwritten proofs.
+
+Naïve usage of these systems can be tedious: the typechecker is often
+over-zealous in its rigor, demanding justification for every minute step in a
+proof, no matter how obvious or trivial it may seem to a human. For algebraic
+proofs, this kind of thing usually consists of long chains of rewrites, of the
+style ``apply commutativity of \(+\), then associativity of \(+\), then at this
+position apply distributivity of \(*\) over \(+\)'' and so on, when really the
+programmer wants to say ``rearrange the expression into this form, checking it's
+correct''.
+
+Luckily, since our proof assistant is also a programming language, we can
+provide the desired capability, by writing a function which converts expressions
+into a canonical form, and a proof that the conversion preserves the semantics
+of the expression. This can then be used to automatically construct equivalence
+proofs for equivalent expressions.
+\section{A Case Study in Monoids}
 Before describing the ring solver, first we will explain the simpler case of a
 monoid solver.
 
@@ -529,9 +552,18 @@ With this defined, the \(\AgdaDatatype{Ordering}\) type is obvious:
 \ExecuteMetaData[Poly.tex]{ind-ordering}
 
 \section{Writing The Proofs}
-The proofs are long (roughly 1000 lines), albeit mechanical. \todo{See if the
-  proofs can be improved with\cite{mu_algebra_2009}}
+The proofs are long (roughly 1000 lines), albeit mechanical.
+\subsection{Equational Reasoning Techniques}
 \todo{Expand on the proofs. Operators used, etc.}
+\subsection{The Algebra of Programming and List Homomorphisms}
+\todo{
+  I haven't actually been able to apply the ``algebra of
+  programming''\cite{mu_algebra_2009} stuff in the proofs themselves yet. This
+  section may well be removed if it turns out I can't manage it, but for now it
+  seems like a promising avenue that might get us some cleaner, more interesting
+  proofs. Especially since so many of the functions are written as folds on
+  lists.
+}
 \section{Setoid Applications} \label{setoid-applications}
 I mentioned that the notion of equality we were using was more general than
 propositional, and that we could use it more flexibly in different contexts.
