@@ -102,7 +102,6 @@ data Poly : Carrier → Set (a ⊔ ℓ) where
 
 infixr 0 _⇐_
 record Expr (expr : Carrier) : Set (a ⊔ ℓ) where
-  inductive
   constructor _⇐_
   field
     {norm} : Carrier
