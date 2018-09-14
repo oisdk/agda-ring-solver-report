@@ -59,6 +59,7 @@
 \newtheorem{definition}{Definition}[section]
 \usepackage{subcaption}
 \usepackage{graphicx}
+\usepackage{tikz-cd}
 \author{D Oisín Kidney}
 \title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
 \begin{document}
@@ -149,7 +150,6 @@ To a human, the fact that the identity holds may well be obvious:
 \(\AgdaField{∙}\) is associative, so scrub out all the parentheses, and
 \(\AgdaField{ε}\) is the identity element, so scrub it out too. After that, both
 sides are equal, so voilà!
-
 
 Unfortunately, to convince the compiler we need to specify every instance of
 associativity and identity, rewriting the left-hand-side repeatedly until it
@@ -245,32 +245,11 @@ combine both steps into one:
 \ExecuteMetaData[Monoids.tex]{ast-norm-interp}
 
 \begin{figure*}
-  \centering
-  \begin{subfigure}[b]{0.4\textwidth}
-    \raggedleft
-    \ExecuteMetaData[Monoids.tex]{rhs-norm}
-  \end{subfigure} \begin{subfigure}[b]{0.4\textwidth}
-    \raggedright
-    \ExecuteMetaData[Monoids.tex]{rhs-norm}
-  \end{subfigure}
-
-    \resizebox{0.3\textwidth}{!}{
-      \begin{subfigure}[h]{0.4\textwidth}
-        \ExecuteMetaData[Monoids.tex]{lhs-ast}
-      \end{subfigure}
-    } \hfill \resizebox{0.3\textwidth}{!}{
-      \begin{subfigure}[h]{0.4\textwidth}
-        \ExecuteMetaData[Monoids.tex]{rhs-ast}
-      \end{subfigure}
-    }
-
-  \begin{subfigure}[b]{0.4\textwidth}
-    \raggedleft
-    \ExecuteMetaData[Monoids.tex]{lhs-expr}
-  \end{subfigure} \begin{subfigure}[b]{0.4\textwidth}
-    \raggedright
-    \ExecuteMetaData[Monoids.tex]{rhs-expr}
-  \end{subfigure}
+  \begin{tikzcd}
+    & \includegraphics[draft=false,width=0.25\linewidth]{graphics/rhs-norm} & \includegraphics[draft=false,width=0.25\linewidth]{graphics/rhs-norm} & \\
+    \includegraphics[draft=false,width=0.25\linewidth]{graphics/lhs-ast} & & & \includegraphics[draft=false,width=0.25\linewidth]{graphics/rhs-ast} \\
+    & \includegraphics[draft=false,width=0.25\linewidth]{graphics/lhs-expr} & \includegraphics[draft=false,width=0.25\linewidth]{graphics/rhs-expr} &
+  \end{tikzcd}
 \end{figure*}
 
 
