@@ -320,7 +320,6 @@ module Semantics
   open Full
   open _-Raw-AlmostCommutative⟶_ morphism using () renaming (⟦_⟧ to ⟦_⟧ᵣ)
 
-  -- Exponentiation
   infixr 8 _^_
   _^_ : Carrier → ℕ → Carrier
   x ^ zero = 1#

@@ -233,7 +233,12 @@ supply two extra proofs:
 \end{equation}
 
 The proofs labeled \(a\) and \(b\) are the homomorphism proofs, and it's what we
-tackle next.
+tackle next. \todo{
+  It's unclear how this gets us to the desired proof in the end. Maybe add a
+  diagram like the one in \cite{hutchison_proving_2005}? Possibly expand it out
+  a little, to include where reflection would fit in, and how the equivalent
+  diagram for correct by construction (section~\ref{correct-by-constr}) differs.
+}
 
 First, we'll define a concrete AST for the monoid language:
 \ExecuteMetaData[Monoids.tex]{mon-ast}
@@ -619,13 +624,29 @@ After adding the injection index optimization, we use a normalizing version of
 (Figure~\ref{inj-norm}). Operations now perform two ``match-up'' operations: one
 for the injection indices and one for the power indices (Figure~\ref{full-mul}).
 \todo{Maybe unify the two match-up functions?}
+\subsection{Semantics}
 \section{Writing The Proofs}
-The proofs are long (roughly 1000 lines), albeit mechanical.
+The proofs are long (roughly 1000 lines), albeit mechanical. There are some
+techniques that made the size manageable.
 \subsection{Equational Reasoning Techniques}
 \subsubsection{Operators}
+Because congruence has to be explicitly stated in the reasoning tools, quite
+often you'll find yourself writing long chains of \(\AgdaFunction{+-cong}\) or
+\(\AgdaFunction{*-cong}\) just to focus into one expression buried in a larger
+one. To that end, we can use the following operators to make the ``focusing''
+code shooter and easier to read:
+\ExecuteMetaData[Reasoning.tex]{cong-combinators}
+
+Their fixty means that they can be chained without parentheses. Something like: 
+``\(\AgdaFunction{≪+}\) \(\AgdaFunction{*≫}\) \(\AgdaFunction{*≫}\)
+\(\AgdaFunction{≪*}\)'' means ``go to the left of \(+\), then
+to the right of \(*\), right again, then to the left of \(*\)''. In other words,
+it can take a proof of \(x \; \AgdaField{≈} \; y\), and put it in a larger
+context:
+\ExecuteMetaData[Reasoning.tex]{cong-example}
+
 \subsubsection{Examples}
-\todo{Expand on the proofs. Operators used, etc. Maybe include an example
-  proof?}
+\todo{Expand on the proofs. Maybe include an example proof?}
 \subsection{The Algebra of Programming and List Homomorphisms}
 \todo{
   I haven't actually been able to apply the ``algebra of
@@ -654,7 +675,7 @@ And it does indeed implement the expected properties of an equivalence relation:
   on containers for this.}
 \subsection{Counterexamples}
 \todo{Possible to provide counterexamples if a proof fails?}
-\section{The Correct-by-Construction Approach}
+\section{The Correct-by-Construction Approach} \label{correct-by-constr}
 The Agda and Coq communities exhibit something of a cultural difference when it
 comes to proving things. Coq users seem to prefer writing simpler, almost
 non-dependent code and algorithms, to separately prove properties about that
