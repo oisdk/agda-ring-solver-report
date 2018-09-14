@@ -57,6 +57,8 @@
 \usepackage{amsthm}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
+\usepackage{subcaption}
+\usepackage{graphicx}
 \author{D Oisín Kidney}
 \title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
 \begin{document}
@@ -198,23 +200,81 @@ vector:
 Compare this language to the language of monoid expressions that
 Figure~\ref{mon-ident} uses: both have identity elements and a binary operator,
 and both refer to variables. Our language of lists, however, has one significant
-advantage, which can be seen when we rewrite the identity in
-Figure~\ref{mon-ident} in it:
+advantage: the monoid operations don't depend on the contents of the lists, only
+the structure. In other words, an expression in the language of lists will
+reduce to a flat list even if it has elements which are abstract variables. As a
+result, the identity from Figure~\ref{mon-ident} is \emph{definitionally} true
+when written in the language of lists:
 \ExecuteMetaData[Monoids.tex]{list-obvious}
-The equivalence of each side is obvious to Agda, and so we don't need to write
-it out as we did before.
+\subsection{Extracting Evidence}
+While this is beginning to look like a solver, it's still not entirely clear how
+we're going to join up the pieces. The first step is to get a concrete
+representation of expressions which we can manipulate and pattern-match on. 
+\ExecuteMetaData[Monoids.tex]{mon-ast}
+It has constructors for each of the monoid operations
+(\(\AgdaInductiveConstructor{⊕}\) and \(\AgdaInductiveConstructor{e}\) are
+\(\AgdaField{∙}\) and \(\AgdaField{ε}\), respectively), and it's indexed by the
+number of variables it contains, which are constructed with
+\(\AgdaInductiveConstructor{ν}\).
 
-Proving that the language of lists and the language of monoid
-expressions\footnotemark are equivalent is the task of the next section.
+We can convert from this AST to an unnormalized expression like so\footnotemark:
+\ExecuteMetaData[Monoids.tex]{eval-ast}
+Because this function performs no normalization or transformation, the output is
+definitionally equal to its equivalent expression. This means that we can
+discharge the proof obligation with refl:
 \footnotetext{
-  For simplicity's sake, from now on when we talk about the ``language of monoid
-  expressions'', we won't be referring to curried functions of \(n\) arguments,
-  rather we'll deal with functions which take a vector of length \(n\), that
-  refer to each variable by position. Translating between those two forms is not
-  directly relevant to what we're doing here: we refer the interested reader to
-  the Relation.Binary.Reflection module of Agda's standard
-  library\cite{danielsson_agda_2018}.
+  The type of the unnormalized expression has changed slightly: instead of being
+  a curried function of \(n\) arguments, it's now a function which takes a
+  vector of length \(n\). The final solver has an extra translation step for
+  going between these two representations, but it's a little fiddly, and not
+  directly relevant to what we're doing here, so we've glossed over it. We refer
+  the interested reader to the Relation.Binary.Reflection module of Agda's
+  standard library\cite{danielsson_agda_2018} for an implementation.
 }
+\ExecuteMetaData[Monoids.tex]{eval-nonnorm}
+
+The AST might look ugly, but it gives us a link between the expressions we had
+in Figure~\ref{mon-ident} and a concrete representation. We'll see in
+Section~\ref{reflection} how to improve the syntax.
+
+The next link is between the AST and the normalized expression. We can convert
+from the AST to a normal form like so:
+\ExecuteMetaData[Monoids.tex]{ast-norm}
+And since we already defined how to ``evaluate'' the list normal form, we can
+combine both steps into one:
+\ExecuteMetaData[Monoids.tex]{ast-norm-interp}
+
+\begin{figure*}
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \raggedleft
+    \ExecuteMetaData[Monoids.tex]{rhs-norm}
+  \end{subfigure} \begin{subfigure}[b]{0.4\textwidth}
+    \raggedright
+    \ExecuteMetaData[Monoids.tex]{rhs-norm}
+  \end{subfigure}
+
+    \resizebox{0.3\textwidth}{!}{
+      \begin{subfigure}[h]{0.4\textwidth}
+        \ExecuteMetaData[Monoids.tex]{lhs-ast}
+      \end{subfigure}
+    } \hfill \resizebox{0.3\textwidth}{!}{
+      \begin{subfigure}[h]{0.4\textwidth}
+        \ExecuteMetaData[Monoids.tex]{rhs-ast}
+      \end{subfigure}
+    }
+
+  \begin{subfigure}[b]{0.4\textwidth}
+    \raggedleft
+    \ExecuteMetaData[Monoids.tex]{lhs-expr}
+  \end{subfigure} \begin{subfigure}[b]{0.4\textwidth}
+    \raggedright
+    \ExecuteMetaData[Monoids.tex]{rhs-expr}
+  \end{subfigure}
+\end{figure*}
+
+
+
 \subsection{Homomorphism}
 Our \(\AgdaFunction{\text{obvious}}\) proof has the form:
 \begin{equation}
@@ -243,22 +303,13 @@ tackle next. \todo{
 }
 
 First, we'll define a concrete AST for the monoid language:
-\ExecuteMetaData[Monoids.tex]{mon-ast}
-It has constructors for each of the monoid operations
-(\(\AgdaInductiveConstructor{⊕}\) and \(\AgdaInductiveConstructor{e}\) are
-\(\bullet\) and \(\epsilon\), respectively), and it's indexed by the number of
-variables it contains, which are constructed with
-\(\AgdaInductiveConstructor{ν}\). Similarly to the list language, we can
 interpret it with a vector of values for the variables.
-\ExecuteMetaData[Monoids.tex]{eval-ast}
 This interpreter will result in an unnormalized expression like the one in
 Figure~\ref{mon-ident}; in other words, the outer sides of
 Equation~\ref{mon-list-mon}. To get the normalized expressions, we'll first need
 to convert a monoid AST to a list AST:
-\ExecuteMetaData[Monoids.tex]{ast-norm}
 Combining that with the fact that we know how to interpret the list AST, we get
 a normalizing interpreter for the monoid AST:
-\ExecuteMetaData[Monoids.tex]{ast-norm-interp}
 With this, we can see that the proofs needed by \(a\) and \(b\) are actually
 proofs of equivalence of these two interpreter functions.
 
@@ -289,7 +340,7 @@ Combining all of the components above, with some plumbing provided by the
 Relation.Binary.Reflection module, we can finally automate the solving of the
 original identity in figure~\ref{mon-ident}:
 \ExecuteMetaData[Monoids.tex]{ident-auto-proof}
-\subsection{Reflection}
+\subsection{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
 want to solve twice: once in the type signature, and again in the argument
 supplied to solve. Agda can infer the type signature:

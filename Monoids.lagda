@@ -28,7 +28,7 @@ module MonIdent {c ℓ}
   open import Relation.Binary.EqReasoning setoid
   open import Data.Nat
   open import Data.Fin
-  open import Data.Vec as Vec using (Vec; lookup)
+  open import Data.Vec as Vec using (Vec; lookup; _∷_; [])
 \end{code}
 %<*mon-ident>
 \begin{code}
@@ -95,13 +95,15 @@ module MonIdent {c ℓ}
 %</list-obvious>
 \begin{code}
   module Exprs where
+    infixr 7 _⊕_
+    infix 9 ν_
 \end{code}
 %<*mon-ast>
 \begin{code}
     data Expr (i : ℕ) : Set c where
       _⊕_  : Expr i → Expr i → Expr i
       e    : Expr i
-      ν    : Fin i → Expr i
+      ν_   : Fin i → Expr i
 \end{code}
 %</mon-ast>
 %<*eval-ast>
@@ -112,6 +114,16 @@ module MonIdent {c ℓ}
     ⟦ ν i ⟧ ρ    = lookup i ρ
 \end{code}
 %</eval-ast>
+%<*eval-nonnorm>
+\begin{code}
+    definitional
+      : ∀ {w x y z}
+      → (w ∙ x) ∙ (y ∙ z)
+        ≈ ⟦ (ν # 0 ⊕ ν # 1) ⊕ (ν # 2 ⊕ ν # 3) ⟧
+          (w ∷ x ∷ y ∷ z ∷ [])
+    definitional = refl
+\end{code}
+%</eval-nonnorm>
 %<*ast-norm>
 \begin{code}
     norm : ∀ {i} → Expr i → List i
@@ -129,6 +141,56 @@ module MonIdent {c ℓ}
     ⟦ x ⇓⟧ ρ = norm x μ ρ
 \end{code}
 %</ast-norm-interp>
+\begin{code}
+    rhs-nonnorm
+      : ∀ {w x y z} → ⟦
+\end{code}
+%<*rhs-ast>
+\begin{code}
+      (ν # 0 ⊕ ν # 1) ⊕ (ν # 2 ⊕ ν # 3)
+\end{code}
+%</rhs-ast>
+\begin{code}
+        ⟧ (w ∷ x ∷ y ∷ z ∷ []) ≈
+\end{code}
+%<*rhs-expr>
+\begin{code}
+      (w ∙ x) ∙ (y ∙ z)
+\end{code}
+%</rhs-expr>
+\begin{code}
+    rhs-nonnorm = refl
+
+    rhs-norm : ∀ {w x y z} → ⟦ (ν # 0 ⊕ ν # 1) ⊕ (ν # 2 ⊕ ν # 3) ⇓⟧ (w ∷ x ∷ y ∷ z ∷ []) ≈
+\end{code}
+%<*rhs-norm>
+\begin{code}
+      w ∙ (x ∙ (y ∙ (z ∙ ε)))
+\end{code}
+%</rhs-norm>
+\begin{code}
+    rhs-norm = refl
+
+    lhs-nonnorm : ∀ {w x y z} →
+\end{code}
+%<*lhs-expr>
+\begin{code}
+      ((w ∙ ε) ∙ (x ∙ y)) ∙ z
+\end{code}
+%</lhs-expr>
+\begin{code}
+      ≈ ⟦
+\end{code}
+%<*lhs-ast>
+\begin{code}
+      ((ν # 0 ⊕ e) ⊕ (ν # 1 ⊕ ν # 2)) ⊕ ν # 3
+\end{code}
+%</lhs-ast>
+\begin{code}
+      ⟧ (w ∷ x ∷ y ∷ z ∷ [])
+    lhs-nonnorm = refl
+
+\end{code}
 %<*correct-ast>
 \begin{code}
     ⊙-hom  : ∀ {i} (x y : List i)
