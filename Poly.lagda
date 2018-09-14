@@ -14,13 +14,9 @@ open import Data.Vec as Vec using (_∷_; []; Vec)
 open import Data.Nat as ℕ using (ℕ; suc; zero; compare)
 open import Function
 open import Data.Fin as Fin using (Fin)
+open import Data.Product hiding (Σ)
 
-module Poly
-  {a ℓ}
-  (coeffs : RawRing a)
-  (Zero-C : Pred (RawRing.Carrier coeffs) ℓ)
-  (zero-c? : Decidable Zero-C)
-  where
+module Poly where
 
 module LEQ1 where
 \end{code}
@@ -49,7 +45,12 @@ module LEQ2 where
 %</leq-2>
 \begin{code}
 
-module Slime where
+module Slime
+  {a ℓ}
+  (coeffs : RawRing a)
+  (Zero-C : Pred (RawRing.Carrier coeffs) ℓ)
+  (zero-c? : Decidable Zero-C)
+  where
   open RawRing coeffs
   FlatPoly : ℕ → Set
   FlatPoly _ = ⊤
@@ -116,7 +117,12 @@ z≤n : ∀ {n} → zero ≤ n
 z≤n {zero} = m≤m
 z≤n {suc n} = ≤-s z≤n
 
-module Full where
+module SparseNesting
+  {a ℓ}
+  (coeffs : RawRing a)
+  (Zero-C : Pred (RawRing.Carrier coeffs) ℓ)
+  (zero-c? : Decidable Zero-C)
+  where
   open RawRing coeffs
   mutual
 \end{code}
@@ -308,39 +314,66 @@ module Full where
         ⊞-coeffs (⊠-inj j≤n x ys) (⊠-step y ys xs)
 \end{code}
 %</poly-mult>
+
+%<*semantics-opening>
 \begin{code}
 module Semantics
-  {r₃ r₄}
+  {r₁ r₂ r₃ r₄}
+  (coeffs : RawRing r₁)
+  (Zero : Pred (RawRing.Carrier coeffs) r₂)
+  (zero? : Decidable Zero)
   (ring : AlmostCommutativeRing r₃ r₄)
-  (morphism : coeffs -Raw-AlmostCommutative⟶ ring)
+  (morphism :
+    coeffs -Raw-AlmostCommutative⟶ ring)
   where
 
-  open import Data.Product
   open AlmostCommutativeRing ring
-  open Full
-  open _-Raw-AlmostCommutative⟶_ morphism using () renaming (⟦_⟧ to ⟦_⟧ᵣ)
-
+  open SparseNesting coeffs Zero zero?
+  open _-Raw-AlmostCommutative⟶_
+    morphism
+    using ()
+    renaming (⟦_⟧ to ⟦_⟧ᵣ)
+\end{code}
+%</semantics-opening>
+%<*semantics>
+\begin{code}
   infixr 8 _^_
   _^_ : Carrier → ℕ → Carrier
   x ^ zero = 1#
   x ^ suc n = x * x ^ n
 
-  drop : ∀ {i n} → i ≤ n → Vec Carrier n → Vec Carrier i
+  drop : ∀ {i n}
+       → i ≤ n
+       → Vec Carrier n
+       → Vec Carrier i
   drop m≤m Ρ = Ρ
   drop (≤-s si≤n) (_ ∷ Ρ) = drop si≤n Ρ
 
-  vec-uncons : ∀ {n} → Vec Carrier (suc n) → Carrier × Vec Carrier n
+  vec-uncons : ∀ {n}
+             → Vec Carrier (suc n)
+             → Carrier × Vec Carrier n
   vec-uncons (x ∷ xs) = x , xs
 
-  drop-1 : ∀ {i n} → suc i ≤ n → Vec Carrier n → Carrier × Vec Carrier i
+  drop-1 : ∀ {i n}
+         → suc i ≤ n
+         → Vec Carrier n
+         → Carrier × Vec Carrier i
   drop-1 si≤n xs = vec-uncons (drop si≤n xs)
 
   mutual
-    Σ⟦_⟧ : ∀ {n} → Coeffs n → (Carrier × Vec Carrier n) → Carrier
-    Σ⟦ x ≠0 Δ i ∷ xs ⟧ (ρ , Ρ) = (⟦ x ⟧ Ρ + Σ⟦ xs ⟧ (ρ , Ρ) * ρ) * ρ ^ i
+    Σ⟦_⟧ : ∀ {n}
+        → Coeffs n
+        → Carrier × Vec Carrier n
+        → Carrier
     Σ⟦ [] ⟧ _ = 0#
+    Σ⟦ x ≠0 Δ i ∷ xs ⟧ (ρ , Ρ) =
+      (⟦ x ⟧ Ρ + Σ⟦ xs ⟧ (ρ , Ρ) * ρ) * ρ ^ i
 
-    ⟦_⟧ : ∀ {n} → Poly n → Vec Carrier n → Carrier
-    ⟦ Κ x  Π i≤n ⟧ _ = ⟦ x ⟧ᵣ
-    ⟦ Σ xs Π i≤n ⟧ Ρ = Σ⟦ xs ⟧ (drop-1 i≤n Ρ)
+    ⟦_⟧ : ∀ {n}
+        → Poly n
+        → Vec Carrier n
+        → Carrier
+    ⟦ Κ x   Π i≤n ⟧ _  = ⟦ x ⟧ᵣ
+    ⟦ Σ xs  Π i≤n ⟧ Ρ  = Σ⟦ xs ⟧ (drop-1 i≤n Ρ)
 \end{code}
+%</semantics>

@@ -29,9 +29,11 @@
 \DeclareUnicodeCharacter{951}{\textgreek{\texteta}}
 \DeclareUnicodeCharacter{737}{\ensuremath{^\text{l}}}
 \DeclareUnicodeCharacter{691}{\ensuremath{^\text{r}}}
+\DeclareUnicodeCharacter{7523}{\ensuremath{_\text{r}}}
 \DeclareUnicodeCharacter{8718}{\ensuremath{\blacksquare}}
 \DeclareUnicodeCharacter{957}{\textgreek{\textnu}}
 \DeclareUnicodeCharacter{961}{\textgreek{\textrho}}
+\DeclareUnicodeCharacter{929}{\textgreek{\textRho}}
 \DeclareUnicodeCharacter{954}{\textgreek{\textkappa}}
 \DeclareUnicodeCharacter{10214}{\ensuremath{\lsem}}
 \DeclareUnicodeCharacter{10215}{\ensuremath{\rsem}}
@@ -625,6 +627,18 @@ After adding the injection index optimization, we use a normalizing version of
 for the injection indices and one for the power indices (Figure~\ref{full-mul}).
 \todo{Maybe unify the two match-up functions?}
 \subsection{Semantics}
+When it comes to ``interpreting'' the polynomials, we don't need to use the same
+ring as we did for the coefficients: all we need is a homomorphism between the
+coefficients and the target. This allows the user to supply (potentially) a more
+efficient implementation for the coefficients, and then use it to prove things
+about some slower target type. The declaration for the semantics module, then,
+looks like this:
+\ExecuteMetaData[Poly.tex]{semantics-opening}
+
+Finally, for the interpretation functions, we see again evidence that our
+choice of inequality was the right one: it naturally works with the vector
+input, dropping elements in linear time.
+\ExecuteMetaData[Poly.tex]{semantics}
 
 \section{Writing The Proofs}
 The proofs are long (roughly 1000 lines), albeit mechanical. There are some

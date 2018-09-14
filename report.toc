@@ -22,14 +22,14 @@
 \contentsline {subsubsection}{\numberline {6.1.3}Indexed Ordering}{11}{subsubsection.6.1.3}
 \contentsline {subsection}{\numberline {6.2}Operations}{12}{subsection.6.2}
 \contentsline {subsection}{\numberline {6.3}Semantics}{12}{subsection.6.3}
-\contentsline {section}{\numberline {7}Writing The Proofs}{12}{section.7}
-\contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{12}{subsection.7.1}
-\contentsline {subsubsection}{\numberline {7.1.1}Operators}{12}{subsubsection.7.1.1}
-\contentsline {subsubsection}{\numberline {7.1.2}Examples}{12}{subsubsection.7.1.2}
-\contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{12}{subsection.7.2}
+\contentsline {section}{\numberline {7}Writing The Proofs}{13}{section.7}
+\contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{13}{subsection.7.1}
+\contentsline {subsubsection}{\numberline {7.1.1}Operators}{13}{subsubsection.7.1.1}
+\contentsline {subsubsection}{\numberline {7.1.2}Examples}{13}{subsubsection.7.1.2}
+\contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{13}{subsection.7.2}
 \contentsline {section}{\numberline {8}Setoid Applications}{13}{section.8}
 \contentsline {subsection}{\numberline {8.1}Traced}{13}{subsection.8.1}
-\contentsline {subsection}{\numberline {8.2}Isomorphisms}{13}{subsection.8.2}
-\contentsline {subsection}{\numberline {8.3}Counterexamples}{13}{subsection.8.3}
-\contentsline {section}{\numberline {9}The Correct-by-Construction Approach}{13}{section.9}
-\contentsline {section}{\numberline {A}Extra Code Examples}{15}{appendix.A}
+\contentsline {subsection}{\numberline {8.2}Isomorphisms}{14}{subsection.8.2}
+\contentsline {subsection}{\numberline {8.3}Counterexamples}{14}{subsection.8.3}
+\contentsline {section}{\numberline {9}The Correct-by-Construction Approach}{14}{section.9}
+\contentsline {section}{\numberline {A}Extra Code Examples}{16}{appendix.A}
