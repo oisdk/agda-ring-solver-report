@@ -60,6 +60,7 @@
 \usepackage{subcaption}
 \usepackage{graphicx}
 \usepackage{tikz-cd}
+\usetikzlibrary{decorations.pathmorphing}
 \author{D Oisín Kidney}
 \title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
 \begin{document}
@@ -245,10 +246,25 @@ combine both steps into one:
 \ExecuteMetaData[Monoids.tex]{ast-norm-interp}
 
 \begin{figure*}
-  \begin{tikzcd}
-    & \includegraphics[draft=false,width=0.25\linewidth]{graphics/rhs-norm} & \includegraphics[draft=false,width=0.25\linewidth]{graphics/rhs-norm} & \\
-    \includegraphics[draft=false,width=0.25\linewidth]{graphics/lhs-ast} & & & \includegraphics[draft=false,width=0.25\linewidth]{graphics/rhs-ast} \\
-    & \includegraphics[draft=false,width=0.25\linewidth]{graphics/lhs-expr} & \includegraphics[draft=false,width=0.25\linewidth]{graphics/rhs-expr} &
+  \centering
+  \begin{tikzcd}[cramped, column sep=-1cm]
+    &
+    \includegraphics[draft=false,height=0.8cm]{graphics/rhs-norm}
+    \ar[r, Leftrightarrow, bend left=50, "{\AgdaField{refl}}" description] &
+    \includegraphics[draft=false,height=0.8cm]{graphics/rhs-norm} & \\
+    \includegraphics[draft=false,height=0.8cm]{graphics/lhs-ast}
+    \ar[ur, start anchor=north, end anchor=west, "{\AgdaFunction{⟦\_⇓⟧}}"]
+    \ar[dr, start anchor=south, end anchor={[yshift=4ex]west}, "{\AgdaFunction{⟦\_⟧}}"'] &
+    &
+    &
+    \includegraphics[draft=false,height=0.8cm]{graphics/rhs-ast}
+    \ar[ul, start anchor=north, end anchor=east, "{\AgdaFunction{⟦\_⇓⟧}}"']
+    \ar[dl, start anchor=south, end anchor={[yshift=4ex]east}, "{\AgdaFunction{⟦\_⟧}}"] \\
+    &
+    \includegraphics[draft=false,height=0.8cm]{graphics/lhs-expr}
+    \ar[uu, squiggly, no head, "{\AgdaFunction{correct}}" description] &
+    \includegraphics[draft=false,height=0.8cm]{graphics/rhs-expr}
+    \ar[uu, squiggly, no head, "{\AgdaFunction{correct}}" description] &
   \end{tikzcd}
 \end{figure*}
 
