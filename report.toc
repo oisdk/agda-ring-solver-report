@@ -4,8 +4,8 @@
 \contentsline {subsection}{\numberline {2.1}Equivalence Proofs}{2}{subsection.2.1}
 \contentsline {subsection}{\numberline {2.2}Canonical Forms}{3}{subsection.2.2}
 \contentsline {subsection}{\numberline {2.3}Extracting Evidence}{4}{subsection.2.3}
-\contentsline {subsection}{\numberline {2.4}Homomorphism}{4}{subsection.2.4}
-\contentsline {subsection}{\numberline {2.5}Usage}{6}{subsection.2.5}
+\contentsline {subsection}{\numberline {2.4}Homomorphism}{5}{subsection.2.4}
+\contentsline {subsection}{\numberline {2.5}Usage}{5}{subsection.2.5}
 \contentsline {subsection}{\numberline {2.6}Reflection}{6}{subsection.2.6}
 \contentsline {section}{\numberline {3}A Polynomial Solver}{6}{section.3}
 \contentsline {subsection}{\numberline {3.1}Choice of Algebra}{6}{subsection.3.1}
@@ -24,8 +24,8 @@
 \contentsline {subsection}{\numberline {6.2}Operations}{13}{subsection.6.2}
 \contentsline {subsection}{\numberline {6.3}Semantics}{13}{subsection.6.3}
 \contentsline {section}{\numberline {7}Writing The Proofs}{13}{section.7}
-\contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{14}{subsection.7.1}
-\contentsline {subsubsection}{\numberline {7.1.1}Operators}{14}{subsubsection.7.1.1}
+\contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{13}{subsection.7.1}
+\contentsline {subsubsection}{\numberline {7.1.1}Operators}{13}{subsubsection.7.1.1}
 \contentsline {subsubsection}{\numberline {7.1.2}Examples}{14}{subsubsection.7.1.2}
 \contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{14}{subsection.7.2}
 \contentsline {section}{\numberline {8}Setoid Applications}{14}{section.8}

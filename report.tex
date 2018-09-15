@@ -224,7 +224,7 @@ We can convert from this AST to an unnormalized expression like so\footnotemark:
 \ExecuteMetaData[Monoids.tex]{eval-ast}
 Because this function performs no normalization or transformation, the output is
 definitionally equal to its equivalent expression. This means that we can
-discharge the proof obligation with refl:
+discharge the proof obligation with \(\AgdaFunction{refl}\):
 \footnotetext{
   The type of the unnormalized expression has changed slightly: instead of being
   a curried function of \(n\) arguments, it's now a function which takes a
@@ -237,18 +237,25 @@ discharge the proof obligation with refl:
 \ExecuteMetaData[Monoids.tex]{eval-nonnorm}
 
 The AST might look ugly, but it gives us a link between the expressions we had
-in Figure~\ref{mon-ident} and a concrete representation. We'll see in
-Section~\ref{reflection} how to improve the syntax.
-
-The next link is between the AST and the normalized expression. We can convert
-from the AST to a normal form like so:
+in Figure~\ref{mon-ident} and a concrete representation. The next link is
+between the AST and the normalized expression. We can convert from the AST to a
+normal form like so:
 \ExecuteMetaData[Monoids.tex]{ast-norm}
 And since we already defined how to ``evaluate'' the list normal form, we can
 combine both steps into one:
 \ExecuteMetaData[Monoids.tex]{ast-norm-interp}
 
 Now we have a concrete way to link the normalized and non-normalized forms of
-the expressions. 
+the expressions. A diagram of the strategy for constructing our proof is in
+Figure~\ref{proof-process}. The goal is to construct a proof of equivalence
+between the two expressions at the bottom: to do this, we first construct the
+AST which represents the two expressions (for now, we'll assume the user
+constructs this AST themselves. Later we'll see how too construct it
+automatically from the provided expressions). Then, we can evaluate it into
+either the normalized form, or the unnormalized form. Since the normalized forms
+are syntactically equal, all we need is \(\AgdaInductiveConstructor{refl}\) to
+prove their equality. The only missing part now is \(\AgdaFunction{correct}\),
+which is the task of the next section.
 
 \begin{figure*}
   \makebox[\textwidth][c]{
@@ -277,47 +284,14 @@ the expressions.
     \end{tikzpicture}
   }
   \caption{The Reflexive Proof Process}
+  \label{proof-process}
 \end{figure*}
-
-
-
-\subsection{Homomorphism}
-Our \(\AgdaFunction{\text{obvious}}\) proof has the form:
-\begin{equation}
-  \label{list-list}
-  \text{lhs}_{list} = \text{rhs}_{list}
-\end{equation}
-What we want, though, is the following:
-\begin{equation}
-  \label{mon-mon}
-  \text{lhs}_{mon} = \text{rhs}_{mon}
-\end{equation}
-Equation~\ref{list-list} can be used to build Equation~\ref{mon-mon}, if we
-supply two extra proofs:
-\begin{equation}
-  \label{mon-list-mon}
-  \text{lhs}_{mon} \overset{a}{=} \text{lhs}_{list} = \text{rhs}_{list}
-  \overset{b}{=} \text{rhs}_{mon}
-\end{equation}
-
-The proofs labeled \(a\) and \(b\) are the homomorphism proofs, and it's what we
-tackle next. \todo{
-  It's unclear how this gets us to the desired proof in the end. Maybe add a
-  diagram like the one in \cite{hutchison_proving_2005}? Possibly expand it out
-  a little, to include where reflection would fit in, and how the equivalent
-  diagram for correct by construction (section~\ref{correct-by-constr}) differs.
+\todo{
+  equivalent diagram for correct by construction
+  (section~\ref{correct-by-constr})
 }
 
-First, we'll define a concrete AST for the monoid language:
-interpret it with a vector of values for the variables.
-This interpreter will result in an unnormalized expression like the one in
-Figure~\ref{mon-ident}; in other words, the outer sides of
-Equation~\ref{mon-list-mon}. To get the normalized expressions, we'll first need
-to convert a monoid AST to a list AST:
-Combining that with the fact that we know how to interpret the list AST, we get
-a normalizing interpreter for the monoid AST:
-With this, we can see that the proofs needed by \(a\) and \(b\) are actually
-proofs of equivalence of these two interpreter functions.
+\subsection{Homomorphism}
 
 Taking the non-normalizing interpreter as a template, the three cases are as
 follows\footnotemark:
