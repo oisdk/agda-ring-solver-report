@@ -247,19 +247,23 @@ And since we already defined how to ``evaluate'' the list normal form, we can
 combine both steps into one:
 \ExecuteMetaData[Monoids.tex]{ast-norm-interp}
 
+Now we have a concrete way to link the normalized and non-normalized forms of
+the expressions. 
+
 \begin{figure*}
   \makebox[\textwidth][c]{
     \begin{tikzpicture}
+      % \draw[help lines] (-8,-4) grid (8,3); 
       \node (ln) at (-2, 2) {\includegraphics[draft=false,trim={25 10 25 10}]{graphics/rhs-norm}};
       \node (rn) at ( 2, 2) {\includegraphics[draft=false,trim={25 10 25 10}]{graphics/rhs-norm}};
       \node (la) at (-6, 0) {\includegraphics[draft=false,trim={25 10 22 10}]{graphics/lhs-ast}};
       \node (ra) at ( 6, 0) {\includegraphics[draft=false,trim={25 10 48 10}]{graphics/rhs-ast}};
-      \node (le) at (-2,-2) {\includegraphics[draft=false,trim={25 10 20 10}]{graphics/lhs-expr}};
+      \node (le) at (-2,-2) {\includegraphics[draft=false,trim={25 10 23 10}]{graphics/lhs-expr}};
       \node (re) at ( 2,-2) {\includegraphics[draft=false,trim={25 10 20 10}]{graphics/rhs-expr}};
-      \draw[-stealth] (la) to[out=90 , in=180] node[midway, fill=white] {\AgdaFunction{⟦\_⇓⟧}} (ln);
-      \draw[-stealth] (la) to[out=270, in=180] node[midway, fill=white] {\AgdaFunction{⟦\_⟧} } (le);
-      \draw[-stealth] (ra) to[out=90 , in=0  ] node[midway, fill=white] {\AgdaFunction{⟦\_⇓⟧}} (rn);
-      \draw[-stealth] (ra) to[out=270, in=0  ] node[midway, fill=white] {\AgdaFunction{⟦\_⟧} } (re);
+      \draw[|-stealth] (la) to[out=90 , in=180] node[midway, fill=white] {\AgdaFunction{⟦\_⇓⟧}} (ln);
+      \draw[|-stealth] (la) to[out=270, in=180] node[midway, fill=white] {\AgdaFunction{⟦\_⟧} } (le);
+      \draw[|-stealth] (ra) to[out=90 , in=0  ] node[midway, fill=white] {\AgdaFunction{⟦\_⇓⟧}} (rn);
+      \draw[|-stealth] (ra) to[out=270, in=0  ] node[midway, fill=white] {\AgdaFunction{⟦\_⟧} } (re);
       \foreach \e/\n in {le/ln,re/rn}
         \foreach \shft in {-0.6pt,0.6pt}
           \draw[AgdaField, transform canvas={xshift=\shft}, snake=coil, segment aspect=0, segment amplitude=0.4pt, segment length=4pt] (\e) -- (\n);
@@ -268,8 +272,11 @@ combine both steps into one:
       \foreach \shft in {-1.6pt, 0pt}
         \draw[AgdaDatatype, transform canvas={yshift=\shft}] (ln) -- (rn);
       \draw[AgdaDatatype, transform canvas={yshift=1.6pt}] (ln) -- (rn) node[midway, above] {\AgdaInductiveConstructor{refl}};
+      \draw[-angle 90, dashed] (re) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quote}} ([shift={(1,0)}]ra.south);
+      \draw[-angle 90, dashed] (le) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quote}} ([shift={(-1,0)}]la.south);
     \end{tikzpicture}
   }
+  \caption{The Reflexive Proof Process}
 \end{figure*}
 
 
