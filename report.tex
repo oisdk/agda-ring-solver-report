@@ -59,8 +59,10 @@
 \newtheorem{definition}{Definition}[section]
 \usepackage{subcaption}
 \usepackage{graphicx}
-\usepackage{tikz-cd}
+\usepackage{tikz}
 \usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{snakes}
+\usetikzlibrary{arrows}
 \author{D Oisín Kidney}
 \title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
 \begin{document}
@@ -246,26 +248,28 @@ combine both steps into one:
 \ExecuteMetaData[Monoids.tex]{ast-norm-interp}
 
 \begin{figure*}
-  \centering
-  \begin{tikzcd}[cramped, column sep=-1cm]
-    &
-    \includegraphics[draft=false,height=0.8cm]{graphics/rhs-norm}
-    \ar[r, Leftrightarrow, bend left=50, "{\AgdaField{refl}}" description] &
-    \includegraphics[draft=false,height=0.8cm]{graphics/rhs-norm} & \\
-    \includegraphics[draft=false,height=0.8cm]{graphics/lhs-ast}
-    \ar[ur, start anchor=north, end anchor=west, "{\AgdaFunction{⟦\_⇓⟧}}"]
-    \ar[dr, start anchor=south, end anchor={[yshift=4ex]west}, "{\AgdaFunction{⟦\_⟧}}"'] &
-    &
-    &
-    \includegraphics[draft=false,height=0.8cm]{graphics/rhs-ast}
-    \ar[ul, start anchor=north, end anchor=east, "{\AgdaFunction{⟦\_⇓⟧}}"']
-    \ar[dl, start anchor=south, end anchor={[yshift=4ex]east}, "{\AgdaFunction{⟦\_⟧}}"] \\
-    &
-    \includegraphics[draft=false,height=0.8cm]{graphics/lhs-expr}
-    \ar[uu, squiggly, no head, "{\AgdaFunction{correct}}" description] &
-    \includegraphics[draft=false,height=0.8cm]{graphics/rhs-expr}
-    \ar[uu, squiggly, no head, "{\AgdaFunction{correct}}" description] &
-  \end{tikzcd}
+  \makebox[\textwidth][c]{
+    \begin{tikzpicture}
+      \node (ln) at (-2, 2) {\includegraphics[draft=false,trim={25 10 25 10}]{graphics/rhs-norm}};
+      \node (rn) at ( 2, 2) {\includegraphics[draft=false,trim={25 10 25 10}]{graphics/rhs-norm}};
+      \node (la) at (-6, 0) {\includegraphics[draft=false,trim={25 10 22 10}]{graphics/lhs-ast}};
+      \node (ra) at ( 6, 0) {\includegraphics[draft=false,trim={25 10 48 10}]{graphics/rhs-ast}};
+      \node (le) at (-2,-2) {\includegraphics[draft=false,trim={25 10 20 10}]{graphics/lhs-expr}};
+      \node (re) at ( 2,-2) {\includegraphics[draft=false,trim={25 10 20 10}]{graphics/rhs-expr}};
+      \draw[-stealth] (la) to[out=90 , in=180] node[midway, fill=white] {\AgdaFunction{⟦\_⇓⟧}} (ln);
+      \draw[-stealth] (la) to[out=270, in=180] node[midway, fill=white] {\AgdaFunction{⟦\_⟧} } (le);
+      \draw[-stealth] (ra) to[out=90 , in=0  ] node[midway, fill=white] {\AgdaFunction{⟦\_⇓⟧}} (rn);
+      \draw[-stealth] (ra) to[out=270, in=0  ] node[midway, fill=white] {\AgdaFunction{⟦\_⟧} } (re);
+      \foreach \e/\n in {le/ln,re/rn}
+        \foreach \shft in {-0.6pt,0.6pt}
+          \draw[AgdaField, transform canvas={xshift=\shft}, snake=coil, segment aspect=0, segment amplitude=0.4pt, segment length=4pt] (\e) -- (\n);
+      \node[fill=white] at (-2, 0) {\AgdaFunction{correct}};
+      \node[fill=white] at ( 2, 0) {\AgdaFunction{correct}};
+      \foreach \shft in {-1.6pt, 0pt}
+        \draw[AgdaDatatype, transform canvas={yshift=\shft}] (ln) -- (rn);
+      \draw[AgdaDatatype, transform canvas={yshift=1.6pt}] (ln) -- (rn) node[midway, above] {\AgdaInductiveConstructor{refl}};
+    \end{tikzpicture}
+  }
 \end{figure*}
 
 
