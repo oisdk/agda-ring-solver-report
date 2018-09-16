@@ -6,31 +6,31 @@
 \contentsline {subsection}{\numberline {2.3}Extracting Evidence}{4}{subsection.2.3}
 \contentsline {subsection}{\numberline {2.4}Homomorphism}{5}{subsection.2.4}
 \contentsline {subsection}{\numberline {2.5}Usage}{5}{subsection.2.5}
-\contentsline {subsection}{\numberline {2.6}Reflection}{6}{subsection.2.6}
-\contentsline {section}{\numberline {3}A Polynomial Solver}{6}{section.3}
-\contentsline {subsection}{\numberline {3.1}Choice of Algebra}{6}{subsection.3.1}
-\contentsline {section}{\numberline {4}Horner Normal Form}{6}{section.4}
-\contentsline {subsection}{\numberline {4.1}Sparse Horner Normal Form}{7}{subsection.4.1}
-\contentsline {subsubsection}{\numberline {4.1.1}Uniqueness}{7}{subsubsection.4.1.1}
-\contentsline {subsubsection}{\numberline {4.1.2}Comparison}{8}{subsubsection.4.1.2}
-\contentsline {subsubsection}{\numberline {4.1.3}Efficiency}{8}{subsubsection.4.1.3}
-\contentsline {subsubsection}{\numberline {4.1.4}Termination}{9}{subsubsection.4.1.4}
-\contentsline {section}{\numberline {5}Binary}{10}{section.5}
-\contentsline {section}{\numberline {6}Multivariate}{10}{section.6}
-\contentsline {subsection}{\numberline {6.1}Sparse Nesting}{10}{subsection.6.1}
-\contentsline {subsubsection}{\numberline {6.1.1}Inequalities}{11}{subsubsection.6.1.1}
-\contentsline {subsubsection}{\numberline {6.1.2}Choosing an Inequality}{11}{subsubsection.6.1.2}
-\contentsline {subsubsection}{\numberline {6.1.3}Indexed Ordering}{12}{subsubsection.6.1.3}
-\contentsline {subsection}{\numberline {6.2}Operations}{13}{subsection.6.2}
-\contentsline {subsection}{\numberline {6.3}Semantics}{13}{subsection.6.3}
-\contentsline {section}{\numberline {7}Writing The Proofs}{13}{section.7}
-\contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{13}{subsection.7.1}
-\contentsline {subsubsection}{\numberline {7.1.1}Operators}{13}{subsubsection.7.1.1}
-\contentsline {subsubsection}{\numberline {7.1.2}Examples}{14}{subsubsection.7.1.2}
-\contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{14}{subsection.7.2}
-\contentsline {section}{\numberline {8}Setoid Applications}{14}{section.8}
-\contentsline {subsection}{\numberline {8.1}Traced}{14}{subsection.8.1}
-\contentsline {subsection}{\numberline {8.2}Isomorphisms}{15}{subsection.8.2}
-\contentsline {subsection}{\numberline {8.3}Counterexamples}{15}{subsection.8.3}
-\contentsline {section}{\numberline {9}The Correct-by-Construction Approach}{15}{section.9}
-\contentsline {section}{\numberline {A}Extra Code Examples}{17}{appendix.A}
+\contentsline {section}{\numberline {3}Reflection}{6}{section.3}
+\contentsline {section}{\numberline {4}A Polynomial Solver}{7}{section.4}
+\contentsline {subsection}{\numberline {4.1}Choice of Algebra}{7}{subsection.4.1}
+\contentsline {section}{\numberline {5}Horner Normal Form}{7}{section.5}
+\contentsline {subsection}{\numberline {5.1}Sparse Horner Normal Form}{8}{subsection.5.1}
+\contentsline {subsubsection}{\numberline {5.1.1}Uniqueness}{8}{subsubsection.5.1.1}
+\contentsline {subsubsection}{\numberline {5.1.2}Comparison}{9}{subsubsection.5.1.2}
+\contentsline {subsubsection}{\numberline {5.1.3}Efficiency}{9}{subsubsection.5.1.3}
+\contentsline {subsubsection}{\numberline {5.1.4}Termination}{10}{subsubsection.5.1.4}
+\contentsline {section}{\numberline {6}Binary}{10}{section.6}
+\contentsline {section}{\numberline {7}Multivariate}{11}{section.7}
+\contentsline {subsection}{\numberline {7.1}Sparse Nesting}{11}{subsection.7.1}
+\contentsline {subsubsection}{\numberline {7.1.1}Inequalities}{12}{subsubsection.7.1.1}
+\contentsline {subsubsection}{\numberline {7.1.2}Choosing an Inequality}{12}{subsubsection.7.1.2}
+\contentsline {subsubsection}{\numberline {7.1.3}Indexed Ordering}{13}{subsubsection.7.1.3}
+\contentsline {subsection}{\numberline {7.2}Operations}{13}{subsection.7.2}
+\contentsline {subsection}{\numberline {7.3}Semantics}{14}{subsection.7.3}
+\contentsline {section}{\numberline {8}Writing The Proofs}{14}{section.8}
+\contentsline {subsection}{\numberline {8.1}Equational Reasoning Techniques}{14}{subsection.8.1}
+\contentsline {subsubsection}{\numberline {8.1.1}Operators}{14}{subsubsection.8.1.1}
+\contentsline {subsubsection}{\numberline {8.1.2}Examples}{15}{subsubsection.8.1.2}
+\contentsline {subsection}{\numberline {8.2}The Algebra of Programming and List Homomorphisms}{15}{subsection.8.2}
+\contentsline {section}{\numberline {9}Setoid Applications}{15}{section.9}
+\contentsline {subsection}{\numberline {9.1}Traced}{15}{subsection.9.1}
+\contentsline {subsection}{\numberline {9.2}Isomorphisms}{16}{subsection.9.2}
+\contentsline {subsection}{\numberline {9.3}Counterexamples}{16}{subsection.9.3}
+\contentsline {section}{\numberline {10}The Correct-by-Construction Approach}{16}{section.10}
+\contentsline {section}{\numberline {A}Extra Code Examples}{18}{appendix.A}

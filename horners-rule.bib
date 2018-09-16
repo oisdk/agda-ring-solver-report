@@ -406,7 +406,13 @@ This project considers the development of such automated theorem provers in Agda
 @phdthesis{van_der_walt_reflection_2012,
   type = {Master's {{Thesis}}},
   title = {Reflection in {{Agda}}},
+  abstract = {This project explores the recent addition to Agda enabling reflection, in the style of Lisp, MetaML, and Template Haskell. It illustrates several possible applications of reflection that arise in dependently typed programming, and details the limitations of the current implementation of reflection. Examples of type-safe metaprograms are given that illustrate the power of reflection coupled with a dependently typed language. Among other things the limitations inherent in having quote and unquote implemented as keywords are highlighted. The fact that lambda terms are returned without typing information is discussed, and a solution is presented. Also provided is a detailed users' guide to the reflection API and a library of working code examples to illustrate how various common tasks can be performed, along with suggestions for an updated reflection API in a future version of Agda.},
+  language = {en},
+  urldate = {2018-09-16},
+  url = {https://dspace.library.uu.nl/handle/1874/256628},
+  school = {Universiteit of Utrecht},
   author = {{van der Walt}, P. D.},
+  month = oct,
   year = {2012},
   file = {/Users/doisinkidney/Zotero/storage/X358AMNW/van der Walt - 2012 - Reflection in Agda.pdf;/Users/doisinkidney/Zotero/storage/8ZQY4FCH/256628.html}
 }
@@ -466,6 +472,104 @@ This project considers the development of such automated theorem provers in Agda
   url = {http://www.botik.ru/pub/local/Mechveliani/binNat/},
   author = {Meshveliani, Sergei},
   year = {21-Aug-2018}
+}
+
+@inproceedings{kokke_auto_2015,
+  series = {Lecture Notes in Computer Science},
+  title = {Auto in {{Agda}}},
+  isbn = {978-3-319-19797-5},
+  abstract = {As proofs in type theory become increasingly complex, there is a growing need to provide better proof automation. This paper shows how to implement a Prolog-style resolution procedure in the dependently typed programming language Agda. Connecting this resolution procedure to Agda's reflection mechanism provides a first-class proof search tactic for first-order Agda terms. As a result, writing proof automation tactics need not be different from writing any other program.},
+  language = {en},
+  url = {http://www.staff.science.uu.nl/~swier004/publications/2015-mpc.pdfhttp://www.staff.science.uu.nl/~swier004/publications/2015-mpc.pdfhttp://www.staff.science.uu.nl/~swier004/publications/2015-mpc.pdf},
+  booktitle = {Mathematics of {{Program Construction}}},
+  publisher = {{Springer International Publishing}},
+  author = {Kokke, Pepijn and Swierstra, Wouter},
+  editor = {Hinze, Ralf and Voigtl\"ander, Janis},
+  year = {2015},
+  keywords = {Abstract Syntax Tree,Goal Type,Implicit Argument,Proof Search,Unification Algorithm},
+  pages = {276-301},
+  file = {/Users/doisinkidney/Zotero/storage/HPTCKCL2/Kokke and Swierstra - Programming proof search using reﬂection.pdf}
+}
+
+@incollection{thiemann_extensible_2016,
+  address = {Berlin, Heidelberg},
+  title = {Extensible and {{Efficient Automation Through Reflective Tactics}}},
+  volume = {9632},
+  isbn = {978-3-662-49497-4 978-3-662-49498-1},
+  abstract = {Foundational proof assistants simultaneously offer both expressive logics and strong guarantees. The price they pay for this flexibility is often the need to build and check explicit proof objects which can be expensive. In this work we develop a collection of techniques for building reflective automation, where proofs are witnessed by verified decision procedures rather than verbose proof objects. Our techniques center around a verified domain specific language for proving, Rtac, written in Gallina, Coq's logic. The design of tactics makes it easy to combine them into higher-level automation that can be proved sound in a mostly automated way. Furthermore, unlike traditional uses of reflection, Rtac tactics are independent of the underlying problem domain. This allows them to be re-tasked to automate new problems with very little effort. We demonstrate the usability of Rtac through several case studies demonstrating orders of magnitude speedups for relatively little engineering work.},
+  language = {en},
+  urldate = {2018-09-15},
+  url = {http://link.springer.com/10.1007/978-3-662-49498-1_21},
+  booktitle = {Programming {{Languages}} and {{Systems}}},
+  publisher = {{Springer Berlin Heidelberg}},
+  author = {Malecha, Gregory and Bengtson, Jesper},
+  editor = {Thiemann, Peter},
+  year = {2016},
+  pages = {532-559},
+  file = {/Users/doisinkidney/Zotero/storage/DG5QW9GB/Malecha and Bengtson - 2016 - Extensible and Efficient Automation Through Reflec.pdf},
+  doi = {10.1007/978-3-662-49498-1_21}
+}
+
+@incollection{bobaru_integrating_2011,
+  address = {Berlin, Heidelberg},
+  title = {Integrating an {{Automated Theorem Prover}} into {{Agda}}},
+  volume = {6617},
+  isbn = {978-3-642-20397-8 978-3-642-20398-5},
+  abstract = {Agda is a dependently typed functional programming language and a proof assistant in which developing programs and proving their correctness is one activity. We show how this process can be enhanced by integrating external automated theorem provers, provide a prototypical integration of the equational theorem prover Waldmeister, and give examples of how this proof automation works in practice.},
+  language = {en},
+  urldate = {2018-09-15},
+  url = {http://link.springer.com/10.1007/978-3-642-20398-5_10},
+  booktitle = {{{NASA Formal Methods}}},
+  publisher = {{Springer Berlin Heidelberg}},
+  author = {Foster, Simon and Struth, Georg},
+  editor = {Bobaru, Mihaela and Havelund, Klaus and Holzmann, Gerard J. and Joshi, Rajeev},
+  year = {2011},
+  pages = {116-130},
+  file = {/Users/doisinkidney/Zotero/storage/KURGY5CK/Foster and Struth - 2011 - Integrating an Automated Theorem Prover into Agda.pdf},
+  doi = {10.1007/978-3-642-20398-5_10}
+}
+
+@incollection{hinze_engineering_2013,
+  address = {Berlin, Heidelberg},
+  title = {Engineering {{Proof}} by {{Reflection}} in {{Agda}}},
+  volume = {8241},
+  isbn = {978-3-642-41581-4 978-3-642-41582-1},
+  abstract = {This paper explores the recent addition to Agda enabling reflection, in the style of Lisp and Template Haskell. It gives a brief introduction to using reflection, and details the complexities encountered when automating certain proofs with proof by reflection. It presents a library that can be used for automatically quoting a class of concrete Agda terms to a non-dependent, user-defined inductive data type, alleviating some of the burden a programmer faces when using reflection in a practical setting.},
+  language = {en},
+  urldate = {2018-09-16},
+  url = {http://link.springer.com/10.1007/978-3-642-41582-1_10},
+  booktitle = {Implementation and {{Application}} of {{Functional Languages}}},
+  publisher = {{Springer Berlin Heidelberg}},
+  author = {{van der Walt}, Paul and Swierstra, Wouter},
+  editor = {Hinze, Ralf},
+  year = {2013},
+  pages = {157-173},
+  file = {/Users/doisinkidney/Zotero/storage/66IQWHX3/van der Walt and Swierstra - 2013 - Engineering Proof by Reflection in Agda.pdf},
+  doi = {10.1007/978-3-642-41582-1_10}
+}
+
+@misc{allais_three_2016,
+  title = {Three {{Tricks}} to Make {{Termination Obvious}}},
+  abstract = {Two weeks ago I spent some time implementing Wadler's "Prettier Printer". The implementation is fairly straightforward except for three functions that are not seen as terminating. Here are the three tricks that made them go through.},
+  urldate = {2018-09-16},
+  url = {https://gallais.github.io/blog/termination-tricks.html},
+  journal = {gallais' blog},
+  author = {Allais, Guillaume},
+  month = nov,
+  year = {2016},
+  file = {/Users/doisinkidney/Zotero/storage/ITLVNI2H/termination-tricks.html}
+}
+
+@inproceedings{abel_miniagda_2010,
+  title = {{{MiniAgda}}: {{Integrating}} Sized and Dependent Types},
+  shorttitle = {Miniagda},
+  abstract = {Sized types are a modular and theoretically well-understood tool for checking termination of recursive and productivity of corecursive definitions. The essential idea is to track structural descent and guardedness in the type system to make termination checking robust and suitable for strong abstractions like higher-order functions and polymorphism. To study the application of sized types to proof assistants and programming languages based on dependent type theory, we have implemented a core language, MiniAgda, with explicit handling of sizes. New considerations were necessary to soundly integrate sized types with dependencies and pattern matching, which was made possible by modern concepts such as inaccessible patterns and parametric function spaces. This paper provides an introduction to MiniAgda by example and informal explanations of the underlying principles. 1},
+  language = {en},
+  booktitle = {{{PAR}}, Volume 43 of {{EPTCS}}},
+  author = {Abel, Andreas},
+  year = {2010},
+  pages = {14--28},
+  file = {/Users/doisinkidney/Zotero/storage/C8SGX7MN/Abel - 2010 - Miniagda Integrating sized and dependent types.pdf;/Users/doisinkidney/Zotero/storage/KP266WFQ/Abel - MiniAgda Integrating Sized and Dependent Types.pdf;/Users/doisinkidney/Zotero/storage/LCKS32ZV/summary\;jsessionid=11EAC1E0ADB87A0CC4E950303BE9DB40.html}
 }
 
 

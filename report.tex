@@ -45,6 +45,7 @@
 \DeclareUnicodeCharacter{931}{\textgreek{\textSigma}}
 \DeclareUnicodeCharacter{916}{\textgreek{\textDelta}}
 \DeclareUnicodeCharacter{8779}{\ensuremath{\backtriplesim}}
+\DeclareUnicodeCharacter{8799}{\ensuremath{\stackrel{?}{=}}}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{autofe}
@@ -279,8 +280,8 @@ which is the task of the next section.
       \foreach \shft in {-1.6pt, 0pt}
         \draw[AgdaDatatype, transform canvas={yshift=\shft}] (ln) -- (rn);
       \draw[AgdaDatatype, transform canvas={yshift=1.6pt}] (ln) -- (rn) node[midway, above] {\AgdaInductiveConstructor{refl}};
-      \draw[-angle 90, dashed] (re) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quote}} ([shift={(1,0)}]ra.south);
-      \draw[-angle 90, dashed] (le) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quote}} ([shift={(-1,0)}]la.south);
+      \draw[-angle 90, dashed] (re) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quoteTerm}} ([shift={(1,0)}]ra.south);
+      \draw[-angle 90, dashed] (le) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quoteTerm}} ([shift={(-1,0)}]la.south);
     \end{tikzpicture}
   }
   \caption{The Reflexive Proof Process}
@@ -320,7 +321,7 @@ Combining all of the components above, with some plumbing provided by the
 Relation.Binary.Reflection module, we can finally automate the solving of the
 original identity in figure~\ref{mon-ident}:
 \ExecuteMetaData[Monoids.tex]{ident-auto-proof}
-\subsection{Reflection} \label{reflection}
+\section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
 want to solve twice: once in the type signature, and again in the argument
 supplied to solve. Agda can infer the type signature:
@@ -330,8 +331,54 @@ infer the argument to solve, as the expression in the type signature is the
 desired equality, and the argument to solve is something of an implementation
 detail.
 
-\todo{Fill in reflection section} This inference can be accomplished using
-Agda's reflection mechanisms.
+This inference can be accomplished using Agda's reflection
+mechanisms\cite{van_der_walt_reflection_2012}.
+
+Reflection in Agda allows a program to inspect and modify its own code. Here, it
+will allow us to build the AST representation of an expression from a stated
+goal in the program, meaning that proofs become as simple as the following:
+\ExecuteMetaData[ReflectDemo.tex]{refl-lemma}
+
+There are three basic components that we'll use for the reflection machinery:
+\begin{description}
+  \item[\(\AgdaDatatype{Term}\)] The representation of Agda's AST, retrievable
+    via \(\AgdaKeyword{quoteTerm}\).
+  \item[\(\AgdaDatatype{Name}\)] The representation of identifiers, retrievable
+    via \(\AgdaKeyword{quote}\).
+  \item[\(\AgdaDatatype{TC}\)] The type-checker monad, which includes scoping
+    and environment information, can raise type errors, unify variables, or
+    provide fresh names. Computations in the \(\AgdaDatatype{TC}\) monad can be
+    run with \(\AgdaKeyword{unquote}\).
+\end{description}
+
+While \(\AgdaKeyword{quote}\), \(\AgdaKeyword{quoteTerm}\), and
+\(\AgdaKeyword{unquote}\) provide all the functionality we need, they're
+somewhat low-level, so instead we will define \emph{macros}. Macros (in Agda)
+are essentially syntactic sugar for the above keywords. They're defined by first
+declaring a \(\AgdaKeyword{macro}\) block, and then defining a function within
+it which has the return type:
+\ExecuteMetaData[ReflectDemo.tex]{return-type}
+
+The rest of the arguments can be treated normally like any other function, or,
+if they have the type \(\AgdaDatatype{Term}\) or \(\AgdaDatatype{Name}\),
+they're quoted before being passed in. The final argument to the function is the
+hole representing where the macro was called: to ``return'' a value you unify
+it with that hole. As an example, here's a macro to count the number of
+occurrences of some identifier in an expression:
+\ExecuteMetaData[ReflectDemo.tex]{occ-of}
+
+Some of the core characteristics of working with the reflected AST are clear
+here. Firstly, it's verbose. The \(\AgdaFunction{natTerm}\) function, for
+instance, simply gets the syntactic representation of a natural number.
+Unfortunately, we can't necessarily just call \(\AgdaKeyword{quoteTerm}\): the
+returned AST includes all kinds of information about context and environment
+which can clash with the environment where the macro is instantiated. A large
+amount of reflection and metaprogramming in Agda unfortunately consists of this
+kind of boilerplate (currently, at any rate).
+
+Next, it's far less \emph{typed} than it could be. To be clear, it doesn't break
+type safety: the generated program is still type-checked, but it can fail. 
+
 \section{A Polynomial Solver}
 We now know the components required for an automatic solver for some algebra: a
 canonical form, a concrete representation of expressions, and a proof of
@@ -510,6 +557,13 @@ performance.
 Every helper function in the mutual block matches on exactly one argument,
 eliminating redundancy. This also simplifies some of the homomorphism proofs
 later on.
+
+\todo{
+  You can probably get the foldr version of these functions to pass the
+  termination checker if you use a sized type.
+  \cite{abel_miniagda_2010}
+  \cite{allais_three_2016}
+}
 \section{Binary}
 Before continuing with polynomials, we'll take a short detour to look at binary
 numbers. These have a number of uses in dependently typed programming: as well
@@ -702,6 +756,7 @@ context:
   proofs. Especially since so many of the functions are written as folds on
   lists.
 }
+
 \section{Setoid Applications} \label{setoid-applications}
 I mentioned that the notion of equality we were using was more general than
 propositional, and that we could use it more flexibly in different contexts.
