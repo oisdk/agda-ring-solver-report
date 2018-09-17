@@ -10,6 +10,7 @@ open AlmostCommutativeRing NatRing
 open import Polynomials.Ring.Simple.Reflection
 open import Data.List
 open import Relation.Nullary
+open import Data.Unit
 \end{code}
 %<*refl-lemma>
 \begin{code}
@@ -18,6 +19,19 @@ lemma : ∀ x y
 lemma = solve NatRing
 \end{code}
 %</refl-lemma>
+\begin{code}
+nonlemma : ∀ x y →
+\end{code}
+%<*wrong-lemma>
+\begin{code}
+          x + y * 1 + 3 ≈ 2 + 1 + x + x
+\end{code}
+%</wrong-lemma>
+\begin{code}
+         → ⊤
+nonlemma _ _ _ = tt
+-- (y ℕ.+ 0 ℕ.* y) ℕ.* 1 != x
+\end{code}
 \begin{code}
 open import Reflection
 open import Data.Unit
@@ -72,3 +86,105 @@ occPlus :
 occPlus = refl
 \end{code}
 %</occ-of>
+%<*occ-wrong>
+\begin{code}
+infixl 6 _plus_
+_plus_ : ℕ → ℕ → ℕ
+_plus_ = _+_
+
+occWrong :
+  occurencesOf _+_
+    (λ x y → 2 plus 1 plus x plus y)
+  ≡ 0
+occWrong = refl
+\end{code}
+%</occ-wrong>
+%<*synonyms>
+\begin{code}
+infixr 5 ⟨_⟩∷_ ⟅_⟆∷_
+pattern ⟨_⟩∷_ x xs =
+  arg (arg-info visible relevant) x ∷ xs
+pattern ⟅_⟆∷_ x xs =
+  arg (arg-info hidden relevant) x ∷ xs
+\end{code}
+%</synonyms>
+\begin{code}
+open import Polynomials.Ring.Expr
+open import Data.List
+open import Function
+\end{code}
+%<*expr-hidden>
+\begin{code}
+infixr 5 ⟅_⋯⟆∷_
+⟅_⋯⟆∷_ : ℕ
+       → List (Arg Term)
+       → List (Arg Term)
+⟅ i ⋯⟆∷ xs =
+  ⟅ unknown ⟆∷
+  ⟅ unknown ⟆∷
+  ⟅ natTerm i ⟆∷
+  xs
+\end{code}
+%</expr-hidden>
+%<*expr-const-ast>
+\begin{code}
+constExpr : ℕ → Term → Term
+constExpr i x =
+  quote Κ ⟨ con ⟩ ⟅ i ⋯⟆∷ ⟨ x ⟩∷ []
+\end{code}
+%</expr-const-ast>
+\begin{code}
+mutual
+\end{code}
+%<*op-build>
+\begin{code}
+  getBinOp : ℕ
+           → Name
+           → List (Arg Term)
+           → Term
+  getBinOp i nm (⟨ x ⟩∷ ⟨ y ⟩∷ []) =
+    nm ⟨ con ⟩
+      ⟅ i ⋯⟆∷
+      ⟨ toExpr i x ⟩∷
+      ⟨ toExpr i y ⟩∷
+      []
+  getBinOp i nm (x ∷ xs) = getBinOp i nm xs
+  getBinOp _ _ _ = unknown
+
+  getUnOp : ℕ
+          → Name
+          → List (Arg Term)
+          → Term
+  getUnOp i nm (⟨ x ⟩∷ []) =
+    nm ⟨ con ⟩
+      ⟅ i ⋯⟆∷
+      ⟨ toExpr i x ⟩∷
+      []
+  getUnOp i nm (x ∷ xs) = getUnOp i nm xs
+  getUnOp _ _ _ = unknown
+\end{code}
+%</op-build>
+%<*op-names>
+\begin{code}
+  +′  *′  -′ : Name
+  +′  = quote AlmostCommutativeRing._+_
+  *′  = quote AlmostCommutativeRing._*_
+  -′  = quote AlmostCommutativeRing.-_
+\end{code}
+%</op-names>
+%<*to-expr>
+\begin{code}
+  toExpr : (i : ℕ) → Term → Term
+  toExpr i t@(def f xs) with f ≟-Name +′
+  ... | yes p = getBinOp i (quote _⊕_) xs
+  ... | no _ with f ≟-Name *′
+  ... | yes p = getBinOp i (quote _⊗_) xs
+  ... | no _ with f ≟-Name -′
+  ... | yes p = getUnOp i (quote ⊝_) xs
+  ... | no _ = constExpr i t
+  toExpr i v@(var x args) with suc x ℕ.≤? i
+  ... | yes p = v
+  ... | no ¬p = constExpr i v
+  toExpr i t = constExpr i t
+\end{code}
+%</to-expr>

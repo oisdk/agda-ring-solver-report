@@ -7,6 +7,7 @@
 \usepackage{bbm}
 \usepackage[greek, english]{babel}
 \usepackage{MnSymbol}
+\usepackage{stmaryrd}
 \usepackage{csquotes}
 \newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
 \newcommand\mdoubleplus{\ensuremath{\mathbin{+\mkern-8mu+}}}
@@ -46,6 +47,8 @@
 \DeclareUnicodeCharacter{916}{\textgreek{\textDelta}}
 \DeclareUnicodeCharacter{8779}{\ensuremath{\backtriplesim}}
 \DeclareUnicodeCharacter{8799}{\ensuremath{\stackrel{?}{=}}}
+\DeclareUnicodeCharacter{10181}{\ensuremath{\lbag}}
+\DeclareUnicodeCharacter{10182}{\ensuremath{\rbag}}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{autofe}
@@ -58,6 +61,8 @@
 \usepackage{amsthm}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem{principle}{Principle}[section]
 \usepackage{subcaption}
 \usepackage{graphicx}
 \usepackage{tikz}
@@ -213,8 +218,13 @@ when written in the language of lists:
 \subsection{Extracting Evidence}
 While this is beginning to look like a solver, it's still not entirely clear how
 we're going to join up the pieces. The first step is to get a concrete
-representation of expressions which we can manipulate and pattern-match on. 
-\ExecuteMetaData[Monoids.tex]{mon-ast}
+representation of expressions which we can manipulate and pattern-match on
+(Figure~\ref{mon-ast}).
+\begin{figure}[h]
+  \ExecuteMetaData[Monoids.tex]{mon-ast}
+  \caption{The AST for monoid expressions}
+  \label{mon-ast}
+\end{figure}
 It has constructors for each of the monoid operations
 (\(\AgdaInductiveConstructor{⊕}\) and \(\AgdaInductiveConstructor{e}\) are
 \(\AgdaField{∙}\) and \(\AgdaField{ε}\), respectively), and it's indexed by the
@@ -321,63 +331,6 @@ Combining all of the components above, with some plumbing provided by the
 Relation.Binary.Reflection module, we can finally automate the solving of the
 original identity in figure~\ref{mon-ident}:
 \ExecuteMetaData[Monoids.tex]{ident-auto-proof}
-\section{Reflection} \label{reflection}
-One annoyance of the automated solver is that we have to write the expression we
-want to solve twice: once in the type signature, and again in the argument
-supplied to solve. Agda can infer the type signature:
-\ExecuteMetaData[Monoids.tex]{ident-infer-proof}
-But we would prefer to write the expression in the type signature, and have it
-infer the argument to solve, as the expression in the type signature is the
-desired equality, and the argument to solve is something of an implementation
-detail.
-
-This inference can be accomplished using Agda's reflection
-mechanisms\cite{van_der_walt_reflection_2012}.
-
-Reflection in Agda allows a program to inspect and modify its own code. Here, it
-will allow us to build the AST representation of an expression from a stated
-goal in the program, meaning that proofs become as simple as the following:
-\ExecuteMetaData[ReflectDemo.tex]{refl-lemma}
-
-There are three basic components that we'll use for the reflection machinery:
-\begin{description}
-  \item[\(\AgdaDatatype{Term}\)] The representation of Agda's AST, retrievable
-    via \(\AgdaKeyword{quoteTerm}\).
-  \item[\(\AgdaDatatype{Name}\)] The representation of identifiers, retrievable
-    via \(\AgdaKeyword{quote}\).
-  \item[\(\AgdaDatatype{TC}\)] The type-checker monad, which includes scoping
-    and environment information, can raise type errors, unify variables, or
-    provide fresh names. Computations in the \(\AgdaDatatype{TC}\) monad can be
-    run with \(\AgdaKeyword{unquote}\).
-\end{description}
-
-While \(\AgdaKeyword{quote}\), \(\AgdaKeyword{quoteTerm}\), and
-\(\AgdaKeyword{unquote}\) provide all the functionality we need, they're
-somewhat low-level, so instead we will define \emph{macros}. Macros (in Agda)
-are essentially syntactic sugar for the above keywords. They're defined by first
-declaring a \(\AgdaKeyword{macro}\) block, and then defining a function within
-it which has the return type:
-\ExecuteMetaData[ReflectDemo.tex]{return-type}
-
-The rest of the arguments can be treated normally like any other function, or,
-if they have the type \(\AgdaDatatype{Term}\) or \(\AgdaDatatype{Name}\),
-they're quoted before being passed in. The final argument to the function is the
-hole representing where the macro was called: to ``return'' a value you unify
-it with that hole. As an example, here's a macro to count the number of
-occurrences of some identifier in an expression:
-\ExecuteMetaData[ReflectDemo.tex]{occ-of}
-
-Some of the core characteristics of working with the reflected AST are clear
-here. Firstly, it's verbose. The \(\AgdaFunction{natTerm}\) function, for
-instance, simply gets the syntactic representation of a natural number.
-Unfortunately, we can't necessarily just call \(\AgdaKeyword{quoteTerm}\): the
-returned AST includes all kinds of information about context and environment
-which can clash with the environment where the macro is instantiated. A large
-amount of reflection and metaprogramming in Agda unfortunately consists of this
-kind of boilerplate (currently, at any rate).
-
-Next, it's far less \emph{typed} than it could be. To be clear, it doesn't break
-type safety: the generated program is still type-checked, but it can fail. 
 
 \section{A Polynomial Solver}
 We now know the components required for an automatic solver for some algebra: a
@@ -540,12 +493,15 @@ Agda needs to be able to see that one of the numbers returned by
 is immediately packed up in a list in the recursive call, it's buried too deeply
 in constructors for the termination checker to see it.
 
+\begin{principle}[To make termination obvious, perform call pattern specialization]
 The solution is twofold: unpack any constructors into function arguments as soon
 as possible, and eliminate any redundant pattern matches in the offending
 functions. Taken together, these form an transformation known as ``call pattern
 specialization''\cite{jones_call-pattern_2007}\footnotemark. Happily, this
 transformation both makes termination more obvious \emph{and} improves
 performance.
+
+\end{principle}
 
 \footnotetext{
   This transformation is performed automatically by GHC as an optimization:
@@ -756,6 +712,256 @@ context:
   proofs. Especially since so many of the functions are written as folds on
   lists.
 }
+
+\section{Reflection} \label{reflection}
+One annoyance of the automated solver is that we have to write the expression we
+want to solve twice: once in the type signature, and again in the argument
+supplied to solve. Agda can infer the type signature:
+\ExecuteMetaData[Monoids.tex]{ident-infer-proof}
+But we would prefer to write the expression in the type signature, and have it
+infer the argument to solve, as the expression in the type signature is the
+desired equality, and the argument to solve is something of an implementation
+detail.
+
+This inference can be accomplished using Agda's reflection
+mechanisms\cite{van_der_walt_reflection_2012}.
+
+Reflection in Agda allows a program to inspect and modify its own code. Here, it
+will allow us to build the AST representation of an expression from a stated
+goal in the program, meaning that proofs become as simple as the following:
+\ExecuteMetaData[ReflectDemo.tex]{refl-lemma}
+
+There are three basic components that we'll use for the reflection machinery:
+\begin{description}
+  \item[\(\AgdaDatatype{Term}\)] The representation of Agda's AST, retrievable
+    via \(\AgdaKeyword{quoteTerm}\).
+  \item[\(\AgdaDatatype{Name}\)] The representation of identifiers, retrievable
+    via \(\AgdaKeyword{quote}\).
+  \item[\(\AgdaDatatype{TC}\)] The type-checker monad, which includes scoping
+    and environment information, can raise type errors, unify variables, or
+    provide fresh names. Computations in the \(\AgdaDatatype{TC}\) monad can be
+    run with \(\AgdaKeyword{unquote}\).
+\end{description}
+
+While \(\AgdaKeyword{quote}\), \(\AgdaKeyword{quoteTerm}\), and
+\(\AgdaKeyword{unquote}\) provide all the functionality we need, they're
+somewhat low-level, so instead we will define \emph{macros}. Macros (in Agda)
+are essentially syntactic sugar for the above keywords. They're defined by first
+declaring a \(\AgdaKeyword{macro}\) block, and then defining a function within
+it which has the return type:
+\ExecuteMetaData[ReflectDemo.tex]{return-type}
+
+The rest of the arguments can be treated normally like any other function, or,
+if they have the type \(\AgdaDatatype{Term}\) or \(\AgdaDatatype{Name}\),
+they're quoted before being passed in. The final argument to the function is the
+hole representing where the macro was called: to ``return'' a value you unify
+it with that hole. As an example, here's a macro to count the number of
+occurrences of some identifier in an expression:
+\ExecuteMetaData[ReflectDemo.tex]{occ-of}
+
+Some of the core characteristics of working with the reflected AST are clear
+here. Firstly, it's verbose. The \(\AgdaFunction{natTerm}\) function, for
+instance, simply gets the syntactic representation of a natural number.
+Unfortunately, we can't necessarily just call \(\AgdaKeyword{quoteTerm}\): the
+returned AST includes all kinds of information about context and environment
+which can clash with the environment where the macro is instantiated. A large
+amount of reflection and metaprogramming in Agda unfortunately consists of this
+kind of boilerplate (currently, at any rate).
+
+Next, it's far less \emph{typed} than it could be. To be clear, it doesn't break
+type safety: the generated program is still type-checked, but you can generate
+code with a type error in it without any difficulty. On the other end, the
+reflected AST doesn't contain as much type information as it could, which is
+often an annoyance. 
+
+Finally, it's fragile. Say we want to solve some expression in
+\(\AgdaDatatype{ℕ}\). Converting this to some \(\AgdaDatatype{Expr}\) type will
+involve, among other things, being able to find functions like
+\(\AgdaFunction{+}\) and \(\AgdaFunction{*}\) in the expression. However, if the
+user implements \(\AgdaDatatype{AlmostCommutativeRing}\) in the normal way,
+there'll be two identifiers which refer to each of those functions: one being
+the original implementation in \(\AgdaModule{Data.Nat}\), and the other being
+the field in \(\AgdaDatatype{AlmostCommutativeRing}\). But wait, it gets worse:
+in actual fact, there may well be \emph{three} identifiers. Remember that the
+``almost'' qualifier in \(\AgdaDatatype{AlmostCommutativeRing}\) refers to the
+fact that negation isn't required to cancel, allowing us to use types without a
+notion of negation (like  \(\AgdaDatatype{ℕ}\)). With the best of intentions, we
+may even provide a helper function which takes a \(\AgdaDatatype{Semiring}\)
+(ring without negation) and converts it into a
+\(\AgdaDatatype{AlmostCommutativeRing}\), supplying the identity function for
+negation. That's where our third identifier comes from: the
+\(\AgdaDatatype{Semiring}\) type. The third identifier is the field in the
+\(\AgdaDatatype{Semiring}\) record. If the \(\AgdaDatatype{Semiring}\) record is
+constructed from other records again (two monoids, say), we get even more
+identifiers to choose from.
+
+This all makes it difficult to check if a function application is
+\(\AgdaFunction{+}\), because we're only going to look at name equality. The
+following, for example, is morally the same as the argument to
+\(\AgdaMacro{occPlus}\) above, but returns a different argument, because we use
+an aliased version of \(\AgdaFunction{+}\):
+\ExecuteMetaData[ReflectDemo.tex]{occ-wrong}
+
+So our solver will demand that the user only refer to the functions defined in
+the record.
+
+Something that isn't visible in the example above the fact that
+\(\AgdaDatatype{Term}\) uses de Bruijn indices for variables. This means we have
+to be extra careful about scope: remember that one of the steps the solver does
+is curry the expressions, meaning that they all will take one argument. If a
+variable is referred to anywhere in the expression other than one of those
+arguments, it's index may be incorrect after currying. We'll see later how to
+deal with this\todo{will we?}.
+
+\subsection{Building The AST for Proving}
+Though \(\AgdaDatatype{Term}\) is itself an AST we could theoretically
+manipulate and use in the prover, as is demonstrated above it's complex and
+unwieldy: what we really want is to use a smaller AST for ring expressions, like
+the one in Figure~\ref{mon-ast}. To that end, we'll need build the
+\(\AgdaDatatype{Term}\) which will construct it for us.
+
+First, to make things easier on ourselves, we'll define some pattern synonyms:
+\ExecuteMetaData[ReflectDemo.tex]{synonyms}
+
+These match visible and hidden arguments, respectively.
+
+Next, we'll need another helper which applies the hidden arguments to the
+constructors for \(\AgdaDatatype{Expr}\). There are \emph{three} of these. The
+first is the universe level, the second is the Carrier type, and the third is
+the number of variables it's indexed by.
+\ExecuteMetaData[ReflectDemo.tex]{expr-hidden}
+The \(\AgdaInductiveConstructor{unknown}\) value translates into using an
+underscore; i.e. it means we're asking Agda to infer the value in its place.
+This might seem suboptimal: we can probably figure out the values of those
+underscores, so shouldn't we try and find them, and supply them instead? In our
+experience, the answer is no.
+
+\begin{principle}{Don't help the compiler!}
+  Supply the \emph{minimal} amount of information possible in the AST to be
+  unquoted, relying on inference as much as possible. The metalanguage is
+  fragile and finicky with regards to scopes and context: the compiler isn't.
+  You're more likely to get an argument wrong if you try and figure it out than
+  the compiler is.
+\end{principle}
+
+Using this, we can make a function for the AST which will generate a constant
+expression:
+\ExecuteMetaData[ReflectDemo.tex]{expr-const-ast}
+\subsection{Matching on the Reflected Expression}
+There are three components we want to match on in the reflected expression: ring
+operators, variables, and constants.
+\subsubsection{Matching the Ring Operators}
+We'll do this via name equality. The three names we're interested in are as
+follows:
+\ExecuteMetaData[ReflectDemo]{op-names}
+When we encounter the AST constructor which corresponds to a name reference
+\(\AgdaInductiveConstructor{def}\), we test for equality on each of these names
+successively. When (if) we get a match, we call one of the following functions,
+depending on the operator's arity:
+\ExecuteMetaData[ReflectDemo.tex]{op-build}
+
+These take a list of arguments, dropping any extra from the front, and package
+up the relevant ones with the relevant constructor from the AST. It may seem
+strange that there are ``extra'' arguments: surely these operators should have
+the same number of arguments as their arity?
+
+\begin{principle}{Don't assume structure!}
+  Details like the order or number of implicit arguments to a function often
+  can't be relied upon: be accommodating in your matching functions, only
+  extracting components you really and truly need. In this case, for instance,
+  the first argument will actually be the
+  \(\AgdaDatatype{AlmostCommutativeRing}\) record, as these functions are
+  actually field accessors. But wait, no it won't---the first argument will
+  actually be the hidden universe level of the carrier type, and the second
+  (also hidden) will be the universe level of the equality relation. Only the
+  third is the record, making the following arguments the ``real'' arguments to
+  the function. Remember, none of this is typed, so if something changes in the
+  order of arguments, you'll get type errors where you call
+  \(\AgdaMacro{solve}\), not where it's implemented.
+\end{principle}
+\subsubsection{Matching Variables}
+This task is actually reasonably simple: we check the de Bruijn index of the
+variable question, and if it's smaller than the number of variables in the ring
+expression, we simply leave it as is. We can do this because we're using the
+interface provided by \(\AgdaModule{Relation.Binary.Reflection}\) as an
+intermediary: it will wrap up the variables in our \(\AgdaDatatype{Expr}\) for
+us automatically. Which leads us to another observation:
+\begin{principle}{Try and implement as much of the logic outside of reflection
+    as possible.}
+  The expressive power granted by reflection comes with poor error messages,
+  fragility, and a loss of first-class status. If something can be done without
+  reflection, \emph{do it}, and use reflection as the glue to get from one
+  standard representation to another.
+\end{principle}
+\subsubsection{Matching Constants}
+This task seems the most daunting: with all of the logic we required before just
+to match expressions, how are we going to match the carrier type? Do we need the
+user to provide that function? Some kind of matching logic (as
+in\cite{jedynak_simple_2018}), which would need to recognize every constructor
+case, and build the corresponding \(\AgdaDatatype{Term}\)?
+
+Maybe we go another direction: we could search the subexpression to see if it
+contains any free variables, and decide based on that. \(\mathcal{O}(n^2)\)
+time, anyone?
+
+If the reflection API was different, this task could conceivably be made easier:
+for now, what most people seem to do is automate the process (as
+in\cite{norell_agda-prelude_2018}).
+
+It is only by a very lucky coincidence that we can avoid all of this. Notice
+that all of the other cases are spoken for: in a correctly constructed
+expression, if no other clause matches, then what's left \emph{has} to be a
+constant. So we just wrap it up in the constant constructor!
+
+\resetlinenumber[1]
+
+\begin{linenumbers}
+\ExecuteMetaData[ReflectDemo.tex]{to-expr}
+\end{linenumbers}
+
+You'll notice that in the clauses where we fail to find a match (lines 8, 11,
+and 12), we assume that what we must have is a constant, so we just wrap it up
+as if it were one. 
+
+But what about incorrectly constructed expressions? What if the user makes a
+mistake in what they ask us to solve: surely we can't \emph{assume} correctness?
+Well actually:
+
+\begin{principle}{Ask for forgiveness, not permission.}
+  If the input to your macro requires the user to write an expression which
+  conforms to a certain structure, \emph{assume} that they have done so; don't
+  check for it and proceed conditionally. With careful structuring of the
+  macro's output, you can funnel the type error to exactly where the user was
+  incorrect. For instance, in this case, if the user makes a mistake and the
+  subexpression isn't a constant \(\AgdaDatatype{Carrier}\), the type error
+  they'll get back will be something like ``Expected type
+  \(\AgdaDatatype{Carrier}\), found ...''. In other words, exactly the type
+  error we expect!
+\end{principle}
+
+\subsubsection{Building the Solution}
+The rest of the function is similar to above. Eventually, it will call
+\(\AgdaModule{Relation.Binary.Reflection}\) with the constructed arguments.
+Because we've been careful not to supply any type information we don't need to,
+we actually get decent error messages when the solver fails. For instance, if we
+ask it to solve the following:
+
+\ExecuteMetaData[ReflectDemo.tex]{wrong-lemma}
+
+It will demonstrate where exactly it fails, with the error message:
+
+\[
+ (y \; \AgdaFunction{+} \; \AgdaNumber{0} \; \AgdaFunction{*} \; y) \;
+ \AgdaFunction{*} \;
+ \AgdaNumber{1} \neq x
+\]
+
+This is because we pass it \(\AgdaField{refl}\) as the proof that the normal
+forms are equal: if they're not, this is where we'll get an error
+
+\begin{description}
+  \item[Don't typecheck]
+\end{description}
 
 \section{Setoid Applications} \label{setoid-applications}
 I mentioned that the notion of equality we were using was more general than
