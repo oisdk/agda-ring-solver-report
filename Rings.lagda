@@ -169,18 +169,6 @@ module Sparse
       (coeff x + coeff y , i) ∷↓ (xs ⊞ ys)
 \end{code}
 %</nonterminating-addition>
-%<*nonterminating-negation>
-\begin{code}
-  mutual
-    ⊟_ : ∀ {n} → Poly n → Poly n
-    ⊟ (Κ x  Π i≤n) = Κ (- x) Π i≤n
-    ⊟ (Σ xs Π i≤n) =
-      foldr ⊟-cons [] xs Π↓ i≤n
-
-    ⊟-cons : ∀ {n} → CoeffExp n → Coeffs n → Coeffs n
-    ⊟-cons (x ≠0 Δ i) xs = ⊟ x ^ i ∷↓ xs
-\end{code}
-%</nonterminating-negation>
 %<*addition>
 \begin{code}
   mutual
