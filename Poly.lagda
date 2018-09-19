@@ -9,7 +9,7 @@ open import Relation.Unary
 open import Level using (_⊔_; Lift; lift; lower)
 open import Data.Empty
 open import Data.Unit using (⊤; tt)
-open import Data.List as List using (_∷_; []; List)
+open import Data.List as List using (_∷_; []; List; foldr)
 open import Data.Vec as Vec using (_∷_; []; Vec)
 open import Data.Nat as ℕ using (ℕ; suc; zero; compare)
 open import Function
@@ -215,6 +215,44 @@ module SparseNesting
 \end{code}
 %</poly-norm-inj>
 \begin{code}
+  module Neg1 where
+\end{code}
+%<*nonterminating-negation>
+\begin{code}
+    {-# TERMINATING #-}
+    mutual
+      ⊟_ : ∀ {n} → Poly n → Poly n
+      ⊟ (Κ x  Π i≤n) = Κ (- x) Π i≤n
+      ⊟ (Σ xs Π i≤n) =
+        foldr ⊟-cons [] xs Π↓ i≤n
+
+      ⊟-cons : ∀ {n}
+            → CoeffExp n
+            → Coeffs n
+            → Coeffs n
+      ⊟-cons (x ≠0 Δ i) xs =
+        ⊟ x ^ i ∷↓ xs
+\end{code}
+%</nonterminating-negation>
+\begin{code}
+  module Neg2 where
+\end{code}
+%<*no-higher-order>
+\begin{code}
+    mutual
+      ⊟_ : ∀ {n} → Poly n → Poly n
+      ⊟ (Κ x  Π i≤n) = Κ (- x) Π i≤n
+      ⊟ (Σ xs Π i≤n) = ⊟-cons xs Π↓ i≤n
+
+      ⊟-cons : ∀ {n}
+             → Coeffs n
+             → Coeffs n
+      ⊟-cons [] = []
+      ⊟-cons (x ≠0 Δ i ∷ xs) =
+        ⊟ x ^ i ∷↓ ⊟-cons xs
+\end{code}
+%</no-higher-order>
+\begin{code}
   mutual
     infixl 6 _⊞_
     _⊞_ : ∀ {n} → Poly n → Poly n → Poly n
@@ -377,3 +415,16 @@ module Semantics
     ⟦ Σ xs  Π i≤n ⟧ Ρ  = Σ⟦ xs ⟧ (drop-1 i≤n Ρ)
 \end{code}
 %</semantics>
+%<*aopa>
+\begin{code}
+foldR : ∀ {a b p} {A : Set a} {B : Set b} (_~_ : B → List A → Set p)
+      → {f : A → B → B}
+      → {b : B}
+      → (∀ y {ys zs} → ys ~ zs → f y ys ~ (y ∷ zs))
+      → b ~ []
+      → ∀ xs
+      → foldr f b xs ~ xs
+foldR _ f b [] = b
+foldR P f b (x ∷ xs) = f x (foldR P f b xs)
+\end{code}
+%</aopa>

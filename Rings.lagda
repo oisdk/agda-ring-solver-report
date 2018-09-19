@@ -17,7 +17,6 @@ module Dense {ℓ} (coeff : RawRing ℓ) where
 %</dense-opening>
 %<*dense-impl>
 \begin{code}
-
   Poly : Set ℓ
   Poly = List Carrier
 
@@ -27,10 +26,9 @@ module Dense {ℓ} (coeff : RawRing ℓ) where
   (x ∷ xs) ⊞ (y ∷ ys) = x + y ∷ xs ⊞ ys
 
   _⊠_ : Poly → Poly → Poly
-  [] ⊠ ys = []
-  (x ∷ xs) ⊠ [] = []
-  (x ∷ xs) ⊠ (y ∷ ys) =
-    x * y ∷ (map (x *_) ys ⊞ (xs ⊠ (y ∷ ys)))
+  _⊠_ [] _ = []
+  _⊠_ (x ∷ xs) =
+    foldr (λ y ys → x * y ∷ map (_* y) xs ⊞ ys) []
 \end{code}
 %</dense-impl>
 %<*dense-eval>
@@ -171,6 +169,18 @@ module Sparse
       (coeff x + coeff y , i) ∷↓ (xs ⊞ ys)
 \end{code}
 %</nonterminating-addition>
+%<*nonterminating-negation>
+\begin{code}
+  mutual
+    ⊟_ : ∀ {n} → Poly n → Poly n
+    ⊟ (Κ x  Π i≤n) = Κ (- x) Π i≤n
+    ⊟ (Σ xs Π i≤n) =
+      foldr ⊟-cons [] xs Π↓ i≤n
+
+    ⊟-cons : ∀ {n} → CoeffExp n → Coeffs n → Coeffs n
+    ⊟-cons (x ≠0 Δ i) xs = ⊟ x ^ i ∷↓ xs
+\end{code}
+%</nonterminating-negation>
 %<*addition>
 \begin{code}
   mutual

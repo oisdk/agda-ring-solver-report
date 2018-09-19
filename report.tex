@@ -69,16 +69,18 @@
 \usetikzlibrary{decorations.pathmorphing}
 \usetikzlibrary{snakes}
 \usetikzlibrary{arrows}
+\usepackage{forest}
 \author{D Oisín Kidney}
 \title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
 \begin{document}
 \maketitle
 \begin{abstract}
   We present a new implementation of a ring solver in the programming language
-  Agda\cite{norell_dependently_2008}. The efficiency is improved over the
-  version included in the standard library\cite{danielsson_agda_2018} by
-  including optimizations described in\cite{hutchison_proving_2005}, among
-  others.
+  Agda\cite{norell_dependently_2008}. The new implementation is significantly
+  more efficient than the version in the standard
+  library\cite{danielsson_agda_2018}, bringing it in line with Coq's \verb+ring+
+  tactic\cite{the_coq_development_team_2018_1219885},
+  \cite{hutchison_proving_2005}. 
 
   We demonstrate techniques for constructing proofs based on the theory of
   lists, show how Agda's reflection system can be used to provide a safe and
@@ -86,21 +88,16 @@
   approach to that of auxiliary proofs.
   
   We also show that, as a by-product of proving equivalences rather than
-  equalities, the generated proofs can be instantiated into a number of exotic
-  settings, including:
-  \begin{enumerate}
-    \item Pretty-printing step-by-step solutions.
-    \item Providing human-readable counterexamples when a proof fails.
-    \item Constructing isomorphisms between types represented as polynomials.
-  \end{enumerate}
+  equalities, the prover can be used to provide artifacts other than equational
+  proofs, including step-by-step solutions, and isomorphisms.
 \end{abstract}
 \tableofcontents
 \section{Introduction}
 Dependently typed programming languages allow programmers and mathematicians
 alike to write proofs which can be executed. For programmers, this often means
 being able to formally verify the properties of their programs; for
-mathematicians, it provides a system of machine-checked verification not
-available to handwritten proofs.
+mathematicians, it provides a system for writing machine-checked (rather than
+hand-checked) proofs.
 
 Naïve usage of these systems can be tedious: the typechecker is often
 over-zealous in its rigor, demanding justification for every minute step in a
@@ -112,10 +109,8 @@ programmer wants to say ``rearrange the expression into this form, checking it's
 correct''.
 
 However, since our proof assistant is also a programming language, we can
-provide the desired capability by writing a function which converts expressions
-into a canonical form, and a proof that the conversion preserves the semantics
-of the expression. This can then be used to automatically construct equivalence
-proofs for equivalent expressions.
+automate this process by writing a verified program to compute these proofs for
+us. 
 \section{A Case Study in Monoids}
 Before describing the ring solver, first we will explain the technique of
 writing a solver in Agda in the simpler setting of monoids.
@@ -156,7 +151,7 @@ Figure~\ref{mon-ident} is an example of such a proposition.
   \label{mon-ident}
 \end{figure}
 To a human, the fact that the identity holds may well be obvious:
-\(\AgdaField{∙}\) is associative, so scrub out all the parentheses, and
+\(\AgdaField{∙}\) is associative, so we can scrub out all the parentheses, and
 \(\AgdaField{ε}\) is the identity element, so scrub it out too. After that, both
 sides are equal, so voilà!
 
@@ -328,8 +323,8 @@ language.
 
 \subsection{Usage}
 Combining all of the components above, with some plumbing provided by the
-Relation.Binary.Reflection module, we can finally automate the solving of the
-original identity in figure~\ref{mon-ident}:
+\(\AgdaModule{Relation.Binary.Reflection}\) module, we can finally automate the
+solving of the original identity in figure~\ref{mon-ident}:
 \ExecuteMetaData[Monoids.tex]{ident-auto-proof}
 
 \section{A Polynomial Solver}
@@ -493,14 +488,14 @@ Agda needs to be able to see that one of the numbers returned by
 is immediately packed up in a list in the recursive call, it's buried too deeply
 in constructors for the termination checker to see it.
 
-\begin{principle}[To make termination obvious, perform call pattern specialization]
+\begin{principle}{To make termination obvious, perform call pattern
+    specialization.}
 The solution is twofold: unpack any constructors into function arguments as soon
 as possible, and eliminate any redundant pattern matches in the offending
 functions. Taken together, these form an transformation known as ``call pattern
 specialization''\cite{jones_call-pattern_2007}\footnotemark. Happily, this
 transformation both makes termination more obvious \emph{and} improves
 performance.
-
 \end{principle}
 
 \footnotetext{
@@ -667,6 +662,84 @@ After adding the injection index optimization, we use a normalizing version of
 (Figure~\ref{inj-norm}). Operations now perform two ``match-up'' operations: one
 for the injection indices and one for the power indices (Figure~\ref{full-mul}).
 \todo{Maybe unify the two match-up functions?}
+
+\subsubsection{Termination, Again}
+Unfortunately, by introducing gaps into the encoding of nested polynomials, we
+have obscured the fact that the recursive call into the nested polynomial is
+safe (i.e. it strictly decreases in size). As a result, our functions are no
+longer obviously terminating:
+\ExecuteMetaData[Poly.tex]{nonterminating-negation}
+
+There are a number of ways to deal with the problem. First, we can remove the
+use of a higher-order function:
+\ExecuteMetaData[Poly.tex]{no-higher-order}
+
+Agda can track termination through mutual functions: what we've done here is
+exposed the fact that the argument passed to \(\AgdaFunction{⊟}\) was embedded
+in a constructor of the original type recursed on, meaning it's strictly
+smaller. Calling \(\AgdaFunction{foldr}\) breaks this link, and therefore
+doesn't pass the termination checker.
+
+However, we would like to use higher-order functions, especially in the more
+complex functions like \(\AgdaFunction{⊞}\) and \(\AgdaFunction{⊠}\). There are
+a number of techniques to solve the problem, which we'll go through here.
+
+\paragraph{Sized Types}
+The Agda compiler recently included a notion of ``size'' for its
+types\cite{abel_miniagda_2010}. To demonstrate this, we'll first start with a
+standard definition of a rose tree:
+\ExecuteMetaData[Rose.tex]{rose}
+Level-wise enumeration (Figure~\ref{levelorder}) is an example of a function
+with a non-obvious termination pattern:
+\ExecuteMetaData[Rose.tex]{nonterminating-rose}
+
+\begin{figure}
+  \centering
+  \begin{forest}
+    [ 1
+      [ 2
+        [ 9 ]
+        [ 10 [11] ]
+      ]
+      [ 3
+        [ 5 ]
+      ]
+      [ 4
+        [ 6
+          [ 7 ]
+          [ 8 ]
+        ]
+      ]
+    ]
+  \end{forest}
+  \[[[1], [2,3,4],[9,10,5,6],[11,7,8]]\]
+  \caption{Level-Order Traversal of a Tree}
+  \label{levelorder}
+\end{figure}
+
+Again, the problem could be solved by avoiding the higher-order
+\(\AgdaFunction{foldr}\):
+\ExecuteMetaData[Rose.tex]{terminating-rose}
+
+But now we have a far inferior function, and we can't reuse code about lists.
+
+A solution is to add a \emph{size} parameter to the rose tree:
+\ExecuteMetaData[Rose.tex]{sized-rose}
+
+The size parameter functions like \(\AgdaDatatype{ℕ}\) might for termination: if
+we track it in the recursive calls, it's evidence for decreasing size.
+\ExecuteMetaData[Rose.tex]{sized-rose-levels}
+
+You'll notice that the top-level function doesn't specify the size it takes: it
+defaults to \(\infty\), only being used where you need it for termination.
+
+Unfortunately for us, this approach won't work: the dangerous functions can
+actually \emph{change} the size of what they return, depending on the
+normalization.
+
+\paragraph{Well-Founded Recursion}
+\todo{This Works! Just fill in the prose.}
+
 \subsection{Semantics}
 When it comes to ``interpreting'' the polynomials, we don't need to use the same
 ring as we did for the coefficients: all we need is a homomorphism between the
@@ -704,14 +777,12 @@ context:
 \subsubsection{Examples}
 \todo{Expand on the proofs. Maybe include an example proof?}
 \subsection{The Algebra of Programming and List Homomorphisms}
-\todo{
-  I haven't actually been able to apply the ``algebra of
-  programming''\cite{mu_algebra_2009} stuff in the proofs themselves yet. This
-  section may well be removed if it turns out I can't manage it, but for now it
-  seems like a promising avenue that might get us some cleaner, more interesting
-  proofs. Especially since so many of the functions are written as folds on
-  lists.
-}
+
+The algebra of programming\cite{bird_algebra_1997} has been adapted to the
+dependently typed setting\cite{mu_algebra_2009}. Along with Horner's
+rule\cite{gibbons_horners_2011}, we use it here in the construction of proofs.
+First, a relational fold:\todo{This actually works, but needs to be expanded upon.}
+\ExecuteMetaData[Poly.tex]{aopa}
 
 \section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
