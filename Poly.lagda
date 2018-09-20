@@ -455,13 +455,18 @@ module Semantics
 %</semantics>
 %<*aopa>
 \begin{code}
-foldR : ∀ {a b p} {A : Set a} {B : Set b} (_~_ : B → List A → Set p)
+foldR : ∀ {a b r}
+          {A : Set a}
+          {B : Set b}
+      → (_R_ : B → List A → Set r)
       → {f : A → B → B}
       → {b : B}
-      → (∀ y {ys zs} → ys ~ zs → f y ys ~ (y ∷ zs))
-      → b ~ []
+      → (∀ y {ys zs}
+         → ys R zs
+         → f y ys R (y ∷ zs))
+      → b R []
       → ∀ xs
-      → foldr f b xs ~ xs
+      → foldr f b xs R xs
 foldR _ f b [] = b
 foldR P f b (x ∷ xs) = f x (foldR P f b xs)
 \end{code}
