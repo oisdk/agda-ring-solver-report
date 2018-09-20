@@ -659,9 +659,9 @@ With this defined, the \(\AgdaDatatype{Ordering}\) type is obvious:
 \subsection{Operations}
 After adding the injection index optimization, we use a normalizing version of
 \(\AgdaInductiveConstructor{Π}\), like we did for the power indices
-(Figure~\ref{inj-norm}). Operations now perform two ``match-up'' operations: one
-for the injection indices and one for the power indices (Figure~\ref{full-mul}).
-\todo{Maybe unify the two match-up functions?}
+(Figure~\ref{norm-nest}). Operations now perform two ``match-up'' operations:
+one for the injection indices and one for the power indices
+(Figure~\ref{full-mul}). \todo{Maybe unify the two match-up functions?}
 
 \subsubsection{Termination, Again}
 Unfortunately, by introducing gaps into the encoding of nested polynomials, we
@@ -733,12 +733,52 @@ we track it in the recursive calls, it's evidence for decreasing size.
 You'll notice that the top-level function doesn't specify the size it takes: it
 defaults to \(\infty\), only being used where you need it for termination.
 
-Unfortunately for us, this approach won't work: the dangerous functions can
-actually \emph{change} the size of what they return, depending on the
-normalization.
+Unfortunately for us, this approach won't work: remember that we normalize the
+nesting of polynomials (Figure~\ref{norm-nest}). This means we may remove one
+layer of nesting on certain polynomials, which would mean a change in the size
+parameter itself. This means we can't use the nice signature that the level-wise
+traversal has above: we'd need something a little more involved. What we
+\emph{do} know is that the internal poly always has a \emph{smaller} size than
+the external, but here we must stop, recognizing that we're about to duplicate
+the logic we already encoded with the \(\leq\) proofs. Luckily for us, there
+\emph{is} a way to use these to give us what we want.
+
+\begin{figure*}
+  \centering
+  \ExecuteMetaData[Poly.tex]{poly-norm-inj}
+  \caption{Normalizing Nesting}
+  \label{norm-nest}
+\end{figure*}
 
 \paragraph{Well-Founded Recursion}
-\todo{This Works! Just fill in the prose.}
+Among the bag of tricks available to Agda programmers to prove termination is
+what's known as \emph{well-founded recursion}\cite{nordstrom_terminating_1987}.
+It works by providing a relation which describes some strictly decreasing finite
+chain: \(<\) on \(\mathbb{N}\), for instance. It's strictly decreasing (the
+first argument always gets smaller, in contrast to, say, \(\leq\)), and it's
+finite, because it must end at 0.
+
+It's a powerful tool, which can be used to prove complex termination patterns:
+multiple relations can be combined lexicographically, for instance, if the
+recursive function decreases on different arguments in different settings.
+
+In Agda,  well-founded recursion is specified with the following type:
+\ExecuteMetaData[Poly.tex]{acc-def}
+
+This type is a way to construct arguments to functions which are strictly
+decreasing in size. Simply add it as an extra parameter to the dangerous
+functions, pattern match on \(\AgdaInductiveConstructor{acc}\), and you've
+provided evidence that an argument is strictly decreasing.
+
+One of the warts of well-founded recursion is that usually the programmer has to
+separately construct the relation they're interested in. As well as being
+complex, it can be computationally expensive to do so. Usually the compiler can
+elide the calls, recognizing that the argument isn't used, but the optimization
+can't be guaranteed.
+
+Luckily, in our case, the relation is already lying around, in the injection
+index. So we can just use that!
+\ExecuteMetaData[Poly.tex]{with-acc}
 
 \subsection{Semantics}
 When it comes to ``interpreting'' the polynomials, we don't need to use the same
@@ -1100,11 +1140,6 @@ Here we provide a similar implementation:
 \bibliography{horners-rule.bib}
 \appendix
 \section{Extra Code Examples}
-\begin{figure*}
-  \ExecuteMetaData[Poly.tex]{poly-norm-inj}
-  \caption{Normalizing Version of \(\AgdaInductiveConstructor{Π}\)}
-  \label{inj-norm}
-\end{figure*}
 \begin{figure*}
   \ExecuteMetaData[Poly.tex]{poly-mult}
   \caption{Full Implementation of Multiplication on the Final Encoding of

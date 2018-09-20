@@ -24,22 +24,22 @@
 \contentsline {subsubsection}{\numberline {6.2.1}Termination, Again}{12}{subsubsection.6.2.1}
 \contentsline {paragraph}{Sized Types}{13}{section*.11}
 \contentsline {paragraph}{Well-Founded Recursion}{14}{section*.14}
-\contentsline {subsection}{\numberline {6.3}Semantics}{14}{subsection.6.3}
-\contentsline {section}{\numberline {7}Writing The Proofs}{15}{section.7}
-\contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{15}{subsection.7.1}
-\contentsline {subsubsection}{\numberline {7.1.1}Operators}{15}{subsubsection.7.1.1}
-\contentsline {subsubsection}{\numberline {7.1.2}Examples}{15}{subsubsection.7.1.2}
-\contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{15}{subsection.7.2}
-\contentsline {section}{\numberline {8}Reflection}{15}{section.8}
-\contentsline {subsection}{\numberline {8.1}Building The AST for Proving}{17}{subsection.8.1}
-\contentsline {subsection}{\numberline {8.2}Matching on the Reflected Expression}{18}{subsection.8.2}
-\contentsline {subsubsection}{\numberline {8.2.1}Matching the Ring Operators}{18}{subsubsection.8.2.1}
-\contentsline {subsubsection}{\numberline {8.2.2}Matching Variables}{19}{subsubsection.8.2.2}
-\contentsline {subsubsection}{\numberline {8.2.3}Matching Constants}{19}{subsubsection.8.2.3}
-\contentsline {subsubsection}{\numberline {8.2.4}Building the Solution}{19}{subsubsection.8.2.4}
-\contentsline {section}{\numberline {9}Setoid Applications}{20}{section.9}
-\contentsline {subsection}{\numberline {9.1}Traced}{20}{subsection.9.1}
-\contentsline {subsection}{\numberline {9.2}Isomorphisms}{20}{subsection.9.2}
-\contentsline {subsection}{\numberline {9.3}Counterexamples}{20}{subsection.9.3}
-\contentsline {section}{\numberline {10}The Correct-by-Construction Approach}{21}{section.10}
-\contentsline {section}{\numberline {A}Extra Code Examples}{23}{appendix.A}
+\contentsline {subsection}{\numberline {6.3}Semantics}{15}{subsection.6.3}
+\contentsline {section}{\numberline {7}Writing The Proofs}{16}{section.7}
+\contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{16}{subsection.7.1}
+\contentsline {subsubsection}{\numberline {7.1.1}Operators}{16}{subsubsection.7.1.1}
+\contentsline {subsubsection}{\numberline {7.1.2}Examples}{16}{subsubsection.7.1.2}
+\contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{16}{subsection.7.2}
+\contentsline {section}{\numberline {8}Reflection}{16}{section.8}
+\contentsline {subsection}{\numberline {8.1}Building The AST for Proving}{18}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.2}Matching on the Reflected Expression}{19}{subsection.8.2}
+\contentsline {subsubsection}{\numberline {8.2.1}Matching the Ring Operators}{19}{subsubsection.8.2.1}
+\contentsline {subsubsection}{\numberline {8.2.2}Matching Variables}{20}{subsubsection.8.2.2}
+\contentsline {subsubsection}{\numberline {8.2.3}Matching Constants}{20}{subsubsection.8.2.3}
+\contentsline {subsubsection}{\numberline {8.2.4}Building the Solution}{20}{subsubsection.8.2.4}
+\contentsline {section}{\numberline {9}Setoid Applications}{21}{section.9}
+\contentsline {subsection}{\numberline {9.1}Traced}{21}{subsection.9.1}
+\contentsline {subsection}{\numberline {9.2}Isomorphisms}{21}{subsection.9.2}
+\contentsline {subsection}{\numberline {9.3}Counterexamples}{22}{subsection.9.3}
+\contentsline {section}{\numberline {10}The Correct-by-Construction Approach}{22}{section.10}
+\contentsline {section}{\numberline {A}Extra Code Examples}{24}{appendix.A}

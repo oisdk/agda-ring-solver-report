@@ -64,16 +64,22 @@ module Slime
          → Poly (suc (i ℕ.+ j))
 \end{code}
 %</poly-slime>
+\begin{code}
+module LEQ3 where
+\end{code}
 %<*leq-3>
 \begin{code}
-infix 4 _≤_
-data _≤_ (m : ℕ) : ℕ → Set where
-  m≤m  : m ≤ m
-  ≤-s  : ∀ {n}
-       → (m≤n : m ≤ n)
-       → m ≤ suc n
+  infix 4 _≤_
+  data _≤_ (m : ℕ) : ℕ → Set where
+    m≤m  : m ≤ m
+    ≤-s  : ∀ {n}
+        → (m≤n : m ≤ n)
+        → m ≤ suc n
 \end{code}
 %</leq-3>
+\begin{code}
+open import Data.Nat using () renaming (_≤′_ to _≤_; ≤′-refl to m≤m; ≤′-step to ≤-s)
+\end{code}
 %<*trans>
 \begin{code}
 infixl 6 _⋈_
@@ -253,6 +259,38 @@ module SparseNesting
 \end{code}
 %</no-higher-order>
 \begin{code}
+  module Neg3 where
+\end{code}
+%<*with-acc>
+\begin{code}
+  open import Induction.Nat
+  open import Induction.WellFounded
+
+  ⌊_⌋ : ℕ → Set
+  ⌊_⌋ = Acc ℕ._<′_
+
+  ⌊↓⌋ : ∀ {n} → ⌊ n ⌋
+  ⌊↓⌋ {n} = <′-wellFounded n
+
+  mutual
+    ⊟-step : ∀ {n} → ⌊ n ⌋ → Poly n → Poly n
+    ⊟-step _        (Κ x  Π i≤n) = Κ (- x) Π i≤n
+    ⊟-step (acc wf) (Σ xs Π i≤n) =
+      foldr (⊟-cons (wf _ i≤n)) [] xs Π↓ i≤n
+
+    ⊟-cons : ∀ {n}
+           → ⌊ n ⌋
+           → CoeffExp n
+           → Coeffs n
+           → Coeffs n
+    ⊟-cons ac (x ≠0 Δ i) xs =
+      ⊟-step ac x ^ i ∷↓ xs
+
+  ⊟_ : ∀ {n} → Poly n → Poly n
+  ⊟_ = ⊟-step ⌊↓⌋
+\end{code}
+%</with-acc>
+\begin{code}
   mutual
     infixl 6 _⊞_
     _⊞_ : ∀ {n} → Poly n → Poly n → Poly n
@@ -428,3 +466,13 @@ foldR _ f b [] = b
 foldR P f b (x ∷ xs) = f x (foldR P f b xs)
 \end{code}
 %</aopa>
+%<*acc-def>
+\begin{code}
+data Acc {a ℓ}
+         {A : Set a}
+         (_<_ : Rel A ℓ)
+         (x : A) : Set (a ⊔ ℓ) where
+  acc : (∀ y → y < x → Acc _<_ y)
+      → Acc _<_ x
+\end{code}
+%</acc-def>
