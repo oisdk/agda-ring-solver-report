@@ -1,0 +1,71 @@
+\documentclass[draft,usenames,dvipsnames]{beamer}
+\usepackage{cite}
+\usepackage{catchfilebetweentags}
+\usepackage{amssymb}
+\usepackage{turnstile}
+\usepackage{bbm}
+\usepackage[greek, english]{babel}
+\usepackage{MnSymbol}
+\usepackage{stmaryrd}
+\usepackage{csquotes}
+\newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
+\newcommand\mdoubleplus{\ensuremath{\mathbin{+\mkern-8mu+}}}
+\makeatletter
+\newcommand\incircbin
+{%
+  \mathpalette\@incircbin
+}
+\newcommand\@incircbin[2]
+{%
+  \mathbin%
+  {%
+    \ooalign{\hidewidth$#1#2$\hidewidth\crcr$#1\bigcirc$}%
+  }%
+}
+\newcommand{\oeq}{\ensuremath{\incircbin{=}}}
+\makeatother
+\usepackage{ucs}
+\DeclareUnicodeCharacter{8759}{\ensuremath{\squaredots}}
+\DeclareUnicodeCharacter{951}{\textgreek{\texteta}}
+\DeclareUnicodeCharacter{737}{\ensuremath{^\text{l}}}
+\DeclareUnicodeCharacter{691}{\ensuremath{^\text{r}}}
+\DeclareUnicodeCharacter{7523}{\ensuremath{_\text{r}}}
+\DeclareUnicodeCharacter{8718}{\ensuremath{\blacksquare}}
+\DeclareUnicodeCharacter{957}{\textgreek{\textnu}}
+\DeclareUnicodeCharacter{961}{\textgreek{\textrho}}
+\DeclareUnicodeCharacter{929}{\textgreek{\textRho}}
+\DeclareUnicodeCharacter{954}{\textgreek{\textkappa}}
+\DeclareUnicodeCharacter{10214}{\ensuremath{\lsem}}
+\DeclareUnicodeCharacter{10215}{\ensuremath{\rsem}}
+\DeclareUnicodeCharacter{8857}{\mdoubleplus}
+\DeclareUnicodeCharacter{8860}{\oeq}
+\DeclareUnicodeCharacter{9043}{\ensuremath{\triangle}}
+\DeclareUnicodeCharacter{928}{\textgreek{\textPi}}
+\DeclareUnicodeCharacter{922}{\textgreek{\textKappa}}
+\DeclareUnicodeCharacter{931}{\textgreek{\textSigma}}
+\DeclareUnicodeCharacter{916}{\textgreek{\textDelta}}
+\DeclareUnicodeCharacter{8779}{\ensuremath{\backtriplesim}}
+\DeclareUnicodeCharacter{8799}{\ensuremath{\stackrel{?}{=}}}
+\DeclareUnicodeCharacter{10181}{\ensuremath{\lbag}}
+\DeclareUnicodeCharacter{10182}{\ensuremath{\rbag}}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{autofe}
+\usepackage[references]{agda}
+\usepackage{bbding}
+\setlength{\marginparwidth}{2cm}
+\usepackage[obeyDraft]{todonotes}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{snakes}
+\usetikzlibrary{arrows}
+\usepackage{forest}
+\usetheme{metropolis}
+\title{???}
+\author{Donnacha Oisín Kidney}
+\begin{document}
+\begin{frame}
+  abc
+\end{frame}
+\end{document}
