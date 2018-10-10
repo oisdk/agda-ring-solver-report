@@ -108,7 +108,7 @@
     \[\exists. \mathbb{N}\]
   \end{columns}
 
-  \begin{block}{Remark}
+  \begin{block}{NB}
     We'll see a more powerful and precise version of \(\exists\) later.
   \end{block}
 
@@ -126,6 +126,98 @@
 
   Here's the type:
   \ExecuteMetaData[BasicTypes.tex]{headty}
+\end{frame}
+\begin{frame}
+  \frametitle{Basic Syntax}
+  \(\AgdaFunction{head}\) is what would be called a ``generic'' function in
+  languages like Java.
+
+  In other words, the type \(A\) is not specified in the implementation of the
+  function: it just ``takes a list of things, and returns one of those things''.
+
+  In Agda, you must supply the type to the function: the curly brackets mean the
+  argument is implicit.
+\end{frame}
+\begin{frame}
+  \frametitle{The Proposition is False!}
+  What happens if we call \(\AgdaFunction{head}\) on an empty list? In this
+  case, \(\AgdaFunction{head}\) isn't defined.
+
+  In other words, the proposition:
+
+  \ExecuteMetaData[BasicTypes.tex]{headty}
+
+  Is \emph{False}.
+
+  We shouldn't be able to prove this using Agda.
+\end{frame}
+\begin{frame}[allowframebreaks]
+  \frametitle{But Let's Try Anyway}
+  Agda functions are defined (usually) with \emph{pattern-matching}. 
+
+  \ExecuteMetaData[BasicTypes.tex]{fib}
+
+  For the natural numbers, we use the Peano numbers, which gives us 2 patterns:
+  zero, and successor.
+
+  \framebreak
+
+  For lists, we also have two patterns: the empty list, and the head element
+  followed by the rest of the list.
+
+  \ExecuteMetaData[BasicTypes.tex]{length}
+
+  \framebreak
+
+  For \(\AgdaFunction{head}\), then, we can just write the following:
+
+  \ExecuteMetaData[BasicTypes.tex]{head1}
+
+  \begin{block}{\alert{No!}}
+    Partial functions aren't allowed!
+  \end{block}
+
+  \framebreak
+
+  It might seem like we can't write this function, then, but there is one more
+  way we could get around it.
+
+  \ExecuteMetaData[BasicTypes.tex]{head2}
+
+  To disallow \emph{this} kind of thing, we must ensure all functions are
+  \emph{total}. For now, assume this means ``terminating''.
+\end{frame}
+\begin{frame}
+  So that's all well and good: there's a proposition which we know isn't true,
+  and we've tried to prove it, and failed (as well we should).
+
+  Let's go a little further, though: can we \emph{prove} that
+  \(\AgdaFunction{head}\) doesn't exist?
+\end{frame}
+\begin{frame}
+  \frametitle{Falsehood}
+  Often it's said that you can't prove negatives in dependently typed
+  programming: not true!
+
+  In our case, we'll use the principle of explosion.
+
+  \begin{block}{Principle of Explosion}
+    \emph{``Ex falso quodlibet''}: from falsehood, anything.
+  \end{block}
+
+  In Agda:
+
+  \ExecuteMetaData[BasicTypes.tex]{false}
+\end{frame}
+\begin{frame}
+  So let's supply a proof of that fact!
+
+  \ExecuteMetaData[BasicTypes.tex]{head-not}
+
+  Here's how the proof works: for falsehood, we need to prove the supplied
+  proposition, no matter what it is. If \(\AgdaFunction{head}\) exists, this is
+  no problem! Just get the head of a list of proofs of the proposition, which
+  can be empty.
 \end{frame}
 \section{A Polynomial Solver}
 \section{The \(p\)-Adics}

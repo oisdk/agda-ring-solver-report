@@ -13,18 +13,36 @@
 \headcommand {\beamer@framepages {4}{4}}
 \headcommand {\slideentry {1}{1}{3}{5/5}{For Programmers}{0}}
 \headcommand {\beamer@framepages {5}{5}}
-\headcommand {\beamer@sectionpages {1}{5}}
-\headcommand {\beamer@subsectionpages {3}{5}}
-\headcommand {\sectionentry {2}{A Polynomial Solver}{6}{A Polynomial Solver}{0}}
-\headcommand {\slideentry {2}{0}{1}{6/6}{}{0}}
+\headcommand {\slideentry {1}{1}{4}{6/6}{For Programmers}{0}}
 \headcommand {\beamer@framepages {6}{6}}
-\headcommand {\beamer@sectionpages {6}{6}}
-\headcommand {\beamer@subsectionpages {6}{6}}
-\headcommand {\sectionentry {3}{The \(p\)-Adics}{7}{The \(p\)-Adics}{0}}
-\headcommand {\slideentry {3}{0}{1}{7/7}{}{0}}
+\headcommand {\slideentry {1}{1}{5}{7/7}{For Programmers}{0}}
 \headcommand {\beamer@framepages {7}{7}}
-\headcommand {\beamer@partpages {1}{7}}
-\headcommand {\beamer@subsectionpages {7}{7}}
-\headcommand {\beamer@sectionpages {7}{7}}
-\headcommand {\beamer@documentpages {7}}
-\headcommand {\gdef \inserttotalframenumber {4}}
+\headcommand {\slideentry {1}{1}{6}{8/8}{For Programmers}{0}}
+\headcommand {\beamer@framepages {8}{8}}
+\headcommand {\slideentry {1}{1}{6}{8/9}{For Programmers}{0}}
+\headcommand {\beamer@framepages {8}{9}}
+\headcommand {\slideentry {1}{1}{6}{8/10}{For Programmers}{0}}
+\headcommand {\beamer@framepages {8}{10}}
+\headcommand {\slideentry {1}{1}{6}{8/11}{For Programmers}{0}}
+\headcommand {\beamer@framepages {8}{11}}
+\headcommand {\slideentry {1}{1}{7}{12/12}{For Programmers}{0}}
+\headcommand {\beamer@framepages {12}{12}}
+\headcommand {\slideentry {1}{1}{8}{13/13}{For Programmers}{0}}
+\headcommand {\beamer@framepages {13}{13}}
+\headcommand {\slideentry {1}{1}{9}{14/14}{For Programmers}{0}}
+\headcommand {\beamer@framepages {14}{14}}
+\headcommand {\beamer@sectionpages {1}{14}}
+\headcommand {\beamer@subsectionpages {3}{14}}
+\headcommand {\sectionentry {2}{A Polynomial Solver}{15}{A Polynomial Solver}{0}}
+\headcommand {\slideentry {2}{0}{1}{15/15}{}{0}}
+\headcommand {\beamer@framepages {15}{15}}
+\headcommand {\beamer@sectionpages {15}{15}}
+\headcommand {\beamer@subsectionpages {15}{15}}
+\headcommand {\sectionentry {3}{The \(p\)-Adics}{16}{The \(p\)-Adics}{0}}
+\headcommand {\slideentry {3}{0}{1}{16/16}{}{0}}
+\headcommand {\beamer@framepages {16}{16}}
+\headcommand {\beamer@partpages {1}{16}}
+\headcommand {\beamer@subsectionpages {16}{16}}
+\headcommand {\beamer@sectionpages {16}{16}}
+\headcommand {\beamer@documentpages {16}}
+\headcommand {\gdef \inserttotalframenumber {13}}
