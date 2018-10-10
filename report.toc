@@ -30,17 +30,17 @@
 \contentsline {subsection}{\numberline {7.1}Equational Reasoning Techniques}{17}{subsection.7.1}
 \contentsline {subsubsection}{\numberline {7.1.1}Operators}{17}{subsubsection.7.1.1}
 \contentsline {subsubsection}{\numberline {7.1.2}Examples}{17}{subsubsection.7.1.2}
-\contentsline {subsection}{\numberline {7.2}The Algebra of Programming and List Homomorphisms}{17}{subsection.7.2}
-\contentsline {section}{\numberline {8}Reflection}{17}{section.8}
+\contentsline {subsection}{\numberline {7.2}The Algebra of Programming}{17}{subsection.7.2}
+\contentsline {section}{\numberline {8}Reflection}{18}{section.8}
 \contentsline {subsection}{\numberline {8.1}Building The AST for Proving}{19}{subsection.8.1}
 \contentsline {subsection}{\numberline {8.2}Matching on the Reflected Expression}{20}{subsection.8.2}
 \contentsline {subsubsection}{\numberline {8.2.1}Matching the Ring Operators}{20}{subsubsection.8.2.1}
 \contentsline {subsubsection}{\numberline {8.2.2}Matching Variables}{21}{subsubsection.8.2.2}
 \contentsline {subsubsection}{\numberline {8.2.3}Matching Constants}{21}{subsubsection.8.2.3}
-\contentsline {subsubsection}{\numberline {8.2.4}Building the Solution}{21}{subsubsection.8.2.4}
+\contentsline {subsubsection}{\numberline {8.2.4}Building the Solution}{22}{subsubsection.8.2.4}
 \contentsline {section}{\numberline {9}Setoid Applications}{22}{section.9}
 \contentsline {subsection}{\numberline {9.1}Traced}{22}{subsection.9.1}
-\contentsline {subsection}{\numberline {9.2}Isomorphisms}{22}{subsection.9.2}
-\contentsline {subsection}{\numberline {9.3}Counterexamples}{22}{subsection.9.3}
-\contentsline {section}{\numberline {10}The Correct-by-Construction Approach}{22}{section.10}
+\contentsline {subsection}{\numberline {9.2}Isomorphisms}{23}{subsection.9.2}
+\contentsline {subsection}{\numberline {9.3}Counterexamples}{23}{subsection.9.3}
+\contentsline {section}{\numberline {10}The Correct-by-Construction Approach}{23}{section.10}
 \contentsline {section}{\numberline {A}Extra Code Examples}{25}{appendix.A}

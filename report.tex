@@ -69,6 +69,7 @@
 \usetikzlibrary{decorations.pathmorphing}
 \usetikzlibrary{snakes}
 \usetikzlibrary{arrows}
+\usetikzlibrary{cd}
 \usepackage{forest}
 \author{D Oisín Kidney}
 \title{An Efficient and Flexible Evidence-Providing Polynomial Solver in Agda}
@@ -862,13 +863,35 @@ context:
 
 \subsubsection{Examples}
 \todo{Expand on the proofs. Maybe include an example proof?}
-\subsection{The Algebra of Programming and List Homomorphisms}
+\subsection{The Algebra of Programming}
+The structure of the homomorphism proofs can be seen in figure~\ref{hom-struct}.
+For every function \(f\) that we want to use, we'll have to prove that
+\(\AgdaFunction{⟦\_⟧}\) forms a homomorphism from \(\boxed{f}\) to \(f\).
+
+\begin{figure}
+  \centering
+  \begin{tikzcd}[cramped]
+    \mathsf{F} \AgdaDatatype{Poly} \; i \ar[r, "\boxed{f}"] \ar[d, "\AgdaFunction{⟦\_⟧}"'] &
+    \AgdaDatatype{Poly} \; i \ar[d] \ar[d, "\AgdaFunction{⟦\_⟧}"] \\
+    \mathsf{F} \AgdaDatatype{Vec} \; \AgdaDatatype{Carrier} \; i \rightarrow
+    \AgdaDatatype{Carrier} \ar[r, "f"] & \AgdaDatatype{Vec} \;
+    \AgdaDatatype{Carrier} \; i \rightarrow \AgdaDatatype{Carrier}
+  \end{tikzcd}
+  \caption{General Structure for Homomorphism Proofs}
+  \label{hom-struct}
+\end{figure}
+
 
 The algebra of programming\cite{bird_algebra_1997} has been adapted to the
 dependently typed setting\cite{mu_algebra_2009}. Along with Horner's
 rule\cite{gibbons_horners_2011}, we use it here in the construction of proofs.
-First, a relational fold:\todo{This actually works, but needs to be expanded upon.}
+
+The core of this technique will use the following combinator:
 \ExecuteMetaData[Poly.tex]{aopa}
+Reminiscent of the relational fold in\cite{mu_algebra_2009}, this builds up a
+relation between list and a fold over that list. In this way, it's similar to
+\(\AgdaFunction{foldr}\) for proofs: it removes the explicit recursion, allowing
+us to focus on the two cases we need to handle.
 
 \section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
