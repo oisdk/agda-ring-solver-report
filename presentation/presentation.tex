@@ -1,5 +1,6 @@
 \documentclass[draft,usenames,dvipsnames]{beamer}
-\usepackage{cite}
+\usepackage{tikz}
+\usetikzlibrary{cd}
 \usepackage{catchfilebetweentags}
 \usepackage{amssymb}
 \usepackage{turnstile}
@@ -61,11 +62,22 @@
 \usetikzlibrary{snakes}
 \usetikzlibrary{arrows}
 \usepackage{forest}
+\usepackage{multicol}
 \usetheme{metropolis}
-\title{???}
+\usepackage{natbib}
+\usepackage{bibentry}
+\title{Programming Mathematics in Agda}
 \author{Donnacha Oisín Kidney}
 \begin{document}
-\begin{frame}
-  abc
+\bibliographystyle{plain}
+\nobibliography{../horners-rule.bib}
+\section{Dependently Typed Programming}
+\begin{frame}[fragile]
+  \begin{tikzcd}
+    Type    \ar[r, Leftrightarrow] & Proposition \\
+    Program \ar[r, Leftrightarrow] & Proof
+  \end{tikzcd}
 \end{frame}
+\section{A Polynomial Solver}
+\section{The \(p\)-Adics}
 \end{document}

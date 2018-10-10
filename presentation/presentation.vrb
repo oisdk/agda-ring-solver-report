@@ -1,0 +1,4 @@
+\begin{tikzcd}
+    Type    \ar[r, Leftrightarrow] & Proposition \\
+    Program \ar[r, Leftrightarrow] & Proof
+  \end{tikzcd}
