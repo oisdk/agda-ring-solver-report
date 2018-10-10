@@ -1,4 +1,9 @@
-\begin{tikzcd}
-    Type    \ar[r, Leftrightarrow] & Proposition \\
-    Program \ar[r, Leftrightarrow] & Proof
-  \end{tikzcd}
+\frametitle{Example ``Proof''}
+  Let's start working with a function as if it were a proof.
+
+  The example function we'll choose gets the first element of a list and returns
+  it (commonly called \(\AgdaFunction{head}\) in functional programming
+  languages).
+
+  Here's the type:
+  \ExecuteMetaData[BasicTypes.tex]{headty}

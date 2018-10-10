@@ -73,10 +73,59 @@
 \nobibliography{../horners-rule.bib}
 \section{Dependently Typed Programming}
 \begin{frame}[fragile]
-  \begin{tikzcd}
-    Type    \ar[r, Leftrightarrow] & Proposition \\
-    Program \ar[r, Leftrightarrow] & Proof
-  \end{tikzcd}
+  \frametitle{The Curry-Howard Correspondence}
+  \begin{figure}
+    \centering
+    \begin{tikzcd}
+      Type    \ar[d] \ar[r, Leftrightarrow] & Proposition \ar[d] \\
+      Program \ar[r, Leftrightarrow]        & Proof
+    \end{tikzcd}
+  \end{figure}
+
+  \bibentry{wadler_propositions_2015-1}
+\end{frame}
+\subsection{For Programmers}
+\begin{frame}
+  Types are (usually):
+  \begin{itemize}
+    \item \(\AgdaDatatype{Int}\)
+    \item \(\AgdaDatatype{String}\)
+    \item ...
+  \end{itemize}
+
+  How are these propositions?
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Existential Proofs}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \centering
+    So when you see:
+    \ExecuteMetaData[BasicTypes.tex]{xint}
+    \column{0.5\textwidth}
+    \centering
+    Think:
+    \[\exists. \mathbb{N}\]
+  \end{columns}
+
+  \begin{block}{Remark}
+    We'll see a more powerful and precise version of \(\exists\) later.
+  \end{block}
+
+  Proof is ``by example''
+
+  \ExecuteMetaData[BasicTypes.tex]{xprf}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Example ``Proof''}
+  Let's start working with a function as if it were a proof.
+
+  The example function we'll choose gets the first element of a list and returns
+  it (commonly called \(\AgdaFunction{head}\) in functional programming
+  languages).
+
+  Here's the type:
+  \ExecuteMetaData[BasicTypes.tex]{headty}
 \end{frame}
 \section{A Polynomial Solver}
 \section{The \(p\)-Adics}
