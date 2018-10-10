@@ -424,6 +424,14 @@ Will be represented as:
 \[ (3,0),(2,1),(4,2),(2,1) \]
 Or, mathematically:
 \[ x^0 (3 + x x^1 (2 + x x^2 * (4 + x x^1 (2 + x 0)))) \]
+
+\begin{definition}{Dense and Sparse Encodings.}
+  In situations like this, where inductive types have large ``gaps'' of
+  zero-like terms between interesting (non-zero-like) terms, the encoding which
+  uses an index to represent the distance to the next interesting term will be
+  called \emph{sparse}, and the encoding which simply stores the zero term will
+  be called \emph{dense}.
+\end{definition}
 \subsubsection{Uniqueness}
 While this form solves our efficiency problem, we still have redundant
 representations of the same polynomials. In\cite{hutchison_proving_2005}, care
@@ -449,7 +457,7 @@ normalizing version of \(\AgdaInductiveConstructor{\_∷\_}\):
 \ExecuteMetaData[Rings.tex]{sparse-norm}
 \subsubsection{Comparison}
 Our addition and multiplication functions will need to properly deal with the
-new gapless formulation. First things first, we'll need a way to match the power
+new sparse formulation. First things first, we'll need a way to match the power
 indices. We can use a function from\cite{mcbride_view_2004} to do so.
 \ExecuteMetaData[Rings.tex]{compare}
 This is a classic example of a ``leftist'' function: after pattern matching on
@@ -504,7 +512,11 @@ performance.
   checker to reveal more terminating programs.
 }
 
-\ExecuteMetaData[Rings.tex]{addition}
+\begin{figure}[h]
+  \ExecuteMetaData[Rings.tex]{addition}
+  \caption{Terminating Addition, Using Call-Pattern Specialization}
+  \label{mono-addition}
+\end{figure}
 Every helper function in the mutual block matches on exactly one argument,
 eliminating redundancy. This also simplifies some of the homomorphism proofs
 later on.
@@ -601,18 +613,23 @@ The rest of types are similar to what they were before:
 Again, similarly to the sparse exponent encoding, we provide a smart
 constructor which ensures normalization.
 \subsubsection{Choosing an Inequality}
-Conspicuously missing above is a definition for \(\leq\).
+Conspicuously missing above is a definition for \(\leq\). This choice has
+important performance implications, and exploring the various design avenues
+turned out to be more difficult than anticipated. As a jumping-off point, we'll
+look at the three definitions of \(\leq\) in the Agda standard
+library\cite{danielsson_agda_2018}.
 \begin{description}
   \item[Option 1: The Standard Way] The most commonly used definition of
     \(\leq\) is as follows:
     \ExecuteMetaData[Poly.tex]{leq-1}
-    For our purposes, though, this type is dangerous: it actually
-    \emph{increases} the complexity from the dense encoding. To understand why,
-    remember the addition function above with the gapless exponent encoding. For
-    it to work, we needed to compare the gaps, and proceed based on that. We'll
-    need to do a similar comparison on variable counts for this gapless
-    encoding. However, we don't store the \emph{gaps} now, we store the number
-    of variables in the nested polynomial. Consider the following sequence of
+    Trying to proceed with this type will yield a nasty performance bug, though:
+    first, remember the functions defined on the sparse exponent encoding above.
+    When dealing with two polynomials, they'll have to line them up, comparing
+    the respective gaps to find where two coefficients coincide (see
+    \(\AgdaFunction{⊞-zip}\) in figure~\ref{mono-addition}). We'll have to do
+    the same with this version of sparseness: however, since we're no longer
+    storing the gaps, the comparison will be on the size of the nested
+    polynomial. To see why this is a problem, consider the following sequence of
     nestings:
 
     \[ (5 ≤ 6), (4 ≤ 5), (3 ≤ 4), (1 ≤ 3), (0 ≤ 1) \]
@@ -625,33 +642,62 @@ Conspicuously missing above is a definition for \(\leq\).
     comparing the gaps and not the tails, another encoding of \(\leq\) in
     Data.Nat seems the best option:
     \ExecuteMetaData[Poly.tex]{leq-2}
-    It stores the gap \emph{right there}: in \(k\)!
+    It stores the gap \emph{right there}: in \(\AgdaField{k}\)!
 
     Unfortunately, though, we're still stuck. While you can indeed run your
     comparison on \(k\), you're not left with much information about the rest.
-    Say, for instance, you find out that two respective \(k\)s are equal. What
-    about the \(m\)s? Of course, you \emph{can} show that they must be equal as
-    well, but it requires a proof. Similarly in the less-than or greater-than
-    cases: each time, you need to show that the information about \(k\)
-    corresponds to information about \(m\). Again, all of this can be done, but
-    it all requires propositional proofs, which are messy, and slow. Erasure is
-    an option, but I'm not sure of the correctness of that approach.
+    Say, for instance, you find out that two respective \(\AgdaField{k}\)s are
+    equal. What about the \(m\)s? Of course, you \emph{can} show that they must
+    be equal as well, but it requires a proof. Similarly in the less-than or
+    greater-than cases: each time, you need to show that the information about
+    \(\AgdaField{k}\) corresponds to information about \(m\). Again, all of this
+    can be done, but it all requires propositional proofs, which are messy, and
+    slow. Erasure is an option, but I'm not sure of the correctness of that
+    approach.
   \item[Option 3] What we really want is to \emph{run} the comparison function
     on the gap, but get the result on the tail. Turns out we can do exactly that
     with the following:
     \ExecuteMetaData[Poly.tex]{leq-3}
-    While this structure stores the inequality by induction on the gap. That
-    structure can be used to write a comparison function which was linear in the
-    size of the gap (even though it compares the length of the tail).
-    \todo{Explain more the path from this to the final version. Intermediate
-      comparison function and axiom K, especially}
-
+    While this structure stores the inequality by induction on the gap.
 \end{description}
+As long as the comparison uses the inductive structure of the final definition
+of \(\leq\) above, it will have the correct complexity, while providing the
+comparison result about the correct type variables. With a slightly different
+definition of \(\AgdaDatatype{Ordering}\), we get the following:
+\ExecuteMetaData[Poly.tex]{leq-3-cmp}
+
+A few things to note here:
+\begin{itemize}
+  \item The \(\AgdaFunction{≤-compare}\) function is one of those reassuring
+    ones which Agda can completely infer.
+ \item This function looks somewhat similar to the normal definition of
+   \(\AgdaFunction{compare}\) and as a result, the ``matching'' logic for degree
+   and number of variables began too look similar.
+\end{itemize}
+\subsubsection{Axiom K}
+With this approach, we can indeed write all of the functions we need, but we
+will run into trouble trying to prove homomorphism.
+
+The issue revolves around the fact that \(\leq\) is \emph{irrelevant}. In other
+words, if you have two proofs of (say) \(n \leq m\), then those two proofs must
+also be propositionally equal. When we're trying to prove that two polynomials
+evaluate to the same thing, we'd like to rely on this property.
+
+Unfortunately, though, proving this without axiom K is difficult. However, we
+should notice that we didn't need to prove anything like this when dealing with
+the sparse exponent encoding: why do we have to now?
+
 \subsubsection{Indexed Ordering}
-Now that the inequality is an inductive type, which mimics a Peano number stored
-in the gap, the parallels with the sparse exponent encoding should be even more
-clear. To write a comparison function, then, we should first look for an
-equivalent to addition. This turns out to be transitivity:
+The issue lies in our newer definition of \(\AgdaDatatype{Ordering}\): whereas
+the standard definition (on \(\AgdaDatatype{ℕ}\)) provided information about the
+arguments to the comparison function, the new definition provides only
+information about their \emph{indices}. When pattern matching on the result of
+the comparison before, we got all the equality information we needed about the
+\(\leq\) proofs.
+
+To solve the problem, we'll more closely mimic the old comparison, and provide a
+result on the \(\leq\) proofs directly. We should first look for an equivalent
+to addition. This turns out to be transitivity:
 \ExecuteMetaData[Poly.tex]{trans}
 
 With this defined, the \(\AgdaDatatype{Ordering}\) type is obvious:

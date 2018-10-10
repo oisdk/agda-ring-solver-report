@@ -73,10 +73,33 @@ module LEQ3 where
   data _≤_ (m : ℕ) : ℕ → Set where
     m≤m  : m ≤ m
     ≤-s  : ∀ {n}
-        → (m≤n : m ≤ n)
-        → m ≤ suc n
+         → (m≤n : m ≤ n)
+         → m ≤ suc n
 \end{code}
 %</leq-3>
+%<*leq-3-cmp>
+\begin{code}
+  data Ordering : ℕ → ℕ → Set where
+    less  : ∀ {n m}
+          → n ≤ m
+          → Ordering n (suc m)
+    greater  : ∀ {n m}
+             → m ≤ n
+             → Ordering (suc n) m
+    equal  : ∀ {n}
+           → Ordering n n
+
+  ≤-compare   : ∀ {i j n}
+              → (i≤n : i ≤ n)
+              → (j≤n : j ≤ n)
+              → Ordering i j
+  ≤-compare m≤m        m≤m        = equal
+  ≤-compare m≤m        (≤-s m≤n)  = greater m≤n
+  ≤-compare (≤-s m≤n)  m≤m        = less m≤n
+  ≤-compare (≤-s i≤n)  (≤-s j≤n)  =
+    ≤-compare i≤n j≤n
+\end{code}
+%</leq-3-cmp>
 \begin{code}
 open import Data.Nat using () renaming (_≤′_ to _≤_; ≤′-refl to m≤m; ≤′-step to ≤-s)
 \end{code}
