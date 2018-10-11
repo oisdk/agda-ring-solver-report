@@ -881,17 +881,37 @@ For every function \(f\) that we want to use, we'll have to prove that
   \label{hom-struct}
 \end{figure}
 
-
-The algebra of programming\cite{bird_algebra_1997} has been adapted to the
-dependently typed setting\cite{mu_algebra_2009}. Along with Horner's
-rule\cite{gibbons_horners_2011}, we use it here in the construction of proofs.
-
-The core of this technique will use the following combinator:
+We'll use techniques similar to those in the algebra of
+programming\cite{bird_algebra_1997} (which has been adapted to the dependently
+typed setting\cite{mu_algebra_2009}). Taking \(\AgdaFunction{⊟}\) as an example,
+because we wrote it as a fold, we can use the following combinator to build up
+its homomorphism proof:
 \ExecuteMetaData[Poly.tex]{aopa}
 Reminiscent of the relational fold in\cite{mu_algebra_2009}, this builds up a
 relation between list and a fold over that list. In this way, it's similar to
 \(\AgdaFunction{foldr}\) for proofs: it removes the explicit recursion, allowing
 us to focus on the two cases we need to handle.
+
+In our case, though, we can go further: negation (along with all of the other
+functions defined as folds) isn't concerned with the details of normalization or
+the power index. It only transforms expressions that look like this:
+
+\[ x + xs\times\rho \]
+
+While we're ignoring the gaps in the exponents, and the other details (like the
+proofs of normal form), proving homomorphism on this expression \emph{also}
+proves homomorphism on the eventual more complex expression. The type for the
+folds in Agda is as follows:
+
+\ExecuteMetaData[Poly.tex]{poly-fold}
+
+The \(\AgdaFunction{PolyF}\) type is the \(x + xs\times\rho\) expression from
+above. Actually running the fold is simply a matter of applying all of the
+normalization operators:
+\ExecuteMetaData[Poly.tex]{run-fold}
+
+\todo{Pin rest of info about proofs}
+
 
 \section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we

@@ -32,7 +32,7 @@
 \contentsline {subsubsection}{\numberline {7.1.2}Examples}{17}{subsubsection.7.1.2}
 \contentsline {subsection}{\numberline {7.2}The Algebra of Programming}{17}{subsection.7.2}
 \contentsline {section}{\numberline {8}Reflection}{18}{section.8}
-\contentsline {subsection}{\numberline {8.1}Building The AST for Proving}{19}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.1}Building The AST for Proving}{20}{subsection.8.1}
 \contentsline {subsection}{\numberline {8.2}Matching on the Reflected Expression}{20}{subsection.8.2}
 \contentsline {subsubsection}{\numberline {8.2.1}Matching the Ring Operators}{20}{subsubsection.8.2.1}
 \contentsline {subsubsection}{\numberline {8.2.2}Matching Variables}{21}{subsubsection.8.2.2}

@@ -297,8 +297,8 @@ module SparseNesting
 
   mutual
     ⊟-step : ∀ {n} → ⌊ n ⌋ → Poly n → Poly n
-    ⊟-step _        (Κ x  Π i≤n) = Κ (- x) Π i≤n
-    ⊟-step (acc wf) (Σ xs Π i≤n) =
+    ⊟-step _         (Κ x   Π i≤n) = Κ (- x) Π i≤n
+    ⊟-step (acc wf)  (Σ xs  Π i≤n) =
       foldr (⊟-cons (wf _ i≤n)) [] xs Π↓ i≤n
 
     ⊟-cons : ∀ {n}
@@ -413,7 +413,21 @@ module SparseNesting
         ⊞-coeffs (⊠-inj j≤n x ys) (⊠-step y ys xs)
 \end{code}
 %</poly-mult>
+%<*poly-fold>
+\begin{code}
+  PolyF : ℕ → Set (a ⊔ ℓ)
+  PolyF i = Poly i × Coeffs i
 
+  Fold : ℕ → Set (a ⊔ ℓ)
+  Fold i = PolyF i → PolyF i
+\end{code}
+%</poly-fold>
+%<*run-fold>
+\begin{code}
+  fold : ∀ {i} → Fold i → Coeffs i → Coeffs i
+  fold f = foldr (λ { (x ≠0 Δ i) → uncurry (λ y ys → y ^ i ∷↓ ys) ∘ curry f x}) []
+\end{code}
+%</run-fold>
 %<*semantics-opening>
 \begin{code}
 module Semantics
