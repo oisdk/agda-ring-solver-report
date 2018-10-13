@@ -1,9 +1,17 @@
-\frametitle{Example ``Proof''}
-  Let's start working with a function as if it were a proof.
+\frametitle{The Proposition is False!}
+  \begin{minted}{haskell}
+    >>> head []
+    error "head: empty list"
+  \end{minted}
+  \note{head isn't defined on the empty list, so the function \emph{doesn't}
+    exist. In other words, its type is a false proposition.}
+  \pause
 
-  The example function we'll choose gets the first element of a list and returns
-  it (commonly called \(\AgdaFunction{head}\) in functional programming
-  languages).
-
-  Here's the type:
-  \ExecuteMetaData[BasicTypes.tex]{headty}
+  \begin{columns}
+    \column{0.5\textwidth}
+    \ExecuteMetaData[BasicTypes.tex]{headty}
+    \pause
+    \column{0.5\textwidth}
+    \centering
+    \alert{False}
+  \end{columns}

@@ -1,48 +1,52 @@
-\headcommand {\beamer@sectionpages {1}{0}}
-\headcommand {\beamer@subsectionpages {1}{0}}
-\headcommand {\sectionentry {1}{Dependently Typed Programming}{1}{Dependently Typed Programming}{0}}
-\headcommand {\slideentry {1}{0}{1}{1/1}{}{0}}
+\headcommand {\slideentry {0}{0}{1}{1/1}{}{0}}
 \headcommand {\beamer@framepages {1}{1}}
-\headcommand {\slideentry {1}{0}{2}{2/2}{}{0}}
+\headcommand {\beamer@sectionpages {1}{1}}
+\headcommand {\beamer@subsectionpages {1}{1}}
+\headcommand {\sectionentry {1}{Programming is Proving}{2}{Programming is Proving}{0}}
+\headcommand {\slideentry {1}{0}{1}{2/2}{}{0}}
 \headcommand {\beamer@framepages {2}{2}}
-\headcommand {\beamer@subsectionpages {1}{2}}
-\headcommand {\beamer@subsectionentry {0}{1}{1}{3}{For Programmers}}
-\headcommand {\slideentry {1}{1}{1}{3/3}{For Programmers}{0}}
-\headcommand {\beamer@framepages {3}{3}}
-\headcommand {\slideentry {1}{1}{2}{4/4}{For Programmers}{0}}
+\headcommand {\slideentry {1}{0}{2}{4/4}{}{0}}
 \headcommand {\beamer@framepages {4}{4}}
-\headcommand {\slideentry {1}{1}{3}{5/5}{For Programmers}{0}}
-\headcommand {\beamer@framepages {5}{5}}
-\headcommand {\slideentry {1}{1}{4}{6/6}{For Programmers}{0}}
+\headcommand {\slideentry {1}{0}{3}{6/6}{}{0}}
 \headcommand {\beamer@framepages {6}{6}}
-\headcommand {\slideentry {1}{1}{5}{7/7}{For Programmers}{0}}
-\headcommand {\beamer@framepages {7}{7}}
-\headcommand {\slideentry {1}{1}{6}{8/8}{For Programmers}{0}}
-\headcommand {\beamer@framepages {8}{8}}
-\headcommand {\slideentry {1}{1}{6}{8/9}{For Programmers}{0}}
-\headcommand {\beamer@framepages {8}{9}}
-\headcommand {\slideentry {1}{1}{6}{8/10}{For Programmers}{0}}
-\headcommand {\beamer@framepages {8}{10}}
-\headcommand {\slideentry {1}{1}{6}{8/11}{For Programmers}{0}}
-\headcommand {\beamer@framepages {8}{11}}
-\headcommand {\slideentry {1}{1}{7}{12/12}{For Programmers}{0}}
-\headcommand {\beamer@framepages {12}{12}}
-\headcommand {\slideentry {1}{1}{8}{13/13}{For Programmers}{0}}
-\headcommand {\beamer@framepages {13}{13}}
-\headcommand {\slideentry {1}{1}{9}{14/14}{For Programmers}{0}}
-\headcommand {\beamer@framepages {14}{14}}
-\headcommand {\beamer@sectionpages {1}{14}}
-\headcommand {\beamer@subsectionpages {3}{14}}
-\headcommand {\sectionentry {2}{A Polynomial Solver}{15}{A Polynomial Solver}{0}}
-\headcommand {\slideentry {2}{0}{1}{15/15}{}{0}}
-\headcommand {\beamer@framepages {15}{15}}
-\headcommand {\beamer@sectionpages {15}{15}}
-\headcommand {\beamer@subsectionpages {15}{15}}
-\headcommand {\sectionentry {3}{The \(p\)-Adics}{16}{The \(p\)-Adics}{0}}
-\headcommand {\slideentry {3}{0}{1}{16/16}{}{0}}
-\headcommand {\beamer@framepages {16}{16}}
-\headcommand {\beamer@partpages {1}{16}}
-\headcommand {\beamer@subsectionpages {16}{16}}
-\headcommand {\beamer@sectionpages {16}{16}}
-\headcommand {\beamer@documentpages {16}}
-\headcommand {\gdef \inserttotalframenumber {13}}
+\headcommand {\slideentry {1}{0}{4}{8/18}{}{0}}
+\headcommand {\beamer@framepages {8}{18}}
+\headcommand {\slideentry {1}{0}{5}{20/24}{}{0}}
+\headcommand {\beamer@framepages {20}{24}}
+\headcommand {\slideentry {1}{0}{6}{26/34}{}{0}}
+\headcommand {\beamer@framepages {26}{34}}
+\headcommand {\slideentry {1}{0}{7}{36/40}{}{0}}
+\headcommand {\beamer@framepages {36}{40}}
+\headcommand {\slideentry {1}{0}{8}{42/44}{}{0}}
+\headcommand {\beamer@framepages {42}{44}}
+\headcommand {\slideentry {1}{0}{9}{45/45}{}{0}}
+\headcommand {\beamer@framepages {45}{45}}
+\headcommand {\slideentry {1}{0}{9}{45/47}{}{0}}
+\headcommand {\beamer@framepages {45}{47}}
+\headcommand {\slideentry {1}{0}{9}{45/48}{}{0}}
+\headcommand {\beamer@framepages {45}{48}}
+\headcommand {\slideentry {1}{0}{9}{45/49}{}{0}}
+\headcommand {\beamer@framepages {45}{49}}
+\headcommand {\slideentry {1}{0}{10}{50/50}{}{0}}
+\headcommand {\beamer@framepages {50}{50}}
+\headcommand {\slideentry {1}{0}{11}{52/54}{}{0}}
+\headcommand {\beamer@framepages {52}{54}}
+\headcommand {\slideentry {1}{0}{12}{56/60}{}{0}}
+\headcommand {\beamer@framepages {56}{60}}
+\headcommand {\slideentry {1}{0}{13}{62/62}{}{0}}
+\headcommand {\beamer@framepages {62}{62}}
+\headcommand {\beamer@sectionpages {2}{63}}
+\headcommand {\beamer@subsectionpages {2}{63}}
+\headcommand {\sectionentry {2}{A Polynomial Solver}{64}{A Polynomial Solver}{0}}
+\headcommand {\slideentry {2}{0}{1}{64/64}{}{0}}
+\headcommand {\beamer@framepages {64}{64}}
+\headcommand {\beamer@sectionpages {64}{64}}
+\headcommand {\beamer@subsectionpages {64}{64}}
+\headcommand {\sectionentry {3}{The \(p\)-Adics}{65}{The \(p\)-Adics}{0}}
+\headcommand {\slideentry {3}{0}{1}{65/65}{}{0}}
+\headcommand {\beamer@framepages {65}{65}}
+\headcommand {\beamer@partpages {1}{65}}
+\headcommand {\beamer@subsectionpages {65}{65}}
+\headcommand {\beamer@sectionpages {65}{65}}
+\headcommand {\beamer@documentpages {65}}
+\headcommand {\gdef \inserttotalframenumber {15}}

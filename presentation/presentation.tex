@@ -1,4 +1,4 @@
-\documentclass[draft,usenames,dvipsnames]{beamer}
+\documentclass[usenames,dvipsnames,notes]{beamer}
 \usepackage{tikz}
 \usetikzlibrary{cd}
 \usepackage{catchfilebetweentags}
@@ -66,12 +66,15 @@
 \usetheme{metropolis}
 \usepackage{natbib}
 \usepackage{bibentry}
+\usepackage[draft=false]{minted}
 \title{Programming Mathematics in Agda}
 \author{Donnacha Oisín Kidney}
 \begin{document}
+\maketitle
+\tableofcontents
 \bibliographystyle{plain}
 \nobibliography{../horners-rule.bib}
-\section{Dependently Typed Programming}
+\section{Programming is Proving}
 \begin{frame}[fragile]
   \frametitle{The Curry-Howard Correspondence}
   \begin{figure}
@@ -81,11 +84,14 @@
       Program \ar[r, Leftrightarrow]        & Proof
     \end{tikzcd}
   \end{figure}
+  \note{Central idea of dependent types for proofs.}
 
   \bibentry{wadler_propositions_2015-1}
+
+  \note{We start by showing that the left-hand-side translates to the right.}
 \end{frame}
-\subsection{For Programmers}
 \begin{frame}
+  \frametitle{Types are Propositions}
   Types are (usually):
   \begin{itemize}
     \item \(\AgdaDatatype{Int}\)
@@ -94,9 +100,13 @@
   \end{itemize}
 
   How are these propositions?
+  \note{Propositions are things like ``there are infinite primes'', etc. Int
+    certainly doesn't \emph{look} like a proposition.}
 \end{frame}
 \begin{frame}[fragile]
   \frametitle{Existential Proofs}
+  \note{We use a trick to translate: put a ``there exists'' before the type.}
+  \pause
   \begin{columns}[T]
     \column{0.5\textwidth}
     \centering
@@ -104,120 +114,196 @@
     \ExecuteMetaData[BasicTypes.tex]{xint}
     \column{0.5\textwidth}
     \centering
+    \pause
     Think:
     \[\exists. \mathbb{N}\]
   \end{columns}
+  \pause
 
   \begin{block}{NB}
     We'll see a more powerful and precise version of \(\exists\) later.
   \end{block}
 
-  Proof is ``by example''
+  \pause
+  Proof is ``by example'':
 
+  \pause
   \ExecuteMetaData[BasicTypes.tex]{xprf}
 \end{frame}
 \begin{frame}[fragile]
-  \frametitle{Example ``Proof''}
-  Let's start working with a function as if it were a proof.
-
-  The example function we'll choose gets the first element of a list and returns
-  it (commonly called \(\AgdaFunction{head}\) in functional programming
-  languages).
+  \frametitle{Programs are Proofs}
+  \note{Let's start working with a function as if it were a proof. The function
+    we'll choose gets the first element from a list. It's commonly called
+    ``head'' in functional programming.}
+  \pause
+  \begin{minted}{haskell}
+    >>> head [1,2,3]
+    1
+  \end{minted}
+  \pause
 
   Here's the type:
   \ExecuteMetaData[BasicTypes.tex]{headty}
 \end{frame}
-\begin{frame}
-  \frametitle{Basic Syntax}
-  \(\AgdaFunction{head}\) is what would be called a ``generic'' function in
-  languages like Java.
+\begin{frame}[fragile]
 
-  In other words, the type \(A\) is not specified in the implementation of the
-  function: it just ``takes a list of things, and returns one of those things''.
+  \frametitle{Basic Agda Syntax}
+  \pause
+  \note{\(\AgdaFunction{head}\) is what would be called a ``generic'' function
+    in languages like Java.}
 
-  In Agda, you must supply the type to the function: the curly brackets mean the
-  argument is implicit.
+  \pause
+  Equivalent in other languages:
+
+  \begin{description}
+    \item[Haskell]
+      \begin{minted}{haskell}
+        head :: [a] -> a
+      \end{minted}
+    \item[Swift]
+      \begin{minted}{swift}
+        func head<A>(xs : [A]) -> A {
+      \end{minted}
+  \end{description}
+
+  \pause
+  \note{In other words, the type \(A\) is not specified in the implementation of
+    the function.}
+
+  \begin{columns}
+    \column{0.5\textwidth}
+    \ExecuteMetaData[BasicTypes.tex]{headty}
+    \pause
+    \column{0.5\textwidth}
+    ``Takes a list of things, and returns one of those things''.
+  \end{columns}
+
+  \note{In Agda, you must supply the type to the function: the curly brackets
+    mean the argument is implicit.}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{The Proposition is False!}
+  \begin{minted}{haskell}
+    >>> head []
+    error "head: empty list"
+  \end{minted}
+  \note{head isn't defined on the empty list, so the function \emph{doesn't}
+    exist. In other words, its type is a false proposition.}
+  \pause
+
+  \begin{columns}
+    \column{0.5\textwidth}
+    \ExecuteMetaData[BasicTypes.tex]{headty}
+    \pause
+    \column{0.5\textwidth}
+    \centering
+    \alert{False}
+  \end{columns}
 \end{frame}
 \begin{frame}
-  \frametitle{The Proposition is False!}
-  What happens if we call \(\AgdaFunction{head}\) on an empty list? In this
-  case, \(\AgdaFunction{head}\) isn't defined.
+  If Agda is correct (as a formal logic):
 
-  In other words, the proposition:
-
-  \ExecuteMetaData[BasicTypes.tex]{headty}
-
-  Is \emph{False}.
-
-  We shouldn't be able to prove this using Agda.
+  \only<2>{\alert{We shouldn't be able to prove this using Agda}}
+  \only<3>{\alert{We shouldn't be able write this function in Agda}}
 \end{frame}
 \begin{frame}[allowframebreaks]
-  \frametitle{But Let's Try Anyway}
-  Agda functions are defined (usually) with \emph{pattern-matching}. 
+  \frametitle{But Let's Try Anyway!}
+  Function definition syntax
+
+  \note{Agda functions are defined (usually) with \emph{pattern-matching}.}
 
   \ExecuteMetaData[BasicTypes.tex]{fib}
 
-  For the natural numbers, we use the Peano numbers, which gives us 2 patterns:
-  zero, and successor.
+  \note{For the natural numbers, we use the Peano numbers, which gives us 2
+    patterns: zero, and successor.}
 
   \framebreak
 
-  For lists, we also have two patterns: the empty list, and the head element
-  followed by the rest of the list.
+  \note{For lists, we also have two patterns: the empty list, and the head
+    element followed by the rest of the list.}
 
   \ExecuteMetaData[BasicTypes.tex]{length}
 
   \framebreak
 
-  For \(\AgdaFunction{head}\), then, we can just write the following:
+  Here's a definition for \(\AgdaFunction{head}\):
 
   \ExecuteMetaData[BasicTypes.tex]{head1}
 
   \begin{block}{\alert{No!}}
-    Partial functions aren't allowed!
+    For correct proofs, partial functions aren't allowed
   \end{block}
+
+  \note{We need to disallow functions which don't match all patterns. Array
+    access out-of-bounds, etc., also not allowed.}
 
   \framebreak
 
-  It might seem like we can't write this function, then, but there is one more
-  way we could get around it.
+  We're not out of the woods yet:
 
   \ExecuteMetaData[BasicTypes.tex]{head2}
 
-  To disallow \emph{this} kind of thing, we must ensure all functions are
-  \emph{total}. For now, assume this means ``terminating''.
+  \begin{block}{\alert{No!}}
+    For correct proofs, all functions must be total
+  \end{block}
+  
+  \note{To disallow \emph{this} kind of thing, we must ensure all functions are
+    \emph{total}. For now, assume this means ``terminating''.}
 \end{frame}
 \begin{frame}
-  So that's all well and good: there's a proposition which we know isn't true,
-  and we've tried to prove it, and failed (as well we should).
+  \frametitle{Correctness}
+  For the proofs to be correct, we have two extra conditions that you usually
+  don't have in programming:
+  
+  \begin{itemize}
+    \item No partial programs
+    \item Only total programs
+  \end{itemize}
+  \note{Without these conditions, your proofs are still correct \emph{if they
+      run.}}
+\end{frame}
+\begin{frame}
+  \note{
+    Enough Restrictions!
 
-  Let's go a little further, though: can we \emph{prove} that
-  \(\AgdaFunction{head}\) doesn't exist?
+    That's a lot of things we \emph{can't} prove.
+
+    How about something that we can?
+
+    How about the converse?
+  }
+  \pause
+  Can we \emph{prove} that \(\AgdaFunction{head}\) doesn't exist?
+
+  \note{
+    After all, all we have so far is ``proof by trying really hard''.
+  }
 \end{frame}
 \begin{frame}
   \frametitle{Falsehood}
-  Often it's said that you can't prove negatives in dependently typed
-  programming: not true!
+  \note{First we'll need a notion of ``False''}
+  \note{Often it's said that you can't prove negatives in dependently typed
+    programming: not true!}
+  \note{We'll use the principle of explosion: ``A false thing is one that can be
+    used to prove anything''}
 
-  In our case, we'll use the principle of explosion.
-
-  \begin{block}{Principle of Explosion}
-    \emph{``Ex falso quodlibet''}: from falsehood, anything.
-  \end{block}
-
-  In Agda:
-
-  \ExecuteMetaData[BasicTypes.tex]{false}
+  \begin{columns}
+    \column{0.5\textwidth}<3->
+    \ExecuteMetaData[BasicTypes.tex]{false}
+    \column{0.5\textwidth}<2->
+    \begin{block}{Principle of Explosion}
+      \emph{``Ex falso quodlibet''} \\
+      If you stand for nothing, you'll fall for anything.
+    \end{block}
+  \end{columns}
 \end{frame}
 \begin{frame}
-  So let's supply a proof of that fact!
-
   \ExecuteMetaData[BasicTypes.tex]{head-not}
 
-  Here's how the proof works: for falsehood, we need to prove the supplied
-  proposition, no matter what it is. If \(\AgdaFunction{head}\) exists, this is
-  no problem! Just get the head of a list of proofs of the proposition, which
-  can be empty.
+  \note{Here's how the proof works: for falsehood, we need to prove the supplied
+    proposition, no matter what it is. If \(\AgdaFunction{head}\) exists, this
+    is no problem! Just get the head of a list of proofs of the proposition,
+    which can be empty.}
 \end{frame}
 \section{A Polynomial Solver}
 \section{The \(p\)-Adics}
