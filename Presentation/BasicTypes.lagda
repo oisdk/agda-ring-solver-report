@@ -14,7 +14,7 @@ x = 1
 \end{code}
 %</xprf>
 \begin{code}
-open import Data.List hiding (length; head)
+open import Data.List hiding (length; head; reverse)
 
 pattern 1+ x = suc x
 \end{code}
@@ -63,3 +63,17 @@ head-doesn't-exist : ¬ ({A : Set} → List A → A)
 head-doesn't-exist head = head []
 \end{code}
 %</head-not>
+\begin{code}
+module ProofSigs where
+  open import Relation.Binary.PropositionalEquality
+  reverse : ℕ → ℕ
+  reverse x = x
+\end{code}
+%<*reverse-props>
+\begin{code}
+  reverse-involution : ∀ xs → reverse (reverse xs) ≡ xs
+\end{code}
+%</reverse-props>
+\begin{code}
+  reverse-involution xs = refl
+\end{code}

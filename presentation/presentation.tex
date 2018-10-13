@@ -1,4 +1,4 @@
-\documentclass[usenames,dvipsnames,notes]{beamer}
+\documentclass[usenames,dvipsnames]{beamer}
 \usepackage{tikz}
 \usetikzlibrary{cd}
 \usepackage{catchfilebetweentags}
@@ -74,6 +74,128 @@
 \tableofcontents
 \bibliographystyle{plain}
 \nobibliography{../horners-rule.bib}
+\section{What do Programming Languages Have to Say About Mathematics?}
+\begin{frame}
+  Languages for proofs and languages for programs have a lot of the same requirements.
+
+  \pause
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{A \emph{Syntax} that is}
+      \begin{itemize}
+        \item Readable
+        \item Precise
+        \item Terse
+      \end{itemize}
+    \end{block}
+    \pause
+    \column{0.5\textwidth}
+    \begin{block}{\emph{Semantics} that are}
+      \note{Semantics/axiomatic core}
+      \begin{itemize}
+        \item Small
+        \item Powerful
+        \item Consistent
+      \end{itemize}
+    \end{block}
+  \end{columns}
+  \note{Some of these are conflicting!}
+\end{frame}
+\begin{frame}[standout]
+  Why not use a programming language as our proof language?
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Benefits For Programmers}
+  \begin{itemize}
+    \item<2-> \emph{Prove} things about code \note{Not just test!}
+    \item<3-> Use ideas and concepts from maths---why reinvent them?
+      \note{Mathematics and formal language has existed for thousands of years;
+        programming has existed for only 60!}
+    \item<4-> Provide coherent \emph{justification} for language features
+  \end{itemize}
+  \begin{overlayarea}{\linewidth}{0cm}
+    \begin{onlyenv}<2>
+      \centering
+      \begin{minipage}{0.7\linewidth}
+        \begin{minted}[autogobble]{python}
+          assert(list(reversed([1,2,3])) == [3,2,1])
+        \end{minted}
+      \end{minipage}
+
+      \emph{vs}
+
+      \ExecuteMetaData[BasicTypes.tex]{reverse-props}
+    \end{onlyenv}
+  \end{overlayarea}
+\end{frame}
+\begin{frame}
+  \frametitle{Benefits For Mathematicians}
+  \begin{itemize}
+    \item<2-> Have a machine check your proofs
+    \item<3-> Run your proofs
+    \item<4-> \alert<5>{Develop a consistent foundation for maths}
+  \end{itemize}
+
+  \begin{overlayarea}{\linewidth}{1cm}
+    \only<2>{Currently, though, this is \emph{tedious}}
+    \only<5>{Wait---isn't this impossible?}
+  \end{overlayarea}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Formalizing Mathematics}
+  \begin{columns}
+    \column{0.5\linewidth}
+    \onslide<2->{Whitehead and Russell took \emph{hundreds} of pages to prove \(1+1=2\)}
+    \column{0.5\linewidth}
+    \onslide<4->{\alert{Formal systems have improved}}
+  \end{columns}
+
+  \vfill
+  
+  \begin{columns}
+    \column{0.5\linewidth}
+    \onslide<3->{Gödel showed that universal formal systems are incomplete}
+    \column{0.5\linewidth}
+    \onslide<5->{\alert{We don't need universal systems}}
+  \end{columns}
+
+  \vfill
+
+  \bibentry{paulson2016future}
+\end{frame}
+\begin{frame}
+  \frametitle{What About Automated Theorem Provers?}
+  \note{
+    Use a combination of heuristics and exhaustive search to check some
+    proposition.
+
+    \alert{Non Surveyable}
+
+    \emph{We have to trust the implementation.}
+  }
+  \pause
+  Appel and Haken's 1976 proof of the Four-Color Theorem
+
+  \note{\emph{Not} what we're doing here!}
+
+  \pause
+  This is about picking a set of axioms and syntax so simple that \emph{even a
+    computer} could understand them.
+
+  \note{Unfortunately, proofs in this setting are often long and tedious. But
+    rigorous! (Although not quite as bad as Principia)}
+
+  \pause
+  Formalized proof of the Four-Colour theorem arrived a full \emph{29 years}
+  later!
+
+  \bibentry{gonthier_formal_2008}
+
+  \pause
+
+  Since our proof language is \emph{executable}, maybe we can write
+  \emph{verified} automated theorem provers?
+\end{frame}
 \section{Programming is Proving}
 \begin{frame}[fragile]
   \frametitle{The Curry-Howard Correspondence}
@@ -84,11 +206,7 @@
       Program \ar[r, Leftrightarrow]        & Proof
     \end{tikzcd}
   \end{figure}
-  \note{Central idea of dependent types for proofs.}
-
   \bibentry{wadler_propositions_2015-1}
-
-  \note{We start by showing that the left-hand-side translates to the right.}
 \end{frame}
 \begin{frame}
   \frametitle{Types are Propositions}
