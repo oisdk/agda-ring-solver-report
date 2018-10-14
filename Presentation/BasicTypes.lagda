@@ -77,3 +77,41 @@ module ProofSigs where
 \begin{code}
   reverse-involution xs = refl
 \end{code}
+%<*bool-def>
+\begin{code}
+data Bool : Set where
+  true   : Bool
+  false  : Bool
+\end{code}
+%</bool-def>
+%<*bot-def>
+\begin{code}
+data ⊥ : Set where
+\end{code}
+%</bot-def>
+%<*poe-to-bot>
+\begin{code}
+lnc : ⊥ → {A : Set} → A
+lnc ()
+\end{code}
+%</poe-to-bot>
+%<*top-def>
+\begin{code}
+data ⊤ : Set where
+  tt : ⊤
+\end{code}
+%</top-def>
+\begin{code}
+module Impl where
+  data A : Set where
+  data B : Set where
+  implication :
+\end{code}
+%<*impl>
+\begin{code}
+    A → B
+\end{code}
+%</impl>
+\begin{code}
+  implication ()
+\end{code}

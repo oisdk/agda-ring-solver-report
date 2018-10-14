@@ -1,17 +1,43 @@
-\frametitle{The Proposition is False!}
-  \begin{minted}{haskell}
-    >>> head []
-    error "head: empty list"
-  \end{minted}
-  \note{head isn't defined on the empty list, so the function \emph{doesn't}
-    exist. In other words, its type is a false proposition.}
-  \pause
+\frametitle{But Let's Try Anyway!}
+  \only<1>{
+    Function definition syntax
 
-  \begin{columns}
-    \column{0.5\textwidth}
-    \ExecuteMetaData[BasicTypes.tex]{headty}
-    \pause
-    \column{0.5\textwidth}
-    \centering
-    \alert{False}
-  \end{columns}
+    \note{Agda functions are defined (usually) with \emph{pattern-matching}. For
+      the natural numbers, we use the Peano numbers, which gives us 2 patterns:
+      zero, and successor.}
+    \ExecuteMetaData[BasicTypes.tex]{fib}
+  }
+
+  \only<2>{
+    \note{For lists, we also have two patterns: the empty list, and the head
+      element followed by the rest of the list.}
+
+    \ExecuteMetaData[BasicTypes.tex]{length}
+  }
+
+  \only<3>{
+    Here's a definition for \(\AgdaFunction{head}\):
+
+    \ExecuteMetaData[BasicTypes.tex]{head1}
+
+    \begin{block}{\alert{No!}}
+      For correct proofs, partial functions aren't allowed
+    \end{block}
+
+    \note{We need to disallow functions which don't match all patterns. Array
+      access out-of-bounds, etc., also not allowed.}
+  }
+
+
+  \only<4>{
+    We're not out of the woods yet:
+
+    \ExecuteMetaData[BasicTypes.tex]{head2}
+
+    \begin{block}{\alert{No!}}
+      For correct proofs, all functions must be total
+    \end{block}
+
+    \note{To disallow \emph{this} kind of thing, we must ensure all functions are
+      \emph{total}. For now, assume this means ``terminating''.}
+  }
