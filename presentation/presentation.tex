@@ -656,6 +656,8 @@
     ``invalid'', it just means that you have to run it for every case you want
     to check.
   }
+
+  \bibentry{martin-lof_intuitionistic_1980}
 \end{frame}
 \begin{frame}
   \frametitle{The \(\Pi\) Type}
@@ -677,15 +679,58 @@
 \end{frame}
 \begin{frame}
   \frametitle{The \(\Sigma\) Type}
-  \note{
-    Now, we upgrade our product types.
+  \pause
+  Upgrade \emph{product types}
 
+  \pause
+  \ExecuteMetaData[BasicTypes.tex]{sigma-example}
+
+  \note<3>{
     Later fields can refer to earlier ones.
   }
-  \ExecuteMetaData[BasicTypes.tex]{sigma-example}
+  \pause
+  Now we have a proper \(\exists\)
 \end{frame}
 \begin{frame}
   \frametitle{The Equality Type}
+  \ExecuteMetaData[BasicTypes.tex]{eq-example}
+  \note{
+    Final piece of the puzzle.
+
+    The type of this type has 2 parameters.
+
+    But the only way to construct the type is if the two parameters are the
+    same.
+
+    You then get evidence of their sameness when you pattern-match on that
+    constructor.
+  }
+\end{frame}
+\begin{frame}
+  \frametitle{Equality}
+  \note<1>{
+    Agda uses propositional equality
+
+    You can construct the equality proof when it's obvious.
+  }
+  \ExecuteMetaData[BasicTypes.tex]{plus-def}
+  \ExecuteMetaData[BasicTypes.tex]{plus-obvious}
+  \pause
+  \note<2>{
+    you need to supply the proof yourself when it's not obvious.
+  }
+  \ExecuteMetaData[BasicTypes.tex]{plus-not-obvious}
+\end{frame}
+\begin{frame}
+  \frametitle{Open Areas and Weirdness}
+  \begin{itemize}
+    \item Law of Excluded Middle?
+    \item Russell's Paradox
+    \item Function Extensionality
+    \item Data Constructor Injectivity
+    \item Observational Equality
+    \item Homotopy Type Theory
+  \end{itemize}
 \end{frame}
 \section{A Polynomial Solver}
 \section{The \(p\)-Adics}

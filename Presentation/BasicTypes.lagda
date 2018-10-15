@@ -1,8 +1,15 @@
 \begin{code}
 module Presentation.BasicTypes where
 
-open import Data.Nat
+open import Data.Nat hiding (_+_)
 \end{code}
+%<*plus-def>
+\begin{code}
+_+_ : ℕ → ℕ → ℕ
+0 + y = y
+suc x + y = suc (x + y)
+\end{code}
+%</plus-def>
 %<*xint>
 \begin{code}
 x : ℕ
@@ -176,7 +183,30 @@ prop _ = z≤n
 \begin{code}
 record NonZero : Set where
   field
-    n     : ℕ
-    proof : 0 < n
+    n      : ℕ
+    proof  : 0 < n
 \end{code}
 %</sigma-example>
+%<*eq-example>
+\begin{code}
+infix 4 _≡_
+data _≡_ {A : Set} (x : A) : A → Set where
+  refl : x ≡ x
+\end{code}
+%</eq-example>
+%<*plus-obvious>
+\begin{code}
+obvious : ∀ x → 0 + x ≡ x
+obvious _ = refl
+\end{code}
+%</plus-obvious>
+%<*plus-not-obvious>
+\begin{code}
+cong : ∀ {A B} → (f : A → B) → ∀ {x y} → x ≡ y → f x ≡ f y
+cong _ refl = refl
+
+not-obvious : ∀ x → x + 0 ≡ x
+not-obvious zero = refl
+not-obvious (suc x) = cong suc (not-obvious x)
+\end{code}
+%</plus-not-obvious>

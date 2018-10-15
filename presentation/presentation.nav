@@ -66,22 +66,26 @@
 \headcommand {\beamer@framepages {134}{139}}
 \headcommand {\slideentry {2}{0}{21}{140/145}{}{0}}
 \headcommand {\beamer@framepages {140}{145}}
-\headcommand {\slideentry {2}{0}{22}{146/146}{}{0}}
-\headcommand {\beamer@framepages {146}{146}}
-\headcommand {\slideentry {2}{0}{23}{148/148}{}{0}}
-\headcommand {\beamer@framepages {148}{148}}
-\headcommand {\beamer@sectionpages {39}{148}}
-\headcommand {\beamer@subsectionpages {39}{148}}
-\headcommand {\sectionentry {3}{A Polynomial Solver}{149}{A Polynomial Solver}{0}}
-\headcommand {\slideentry {3}{0}{1}{149/149}{}{0}}
-\headcommand {\beamer@framepages {149}{149}}
-\headcommand {\beamer@sectionpages {149}{149}}
-\headcommand {\beamer@subsectionpages {149}{149}}
-\headcommand {\sectionentry {4}{The \(p\)-Adics}{150}{The \(p\)-Adics}{0}}
-\headcommand {\slideentry {4}{0}{1}{150/150}{}{0}}
-\headcommand {\beamer@framepages {150}{150}}
-\headcommand {\beamer@partpages {1}{150}}
-\headcommand {\beamer@subsectionpages {150}{150}}
-\headcommand {\beamer@sectionpages {150}{150}}
-\headcommand {\beamer@documentpages {150}}
-\headcommand {\gdef \inserttotalframenumber {29}}
+\headcommand {\slideentry {2}{0}{22}{146/150}{}{0}}
+\headcommand {\beamer@framepages {146}{150}}
+\headcommand {\slideentry {2}{0}{23}{151/151}{}{0}}
+\headcommand {\beamer@framepages {151}{151}}
+\headcommand {\slideentry {2}{0}{24}{153/155}{}{0}}
+\headcommand {\beamer@framepages {153}{155}}
+\headcommand {\slideentry {2}{0}{25}{157/157}{}{0}}
+\headcommand {\beamer@framepages {157}{157}}
+\headcommand {\beamer@sectionpages {39}{157}}
+\headcommand {\beamer@subsectionpages {39}{157}}
+\headcommand {\sectionentry {3}{A Polynomial Solver}{158}{A Polynomial Solver}{0}}
+\headcommand {\slideentry {3}{0}{1}{158/158}{}{0}}
+\headcommand {\beamer@framepages {158}{158}}
+\headcommand {\beamer@sectionpages {158}{158}}
+\headcommand {\beamer@subsectionpages {158}{158}}
+\headcommand {\sectionentry {4}{The \(p\)-Adics}{159}{The \(p\)-Adics}{0}}
+\headcommand {\slideentry {4}{0}{1}{159/159}{}{0}}
+\headcommand {\beamer@framepages {159}{159}}
+\headcommand {\beamer@partpages {1}{159}}
+\headcommand {\beamer@subsectionpages {159}{159}}
+\headcommand {\beamer@sectionpages {159}{159}}
+\headcommand {\beamer@documentpages {159}}
+\headcommand {\gdef \inserttotalframenumber {31}}
