@@ -1,6 +1,7 @@
 \documentclass[usenames,dvipsnames]{beamer}
 \usepackage{pgfpages}
 \setbeameroption{show notes on second screen=right}
+\setbeamertemplate{note page}[plain]
 \usepackage{tikz}
 \usetikzlibrary{cd}
 \usepackage{catchfilebetweentags}
@@ -105,7 +106,9 @@
       \end{itemize}
     \end{block}
   \end{columns}
-  \note<3>{Some of these are conflicting!}
+  \note<3>{
+    Some of these are conflicting!
+  }
 \end{frame}
 \begin{frame}[standout]
   Why not use a programming language as our proof language?
@@ -115,7 +118,7 @@
   \begin{itemize}
     \item<2-> \emph{Prove} things about code \note<2>{Not just test!}
     \item<3-> Use ideas and concepts from maths---why reinvent them?
-      \note{Mathematics and formal language has existed for thousands of years;
+      \note<3>{Mathematics and formal language has existed for thousands of years;
         programming has existed for only 60!}
     \item<4-> Provide coherent \emph{justification} for language features
   \end{itemize}
