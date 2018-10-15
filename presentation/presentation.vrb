@@ -1,43 +1,32 @@
-\frametitle{But Let's Try Anyway!}
-  \only<1>{
-    Function definition syntax
+\frametitle{Currying}
+  \note{
+    Just a short note on currying.
 
-    \note{Agda functions are defined (usually) with \emph{pattern-matching}. For
-      the natural numbers, we use the Peano numbers, which gives us 2 patterns:
-      zero, and successor.}
-    \ExecuteMetaData[BasicTypes.tex]{fib}
+    People familiar with Haskell will know what it is, I won't explain it in its
+    entirety here, though. Just a little interesting thing on how it translates
+    into logic.
+  }
+  \begin{onlyenv}<2>
+    \ExecuteMetaData[BasicTypes.tex]{curry}
+  \end{onlyenv}
+
+  \only<3-6>{
+    \begin{table}
+      \begin{tabularx}{\textwidth}{XX}
+        \only<3-6>{The type:              } & \only<4-6>{Is isomorphic to:                  }  \\
+        \only<3-6>{\(A , B \rightarrow C\)} & \only<4-6>{\(A \rightarrow (B \rightarrow C)\)}  \\[1cm]
+        \only<5-6>{Because the statement: } & \only<6>{Is the same as saying:             }  \\
+        \only<5-6>{``A and B implies C''  } & \only<6>{``A implies B implies C''          }
+      \end{tabularx}
+    \end{table}
   }
 
-  \only<2>{
-    \note{For lists, we also have two patterns: the empty list, and the head
-      element followed by the rest of the list.}
+  \only<7-8>{
+    ``If I'm outside and it's raining, I'm going to get wet''
+    \[Outside \wedge Raining \implies Wet\]
 
-    \ExecuteMetaData[BasicTypes.tex]{length}
-  }
-
-  \only<3>{
-    Here's a definition for \(\AgdaFunction{head}\):
-
-    \ExecuteMetaData[BasicTypes.tex]{head1}
-
-    \begin{block}{\alert{No!}}
-      For correct proofs, partial functions aren't allowed
-    \end{block}
-
-    \note{We need to disallow functions which don't match all patterns. Array
-      access out-of-bounds, etc., also not allowed.}
-  }
-
-
-  \only<4>{
-    We're not out of the woods yet:
-
-    \ExecuteMetaData[BasicTypes.tex]{head2}
-
-    \begin{block}{\alert{No!}}
-      For correct proofs, all functions must be total
-    \end{block}
-
-    \note{To disallow \emph{this} kind of thing, we must ensure all functions are
-      \emph{total}. For now, assume this means ``terminating''.}
+    \onslide<8>{
+      ``When I'm outside, if it's raining I'm going to get wet''
+      \[Outside \implies Raining \implies Wet\]
+    }
   }

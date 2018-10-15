@@ -91,10 +91,16 @@ data ⊥ : Set where
 %</bot-def>
 %<*poe-to-bot>
 \begin{code}
-lnc : ⊥ → {A : Set} → A
-lnc ()
+ptb : ∀ {a} {A : Set a} → ¬ A → A → ⊥
+ptb f x = f x
 \end{code}
 %</poe-to-bot>
+%<*bot-to-poe>
+\begin{code}
+lnc : ¬ ⊥
+lnc ()
+\end{code}
+%</bot-to-poe>
 %<*top-def>
 \begin{code}
 data ⊤ : Set where
@@ -115,3 +121,62 @@ module Impl where
 \begin{code}
   implication ()
 \end{code}
+\begin{code}
+module DataProduct where
+\end{code}
+%<*prod>
+\begin{code}
+  data _×_ (A B : Set) : Set where
+    _,_ : A → B → A × B
+\end{code}
+%</prod>
+\begin{code}
+module RecordProduct where
+\end{code}
+%<*prod-record>
+\begin{code}
+  record _×_ (A B : Set) : Set where
+    constructor _,_
+    field
+      fst  : A
+      snd  : B
+\end{code}
+%</prod-record>
+\begin{code}
+  open _×_
+\end{code}
+%<*cnj-elim>
+\begin{code}
+  cnj-elim : ∀ {A B} → A × B → A
+  cnj-elim = fst
+\end{code}
+%</cnj-elim>
+%<*curry>
+\begin{code}
+  curry : {A B C : Set} → (A × B → C) → A → (B → C)
+  curry f x y = f (x , y)
+\end{code}
+%</curry>
+%<*disj>
+\begin{code}
+data _∪_ (A B : Set) : Set where
+  inl  : A  → A ∪ B
+  inr  : B  → A ∪ B
+\end{code}
+%</disj>
+%<*pi-example>
+\begin{code}
+prop : (x : ℕ) → 0 ≤ x
+\end{code}
+%</pi-example>
+\begin{code}
+prop _ = z≤n
+\end{code}
+%<*sigma-example>
+\begin{code}
+record NonZero : Set where
+  field
+    n     : ℕ
+    proof : 0 < n
+\end{code}
+%</sigma-example>

@@ -67,6 +67,8 @@
 \usepackage{natbib}
 \usepackage{bibentry}
 \usepackage[draft=false]{minted}
+\usepackage{amsmath}
+\usepackage{tabularx}
 \title{Talking About Mathematics in a Programming Language}
 \author{Donnacha Oisín Kidney}
 \begin{document}
@@ -462,7 +464,7 @@
 \end{frame}
 \begin{frame}
   \frametitle{Booleans?}
-  \noote<1>{
+  \note<1>{
     We \emph{don't} use bools to express truth and falsehood.
 
     Bool is just a set with two values: nothing ``true'' or ``false'' about
@@ -483,8 +485,24 @@
     \column{0.5\linewidth}
     Contradiction
   \end{columns}
-  \ExecuteMetaData[BasicTypes.tex]{poe-to-bot}
+  \note<3>{
+    In fact, we can convert from what we had previously
+  }
+  \note<4>{
+    And \emph{to} what we had previously.
 
+    Here, we use an impossible pattern.
+  }
+  \only<3-4>{
+    \ExecuteMetaData[BasicTypes.tex]{poe-to-bot}
+  }
+
+  \only<4>{
+    \ExecuteMetaData[BasicTypes.tex]{bot-to-poe}
+  }
+
+  \pause
+  \pause
   \pause
   \begin{columns}
     \column{0.5\linewidth}
@@ -492,7 +510,182 @@
     \column{0.5\linewidth}
     Tautology
   \end{columns}
+  \note<5>{
+    Tautology is kind of the ``boring'' type.
+  }
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Conjunction}
+  \note<1>{
+    Conjunction (``and'') is represented as a data type.
+  }
+  \pause
+  \ExecuteMetaData[BasicTypes.tex]{prod-record}
+  \note<2>{
+    It has two type parameters, and two fields.
+  }
+  \begin{overlayarea}{\textwidth}{7cm}
+    \begin{onlyenv}<3>
+      \begin{columns}[T]
+        \column{0.5\linewidth}
+        \begin{block}{Swift}
+          \begin{minted}[autogobble]{Swift}
+            struct Pair<A,B>{
+              let fst: A
+              let snd: B
+            }
+          \end{minted}
+        \end{block}
+        \column{0.5\linewidth}
+        \begin{block}{Python}
+          \begin{minted}[autogobble]{Python}
+            class Pair:
+                def __init__(self, x, y):
+                    self.fst = x
+                    self.snd = y
+          \end{minted}
+        \end{block}
+      \end{columns}
+    \end{onlyenv}
+    \note<3>{
+      Syntax-wise, it's equivalent to a \emph{class} in other languages.
+    }
+    \begin{onlyenv}<4>
+      \ExecuteMetaData[BasicTypes.tex]{prod}
+    \end{onlyenv}
+    \note<4>{
+      We could also have written it like this. (Haskell-style)
 
+      The definition is basically equivalent, but we don't get two field accessors
+      (we'd have to define them manually) and some of the syntax is better suited
+      to the record form.
+
+      It does show the type of the constructor, though (which is the same in
+      both).
+
+      It's curried, which you don't need to understand: just think of it as taking
+      two arguments.
+
+      ``If you have a proof of A, and a proof of B, you have a proof of A
+      \emph{and} B''
+    }
+    \begin{onlyenv}<5>
+      \begin{block}{Type Theory}
+        2-Tuple
+      \end{block}
+    \end{onlyenv}
+    \begin{onlyenv}<6>
+      \begin{block}{Set Theory}
+        Cartesian Product
+        \[\{t, f\} \times \{1, 2, 3\} = \{(t, 1), (f, 1), (t, 2), (f, 2), (t, 3),
+          (f, 3)\} \]
+      \end{block}
+    \end{onlyenv}
+    \begin{onlyenv}<7>
+      Familiar identities: conjunction-elimination
+      \begin{columns}
+        \column{0.5\textwidth}
+        \ExecuteMetaData[BasicTypes.tex]{cnj-elim}
+        \column{0.5\textwidth}
+        \[A \wedge B \implies A\]
+      \end{columns}
+    \end{onlyenv}
+  \end{overlayarea}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Currying}
+  \note{
+    Just a short note on currying.
+
+    People familiar with Haskell will know what it is, I won't explain it in its
+    entirety here, though. Just a little interesting thing on how it translates
+    into logic.
+  }
+  \begin{onlyenv}<2>
+    \ExecuteMetaData[BasicTypes.tex]{curry}
+  \end{onlyenv}
+
+  \only<3-6>{
+    \begin{table}
+      \begin{tabularx}{\textwidth}{XX}
+        \only<3-6>{The type:              } & \only<4-6>{Is isomorphic to:                  }  \\
+        \only<3-6>{\(A , B \rightarrow C\)} & \only<4-6>{\(A \rightarrow (B \rightarrow C)\)}  \\[1cm]
+        \only<5-6>{Because the statement: } & \only<6>{Is the same as saying:             }  \\
+        \only<5-6>{``A and B implies C''  } & \only<6>{``A implies B implies C''          }
+      \end{tabularx}
+    \end{table}
+  }
+
+  \only<7-8>{
+    ``If I'm outside and it's raining, I'm going to get wet''
+    \[Outside \wedge Raining \implies Wet\]
+
+    \onslide<8>{
+      ``When I'm outside, if it's raining I'm going to get wet''
+      \[Outside \implies Raining \implies Wet\]
+    }
+  }
+\end{frame}
+\begin{frame}
+  \frametitle{Disjunction}
+  \ExecuteMetaData[BasicTypes.tex]{disj}
+\end{frame}
+\begin{frame}
+  \frametitle{Dependent Types}
+  \pause
+  Everything so far has been non-dependent
+
+  \pause
+  Proving things using this bare-bones toolbox is difficult (though possible)
+
+  \pause
+  To make things easier, we're going to add some things to our types
+  \note<2>{
+    In other words, lots of modern languages support it. (Haskell)
+  }
+
+  \note<3>{
+    The proof that head doesn't exists, for instance, could be written in
+    vanilla Haskell.
+
+    It's difficult to prove more complex statements using this pretty bare-bones
+    toolbox, though, so we're going to introduce some extra handy features.
+
+    NOTE: when you prove things in non-total languages, the proofs only hold
+    \emph{if they terminate}. That doesn't \emph{really} mean that they're
+    ``invalid'', it just means that you have to run it for every case you want
+    to check.
+  }
+\end{frame}
+\begin{frame}
+  \frametitle{The \(\Pi\) Type}
+  \pause
+  Upgrade the \emph{function arrow}
+
+  \note<2>{
+    First, we upgrade the function arrow, so the right-hand-side can talk about
+    the value on the left.
+  }
+  \pause
+  \ExecuteMetaData[BasicTypes.tex]{pi-example}
+  \note<3>{
+    This lets us easily express \emph{properties}
+  }
+  \pause
+
+  Now we have a proper \(\forall\)
+\end{frame}
+\begin{frame}
+  \frametitle{The \(\Sigma\) Type}
+  \note{
+    Now, we upgrade our product types.
+
+    Later fields can refer to earlier ones.
+  }
+  \ExecuteMetaData[BasicTypes.tex]{sigma-example}
+\end{frame}
+\begin{frame}
+  \frametitle{The Equality Type}
 \end{frame}
 \section{A Polynomial Solver}
 \section{The \(p\)-Adics}
