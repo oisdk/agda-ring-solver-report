@@ -72,6 +72,7 @@
 \usepackage[draft=false]{minted}
 \usepackage{amsmath}
 \usepackage{tabularx}
+\metroset{block=fill}
 \title{Talking About Mathematics in a Programming Language}
 \author{Donnacha Oisín Kidney}
 \begin{document}
@@ -79,10 +80,15 @@
 \tableofcontents
 \bibliographystyle{plain}
 \nobibliography{../horners-rule.bib}
-\section{What do Programming Languages Have to do with Mathematics?}
+\section{What do we want from a Language for Mathematics?}
 \begin{frame}
-  Languages for proofs and languages for programs have a lot of the same requirements.
+  \frametitle{What do we want from a Language for Mathematics?}
+  \note<1>{
+    As it turns out, the languages we use for maths already look a little like
+    programming languages.
 
+    In designing them we encounter a lot of the same goals.
+  }
   \pause
   \begin{columns}[T]
     \column{0.5\textwidth}
@@ -111,10 +117,173 @@
   }
 \end{frame}
 \begin{frame}[standout]
-  Why not use a programming language as our proof language?
+  Why not use a Programming Language?
+\end{frame}
+\begin{frame}
+  \frametitle{Reason 1: Because Computer-Assisted Proofs are ``Bad''}
+  \note<1>{
+    Aren't computer-assisted proofs bad? Inelegant? Less rigorous?
+  }
+
+  \pause
+  \bibentry{appel_solution_1977}
+  \note<2>{
+    The famous example is the four-colour map theorem.
+
+    First major mathematical proof which relied heavily on computer assistance.
+
+    The problem is thus: can you colour a map, with only four colours, so that
+    every border has two different colours?
+
+    The proof effectively relied on checking a large number of different
+    cases---a computer program was used to check each one.
+  }
+  \pause
+  \begin{itemize}
+  \item Non-Surveyable
+    \pause
+    \note<3>{
+      The proof is too large for another mathematician to check its work! (that
+      is, after all, why a computer was used)
+    }
+  \item Doesn't Provide Insight
+    \pause
+    \note<4>{
+      This is maybe an aesthetic concern, but the prevailing attitude is that a
+      non computer-assisted proof would provide a deeper understanding of the
+      problem, and more general tools to be used later, rather than a simple
+      statement ``yes the proposition is true'' or ``no it's false''.
+
+      Of course, in practice, working a proof to a level where it becomes
+      solvable via a computer requires insight in and of itself, but perhaps
+      less insight than another method.
+    }
+
+  \item Requires Trust
+    \note<5>{
+      We have to believe that the program used to prove the proposition doesn't
+      contain bugs!
+    }
+  \end{itemize}
+  \pause
+  Did contain bugs!
+  \note<6>{
+    Although they weren't critical to the correctness.
+  }
+\end{frame}
+\begin{frame}
+  \frametitle{This is Different}
+  \pause
+  We're looking for a core set of axioms/semantics and a syntax to talk about
+  mathematics
+  \note<2>{
+    We're going to use PL theory to help get us there
+  }
+  
+  \pause
+  If we do it right, it should be so simple that ``even a computer could
+  understand it''
+  \note<3>{
+    But this is incidental!
+
+    The real work is in finding the language that works.
+
+    Even now, most compilers for these languages are grad students!
+  }
+
+
+  \pause
+  \begin{block}{Why would we want a computer to understand our language?}
+    \pause
+    \begin{itemize}
+      \item So it can check our proofs! \pause
+      \item So it can check our \emph{automated} proofs!
+    \end{itemize}
+  \end{block}
+
+  \note<5>{
+    If a machine can read your proofs, then it can \emph{check} your proofs.
+
+    This adds a level of rigour that you just don't get with handwritten proofs.
+  }
+  \note<6>{
+    A perfect candidate for the kinds of proofs we'd like a machine to check
+    \emph{are} computer-assisted proofs.
+
+    Remember, our language is a programming language: write the automated
+    theorem prover in it, and then \emph{verify} the theorem prover in it!
+  }
+
+  \pause
+  \bibentry{gonthier_formal_2008}
+  \note<7>{
+    Unfortunately, this is still difficult to do
+
+    The formalized version of the four-colour theorem came out a full 29 years
+    later!
+  }
 \end{frame}
 \begin{frame}[fragile]
-  \frametitle{Benefits For Programmers}
+  \frametitle{Reason 2: Haven't We Tried This Before?}
+  \note<1>{
+    Fully formalizing mathematics from the ground-up has long been a goal.
+
+    Haven't other attempts failed?
+  }
+  \begin{columns}
+    \column{0.5\linewidth}
+    \onslide<2->{
+      \bibentry{whitehead_principia_1910} p. 379
+    }
+    \column{0.5\linewidth}
+    \onslide<4->{\alert{Formal systems have improved}}
+  \end{columns}
+  \note<2>{
+    This is the citation for Whitehead and Russell's proof of the fact that
+    1+1=2 
+
+    Is a formalization really going to be \emph{this} tedious?
+  }
+  \note<4>{
+    We have much better formalisms now.
+
+    Although they're still tedious, they're nowhere near the verbosity of
+    principia.
+  }
+
+  \vfill
+  
+  \begin{columns}
+    \column{0.5\linewidth}
+    \onslide<3->{Gödel showed that universal formal systems are incomplete}
+    \column{0.5\linewidth}
+    \onslide<5->{\alert{We don't need universal systems}}
+  \end{columns}
+
+  \note<3>{
+    Besides---hasn't it been shown to be impossible, anyway?
+  }
+  \note<5>{
+    A universal system is too powerful---we can get by with less.
+  }
+
+  \vfill
+
+  \bibentry{paulson2016future}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Why Would a Programmer Want to Use this Language?}
+  \note<1>{
+    Suppose I convince you that this formalism is good enough to do maths---is
+    it good enough to do \emph{programming}? Surely the two aims are orthogonal?
+
+    While most languages for ``proving'' these days are indeed not suitable for
+    general-purpose programming, ideas from them are leaking into mainstream
+    languages.
+
+    And, of course, Idris is a general-purpose language which can prove as good
+    as anything!
+  }
   \begin{itemize}
     \item<2-> \emph{Prove} things about code \note<2>{Not just test!}
     \item<3-> Use ideas and concepts from maths---why reinvent them?
@@ -136,79 +305,6 @@
       \ExecuteMetaData[BasicTypes.tex]{reverse-props}
     \end{onlyenv}
   \end{overlayarea}
-\end{frame}
-\begin{frame}
-  \frametitle{Benefits For Mathematicians}
-  \begin{itemize}
-    \item<2-> Have a machine check your proofs
-    \item<3-> Run your proofs
-    \item<4-> \alert<5>{Develop a consistent foundation for maths}
-  \end{itemize}
-
-  \begin{overlayarea}{\linewidth}{1cm}
-    \only<2>{Currently, though, this is \emph{tedious}}
-    \only<5>{Wait---isn't this impossible?}
-  \end{overlayarea}
-\end{frame}
-\begin{frame}[fragile]
-  \frametitle{Formalizing Mathematics}
-  \begin{columns}
-    \column{0.5\linewidth}
-    \onslide<2->{Whitehead and Russell took \emph{hundreds} of pages to prove \(1+1=2\)}
-    \column{0.5\linewidth}
-    \onslide<4->{\alert{Formal systems have improved}}
-  \end{columns}
-
-  \vfill
-  
-  \begin{columns}
-    \column{0.5\linewidth}
-    \onslide<3->{Gödel showed that universal formal systems are incomplete}
-    \column{0.5\linewidth}
-    \onslide<5->{\alert{We don't need universal systems}}
-  \end{columns}
-
-  \vfill
-
-  \bibentry{paulson2016future}
-\end{frame}
-\begin{frame}
-  \frametitle{What About Automated Theorem Provers?}
-  \note<1>{
-    Use a combination of heuristics and exhaustive search to check some
-    proposition.
-
-    \emph{We have to trust the implementation.}
-  }
-  \pause
-
-  Generally regarded as:
-  \pause
-  \begin{itemize}
-    \item Inelegant \pause
-    \item Lacking Rigour \pause
-    \item Not Insightful \pause
-  \end{itemize}
-
-  \alert{Require trust}
-
-  \alert{Non Surveyable}
-\end{frame}
-\begin{frame}
-  \frametitle{The Four-Colour Theorem}
-  \bibentry{appel_solution_1977}
-
-  Did contain bugs!
-\end{frame}
-\begin{frame}
-  But what if our formal language is executable?
-
-  \pause
-  Can we write \emph{verified} automated theorem provers?
-  \note<2>{Prove things about programs, and prove things about maths}
-
-  \pause
-  \bibentry{gonthier_formal_2008}
 \end{frame}
 \section{Programming is Proving}
 \begin{frame}[fragile]
