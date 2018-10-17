@@ -2,7 +2,17 @@
 module Presentation.BasicTypes where
 
 open import Data.Nat hiding (_+_)
+module Streams where
 \end{code}
+%<*stream>
+\begin{code}
+  record Stream (A : Set) : Set where
+    coinductive
+    field
+      head  : A
+      tail  : Stream A
+\end{code}
+%</stream>
 %<*plus-def>
 \begin{code}
 _+_ : ℕ → ℕ → ℕ
@@ -98,14 +108,14 @@ data ⊥ : Set where
 %</bot-def>
 %<*poe-to-bot>
 \begin{code}
-ptb : ∀ {a} {A : Set a} → ¬ A → A → ⊥
-ptb f x = f x
+law-of-non-contradiction : ∀ {a} {A : Set a} → ¬ A → A → ⊥
+law-of-non-contradiction f x = f x
 \end{code}
 %</poe-to-bot>
 %<*bot-to-poe>
 \begin{code}
-lnc : ¬ ⊥
-lnc ()
+not-false : ¬ ⊥
+not-false ()
 \end{code}
 %</bot-to-poe>
 %<*top-def>

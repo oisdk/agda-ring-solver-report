@@ -227,6 +227,7 @@
   \frametitle{Reason 2: Haven't We Tried This Before?}
   \note<1>{
     Fully formalizing mathematics from the ground-up has long been a goal.
+    (Hilbert)
 
     Haven't other attempts failed?
   }
@@ -265,6 +266,8 @@
   }
   \note<5>{
     A universal system is too powerful---we can get by with less.
+
+    Law of the Excluded Middle
   }
 
   \vfill
@@ -309,13 +312,30 @@
 \section{Programming is Proving}
 \begin{frame}[fragile]
   \frametitle{The Curry-Howard Correspondence}
-  \begin{figure}
-    \centering
-    \begin{tikzcd}
-      Type    \ar[d] \ar[r, Leftrightarrow] & Proposition \ar[d] \\
-      Program \ar[r, Leftrightarrow]        & Proof
-    \end{tikzcd}
-  \end{figure}
+  \note<1>{
+    To use a programming language as a proof language, we'll need to see how
+    programming constructs map on to constructs in logic.
+
+    This ``mapping'' is known as the curry-howard correspondence (or
+    isomorphism).
+  }
+  \note<2>{
+    Here's the high-level overview.
+
+    ``Program'' here just means anything with a type, basically. In \(x = 2\), x
+    is a program, and 2 is a program, and so on. Functions are programs, etc.
+    We could have also said ``value'' or something, but program is the word used
+    in the literature.
+  }
+  \begin{onlyenv}<2->
+    \begin{figure}
+      \centering
+      \begin{tikzcd}
+        Type    \ar[d] \ar[r, Leftrightarrow] & Proposition \ar[d] \\
+        Program \ar[r, Leftrightarrow]        & Proof
+      \end{tikzcd}
+    \end{figure}
+  \end{onlyenv}
   \vfill
   \bibentry{wadler_propositions_2015-1}
 \end{frame}
@@ -448,45 +468,102 @@
 
     \ExecuteMetaData[BasicTypes.tex]{length}
   }
-
-  \only<3>{
-    Here's a definition for \(\AgdaFunction{head}\):
-
+  \only<3->{
     \ExecuteMetaData[BasicTypes.tex]{head1}
+    \onslide<6->{\ExecuteMetaData[BasicTypes.tex]{head2}}
+    \note<3>{
+      Here's a candidate definition for head.
 
-    \begin{block}{\alert{No!}}
-      For correct proofs, partial functions aren't allowed
-    \end{block}
+      Remember, we shouldn't be able to write it, so if this definition is
+      accepted by Agda, then Agda isn't correct.
 
-    \note{We need to disallow functions which don't match all patterns. Array
-      access out-of-bounds, etc., also not allowed.}
-  }
+      So how do we disallow it?
+    }
+    \note<4>{
+      We disallow it because it doesn't match all patterns.
 
+      Agda will only accept functions which are defined for \emph{all} of their
+      inputs.
+    }
+    \note<5>{
+      So we need something to write for the second clause, the empty list.
 
-  \only<4>{
-    We're not out of the woods yet:
+      It seems like we can't, but people familiar with Haskell may have spotted a
+      way to do it.
+    }
+    \note<6>{
+      In Haskell, a definition like this is perfectly acceptable: it's just
+      recursive.
 
-    \ExecuteMetaData[BasicTypes.tex]{head2}
+      Here, though, we've obviously proved a falsehood, so we need some way to
+      disallow it.
 
-    \begin{block}{\alert{No!}}
-      For correct proofs, all functions must be total
-    \end{block}
+      If we were to run this program, it would just loop forever: disallowing that
+      turns out to be enough to keep the logic consistent.
+    }
 
-    \note{To disallow \emph{this} kind of thing, we must ensure all functions are
-      \emph{total}. For now, assume this means ``terminating''.}
-  }
+    \onslide<4->{
+      \begin{block}{Rule 1}
+        No partial functions
+      \end{block}
+    }
+    \onslide<7->{
+      \begin{block}{Rule 2}
+        All programs are total
+      \end{block}
+    }
+    \note<7>{
+      Bear in mind that even if we don't obey the rules the program can still be
+      a valid proof---we just have to run it first.
+
+      Obeying these rules ensures that the proofs are valid if they typecheck.
+      
+      What does ``total'' mean? Well, it's something like terminating...
+    }
+}
 \end{frame}
 \begin{frame}
-  \frametitle{Correctness}
-  For the proofs to be correct, we have two extra conditions that you usually
-  don't have in programming:
-  
-  \begin{itemize}
-    \item No partial programs
-    \item Only total programs
-  \end{itemize}
-  \note{Without these conditions, your proofs are still correct \emph{if they
-      run.}}
+  \frametitle{Turing Completeness}
+  \pause
+  \note<1>{
+    Have we just thrown out Turing completeness?
+
+    If we're not allowed infinite loops, then we're not turing complete, right?
+
+    Well, no...
+  }
+  The dual to termination is \emph{productivity}
+  \note<2>{
+    Consider a program like a webserver, or a clock on your computer.
+
+    Neither of these things should ``terminate'', but we don't want them to
+    contain infinite loops, either.
+
+    The property we want them to posses is called \emph{productivity}: they
+    always produce another step of computation in finite time, even if there are
+    infinitely many steps.
+
+    Agda can check for productivity, too.
+  }
+  \pause
+  \ExecuteMetaData[BasicTypes.tex]{stream}
+  \note<3>{
+    The definition of this type (and the coinductive keyword) change the
+    behaviour of the termination-checker. We can now construct infinite
+    structures.
+
+    Using types like this, we can (for instance), simulate a turing machine, or
+    write a lambda-calculus interpreter.
+
+    What we \emph{can't} do is lie about the types of those programs: we won't
+    be able to write a function like ``run'' which produces a finite result. We
+    could write a function that runs for some finite number of steps, and
+    produces a finite result, or a function which produces an infinite result,
+    though.
+  }
+  \pause
+  You can write terminating and non-terminating programs: \emph{you just have to
+  say so}
 \end{frame}
 \begin{frame}
   \note<1>{
@@ -532,6 +609,13 @@
 \end{frame}
 \begin{frame}
   \frametitle{Proofs are Programs}
+  \note<1>{
+    So that was an attempt to show that programs are proofs, if you look at them
+    funny.
+
+    Now let's go the other direction: let's see what some constructs in proof
+    theory look like when translated into programming.
+  }
   \pause
   Types/Propositions are \emph{sets}
 
@@ -641,9 +725,9 @@
         \begin{block}{Python}
           \begin{minted}[autogobble]{Python}
             class Pair:
-                def __init__(self, x, y):
-                    self.fst = x
-                    self.snd = y
+              def __init__(self, x, y):
+                self.fst = x
+                self.snd = y
           \end{minted}
         \end{block}
       \end{columns}
