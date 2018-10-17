@@ -920,21 +920,32 @@
     Proving it would be the equivalent to taking a question, and finding the
     answer to it: this is fundamentally undecidable in the general case.
   }
-  \only<4>{
+  \only<4-7>{
     \begin{block}{Russell's Paradox}
       ``The Set of all Sets which do not contain themselves''
-    \end{block}
+
+      \onslide<5->{\bibentry{girard_interpretation_1972}}
+      \begin{columns}
+        \column{0.5\textwidth}
+        \onslide<6->{\ExecuteMetaData[BasicTypes.tex]{not}}
+        \column{0.5\textwidth}
+        \onslide<7>{\ExecuteMetaData[BasicTypes.tex]{neg}}
+      \end{columns}
+  \end{block}
   }
   \note<4>{
     One of the things that tripped up early logicians is Russell's paradox.
-
+  }
+  \note<5>{
     In type theory, it's called Girard's paradox.
-
+  }
+  \note<6>{
     Remember that types are defined as sets. Bool is a set, int is a set, etc.
 
-    Values have types. Bool -> Bool, for instance, is the type of not. Bool ->
-    Bool is a Set.
-
+    Values have types, and types are sets. Bool -> Bool, for instance, is the
+    type of not. Bool -> Bool is a Set.
+  }
+  \note<7>{
     However, we've already broken this boundary: The type of negation was Set ->
     Set. Is Set -> Set a type?
 
@@ -943,27 +954,26 @@
     Fine. So ``neg'' has the type Set -> Set. Here's the question, though: is
     Set -> Set a Set?
 
-
     We've allowed a set to be a member of itself, opening the door to russell's
     paradox.
 
     There are a number of different ways to avoid it; in Agda, all types are
     ``Set''s. Set -> Set, though, is a Set1. Set1 -> Set1 is a Set2. And so on.
   }
-  \only<5>{
+  \only<8>{
     \begin{block}{Function Extensionality/Data Constructor Injectivity}
       \ExecuteMetaData[BasicTypes.tex]{ext}
     \end{block}
   }
-  \note<5>{
+  \note<8>{
     Again, seems like something you should be able to do.
 
     But all of these small rules around equality are very much in flux: if you
     grant constructor Injectivity (a very similar rule to this one), you can
     prove a contradiction!
 
-    Other systems, such as Homotopy type thoery, observational equality, and so
-    on, ave very different ideas about equality. 
+    Other systems, such as Homotopy type theory, observational equality, and so
+    on, have very different ideas about equality. 
   }
 \end{frame}
 \section{A Polynomial Solver}

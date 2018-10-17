@@ -100,9 +100,13 @@ module BadNeg where
   not-false ()
 \end{code}
 %</bot-to-poe>
+%<*neg>
 \begin{code}
 ¬_ : Set → Set
 ¬ A = A → ⊥
+\end{code}
+%</neg>
+\begin{code}
 module ProofSigs where
   open import Relation.Binary.PropositionalEquality
   reverse : ℕ → ℕ
@@ -123,6 +127,13 @@ data Bool : Set where
   false  : Bool
 \end{code}
 %</bool-def>
+%<*not>
+\begin{code}
+not : Bool → Bool
+not true   = false
+not false  = true
+\end{code}
+%</not>
 %<*top-def>
 \begin{code}
 data ⊤ : Set where
