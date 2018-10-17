@@ -835,29 +835,24 @@
 
     It's difficult to prove more complex statements using this pretty bare-bones
     toolbox, though, so we're going to introduce some extra handy features.
-
-    NOTE: when you prove things in non-total languages, the proofs only hold
-    \emph{if they terminate}. That doesn't \emph{really} mean that they're
-    ``invalid'', it just means that you have to run it for every case you want
-    to check.
   }
 
   \bibentry{martin-lof_intuitionistic_1980}
 \end{frame}
 \begin{frame}
   \frametitle{The \(\Pi\) Type}
-  \pause
-  Upgrade the \emph{function arrow}
 
-  \note<2>{
+  \note<1>{
     First, we upgrade the function arrow, so the right-hand-side can talk about
     the value on the left.
   }
   \pause
-  \ExecuteMetaData[BasicTypes.tex]{pi-example}
-  \note<3>{
+  Upgrade the \emph{function arrow}
+  \note<2>{
     This lets us easily express \emph{properties}
   }
+  \pause
+  \ExecuteMetaData[BasicTypes.tex]{pi-example}
   \pause
 
   Now we have a proper \(\forall\)
@@ -908,14 +903,68 @@
 \end{frame}
 \begin{frame}
   \frametitle{Open Areas and Weirdness}
-  \begin{itemize}
-    \item Law of Excluded Middle?
-    \item Russell's Paradox
-    \item Function Extensionality
-    \item Data Constructor Injectivity
-    \item Observational Equality
-    \item Homotopy Type Theory
-  \end{itemize}
+  \note<1>{
+    To keep the logic consistent, we need to lose a few things. (These are the
+    things we lose when we get rid of ``universalness'')
+  }
+  \only<2-3>{
+    \begin{block}{Law of the Excluded Middle}
+      ``For any proposition, either it's true or its negation is true''
+
+      \onslide<3>{\ExecuteMetaData[BasicTypes.tex]{lem}}
+    \end{block}
+  }
+  \note<2>{
+    While this may seem obvious, it's not provable in our logic!
+
+    Proving it would be the equivalent to taking a question, and finding the
+    answer to it: this is fundamentally undecidable in the general case.
+  }
+  \only<4>{
+    \begin{block}{Russell's Paradox}
+      ``The Set of all Sets which do not contain themselves''
+    \end{block}
+  }
+  \note<4>{
+    One of the things that tripped up early logicians is Russell's paradox.
+
+    In type theory, it's called Girard's paradox.
+
+    Remember that types are defined as sets. Bool is a set, int is a set, etc.
+
+    Values have types. Bool -> Bool, for instance, is the type of not. Bool ->
+    Bool is a Set.
+
+    However, we've already broken this boundary: The type of negation was Set ->
+    Set. Is Set -> Set a type?
+
+    There are other examples: List is a function of type Set -> Set.
+
+    Fine. So ``neg'' has the type Set -> Set. Here's the question, though: is
+    Set -> Set a Set?
+
+
+    We've allowed a set to be a member of itself, opening the door to russell's
+    paradox.
+
+    There are a number of different ways to avoid it; in Agda, all types are
+    ``Set''s. Set -> Set, though, is a Set1. Set1 -> Set1 is a Set2. And so on.
+  }
+  \only<5>{
+    \begin{block}{Function Extensionality/Data Constructor Injectivity}
+      \ExecuteMetaData[BasicTypes.tex]{ext}
+    \end{block}
+  }
+  \note<5>{
+    Again, seems like something you should be able to do.
+
+    But all of these small rules around equality are very much in flux: if you
+    grant constructor Injectivity (a very similar rule to this one), you can
+    prove a contradiction!
+
+    Other systems, such as Homotopy type thoery, observational equality, and so
+    on, ave very different ideas about equality. 
+  }
 \end{frame}
 \section{A Polynomial Solver}
 \section{The \(p\)-Adics}

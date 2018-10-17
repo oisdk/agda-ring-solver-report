@@ -68,19 +68,41 @@ head (x ∷ xs) = x
 head [] = head []
 \end{code}
 %</head2>
+%<*bot-def>
+\begin{code}
+data ⊥ : Set where
+\end{code}
+%</bot-def>
+\begin{code}
+module BadNeg where
+\end{code}
 %<*false>
 \begin{code}
-¬ : ∀ {ℓ} → Set ℓ → Set _
-¬ A = A → {B : Set} → B
+  ¬ : ∀ {ℓ} → Set ℓ → Set _
+  ¬ A = A → {B : Set} → B
 \end{code}
 %</false>
 %<*head-not>
 \begin{code}
-head-doesn't-exist : ¬ ({A : Set} → List A → A)
-head-doesn't-exist head = head []
+  head-doesn't-exist : ¬ ({A : Set} → List A → A)
+  head-doesn't-exist head = head []
 \end{code}
 %</head-not>
+%<*poe-to-bot>
 \begin{code}
+  law-of-non-contradiction : ∀ {a} {A : Set a} → ¬ A → A → ⊥
+  law-of-non-contradiction f x = f x
+\end{code}
+%</poe-to-bot>
+%<*bot-to-poe>
+\begin{code}
+  not-false : ¬ ⊥
+  not-false ()
+\end{code}
+%</bot-to-poe>
+\begin{code}
+¬_ : Set → Set
+¬ A = A → ⊥
 module ProofSigs where
   open import Relation.Binary.PropositionalEquality
   reverse : ℕ → ℕ
@@ -101,23 +123,6 @@ data Bool : Set where
   false  : Bool
 \end{code}
 %</bool-def>
-%<*bot-def>
-\begin{code}
-data ⊥ : Set where
-\end{code}
-%</bot-def>
-%<*poe-to-bot>
-\begin{code}
-law-of-non-contradiction : ∀ {a} {A : Set a} → ¬ A → A → ⊥
-law-of-non-contradiction f x = f x
-\end{code}
-%</poe-to-bot>
-%<*bot-to-poe>
-\begin{code}
-not-false : ¬ ⊥
-not-false ()
-\end{code}
-%</bot-to-poe>
 %<*top-def>
 \begin{code}
 data ⊤ : Set where
@@ -220,3 +225,16 @@ not-obvious zero = refl
 not-obvious (suc x) = cong suc (not-obvious x)
 \end{code}
 %</plus-not-obvious>
+%<*lem>
+\begin{code}
+postulate LEM : (A : Set) → A ∪ (¬ A)
+\end{code}
+%</lem>
+%<*ext>
+\begin{code}
+postulate function-extensionality
+            : {A B : Set} {f g : A → B}
+            → (∀ x → f x ≡ g x)
+            → f ≡ g
+\end{code}
+%</ext>
