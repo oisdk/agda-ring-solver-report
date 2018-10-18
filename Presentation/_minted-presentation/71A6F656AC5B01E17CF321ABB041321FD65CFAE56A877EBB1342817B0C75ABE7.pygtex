@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{Inductive} \PYG{n}{Pol} \PYG{o}{(}\PYG{n}{C}\PYG{o}{:}\PYG{k+kn}{Set}\PYG{o}{)} \PYG{o}{:} \PYG{k+kn}{Set} \PYG{o}{:=}
+  \PYG{o}{|} \PYG{n}{Pc} \PYG{o}{:} \PYG{n}{C} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Pol} \PYG{n}{C}
+  \PYG{o}{|} \PYG{n}{Pinj} \PYG{o}{:} \PYG{n}{positive} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Pol} \PYG{n}{C} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Pol} \PYG{n}{C}
+  \PYG{o}{|} \PYG{n}{PX} \PYG{o}{:} \PYG{n}{Pol} \PYG{n}{C} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{positive} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Pol} \PYG{n}{C} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Pol} \PYG{n}{C}\PYG{o}{.}
+\end{Verbatim}

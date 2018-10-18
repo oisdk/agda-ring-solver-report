@@ -13,6 +13,41 @@ module Streams where
       tail  : Stream A
 \end{code}
 %</stream>
+\begin{code}
+module Iso where
+\end{code}
+%<*iso>
+\begin{code}
+  record _⇌_ (x y : Set) : Set where
+    field ↽ : x → y; ⇀ : y → x
+  open _⇌_
+
+  sym : ∀ {x y} → x ⇌ y → y ⇌ x
+  sym x⇌y .↽ x  = x⇌y .⇀ x
+  sym x⇌y .⇀ y  = x⇌y .↽ y
+
+  trans : ∀ {x y z} → x ⇌ y → y ⇌ z → x ⇌ z
+  trans x⇌y y⇌z .↽ x = y⇌z .↽ (x⇌y .↽ x)
+  trans x⇌y y⇌z .⇀ z = x⇌y .⇀ (y⇌z .⇀ z)
+
+  refl : ∀ {x} → x ⇌ x
+  refl .↽ x = x; refl .⇀ x = x
+\end{code}
+%</iso>
+\begin{code}
+module Pedagogical where
+  open import Data.String
+\end{code}
+%<*traced>
+\begin{code}
+  data Traced {A : Set} (x : A) : A → Set where
+    refl   : Traced x x
+    ⟨_⟩≡_  : ∀ {y z}
+           → (reason : String)
+           → Traced y z
+           → Traced x z
+\end{code}
+%</traced>
 %<*plus-def>
 \begin{code}
 _+_ : ℕ → ℕ → ℕ

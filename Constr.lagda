@@ -107,14 +107,14 @@ record Expr (expr : Carrier) : Set (a ⊔ ℓ) where
     {norm} : Carrier
     poly   : Poly norm
     proof  : expr ≋ norm
-
-infixr 0 _⟸_
-_⟸_ : ∀ {x y} → x ≋ y → Expr y → Expr x
-x≋y ⟸ xs ⇐ xp = xs ⇐ x≋y ⟨ trans ⟩ xp
 \end{code}
 %</constr-def>
 %<*constr-add>
 \begin{code}
+infixr 0 _⟸_
+_⟸_ : ∀ {x y} → x ≋ y → Expr y → Expr x
+x≋y ⟸ xs ⇐ xp = xs ⇐ x≋y ⟨ trans ⟩ xp
+
 _⊞_ : ∀ {x y}
     → Expr x
     → Expr y

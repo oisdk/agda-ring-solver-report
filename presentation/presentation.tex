@@ -73,6 +73,7 @@
 \usepackage{amsmath}
 \usepackage{tabularx}
 \metroset{block=fill}
+\usepackage{adjustbox}
 \title{Talking About Mathematics in a Programming Language}
 \author{Donnacha Oisín Kidney}
 \begin{document}
@@ -977,5 +978,465 @@
   }
 \end{frame}
 \section{A Polynomial Solver}
+\note{
+  Project I've been working on for the past few months.
+
+  Deals with one particular area of tedium: rewriting algebraic expression. 
+
+  This kind of thing usually consists of long chains of rewrites, of the style
+  ``apply commutativity of \(+\), then associativity of \(+\), then at this
+  position apply distributivity of \(*\) over \(+\)'' and so on, when really the
+  programmer wants to say ``rearrange the expression into this form, checking
+  it's correct''.
+}
+\begin{frame}
+  \frametitle{Monoids}
+  \note<1>{
+    Before describing the ring solver, first we will explain the technique of
+    writing a solver in Agda in the simpler setting of monoids.
+  }
+  \pause
+  \begin{block}{Monoid}
+    A monoid is a set equipped with a binary operation, \(\bullet\), and a
+    distinguished element \(\epsilon\), such that the following equations hold:
+    \begin{align}
+      x \bullet (y \bullet z) &= (x \bullet y) \bullet z \tag{Associativity} \\
+      x \bullet \epsilon      &= x \tag{Left Identity} \\
+      \epsilon \bullet x      &= x \tag{Right Identity}
+    \end{align}
+  \end{block}
+  \note<2>{
+    Addition and multiplication (with 0 and 1 being the respective identity
+    elements) are perhaps the most obvious instances of the algebra. In computer
+    science, monoids have proved a useful abstraction for formalizing
+    concurrency (in a sense, an associative operator is one which can be
+    evaluated in any order).
+  }
+\end{frame}
+\begin{frame}
+  \frametitle{Monoids in Agda}
+  \ExecuteMetaData[../Monoids.tex]{mon-def}
+  \note{
+    Monoids can be represented in Agda in a straightforward way, as a record.
+    Immediately it should be noted that we're no longer talking about a monoid
+    over a set, but rather one over a setoid. In other words, rather than using
+    propositional equality (indicated by the \(\AgdaDatatype{≡}\) symbol), we
+    will use a user-supplied equivalence relation (\(\AgdaField{≈}\).
+
+    We'll see how this in particular lets us do some cool things later.
+  }
+  \bibentry{danielsson_agda_2018}
+\end{frame}
+\begin{frame}
+  \frametitle{A Boring Proof}
+  \ExecuteMetaData[../Monoids.tex]{mon-ident}
+  \note<1>{
+    This is the kind of proposition you might want to prove.
+
+    To a human, the fact that the identity holds may well be obvious:
+    \(\AgdaField{∙}\) is associative, so we can scrub out all the parentheses,
+    and \(\AgdaField{ε}\) is the identity element, so scrub it out too. After
+    that, both sides are equal, so voilà!
+  }
+  \pause
+  \ExecuteMetaData[../Monoids.tex]{mon-proof}
+  \note<2>{
+    Unfortunately, the proof is tedious. We have to specify every rewrite. 
+
+    The syntax is designed to mimic that of a handwritten proof: line 3 is the
+    expression on the left-hand side of \(\AgdaField{≈}\) in the type, and line
+    9 the right-hand-side. In between, the expression is repeatedly rewritten
+    into equivalent forms, with justification provided inside the angle
+    brackets. For instance, to translate the expression from the form on line 3
+    to that on line 5, the associative property of \(\AgdaField{∙}\) is used on
+    line 4.
+
+    Interestingly, this syntax isn't built-in: it's defined in the standard
+    library.
+  }
+\end{frame}
+\begin{frame}
+  \frametitle{Canonical Forms}
+  \note<1>{
+    One of the ways to automate equality proofs is via canonical form.
+
+    Not every algebra has a canonical form: monoids do, though, and it's the
+    simple list.
+  }
+  \ExecuteMetaData[../Monoids.tex]{list-def}
+  \pause
+  \note<2>{
+    We're going to treat this type like an AST for a simple ``language of
+    lists''. This language supports two functions: the empty list, and
+    concatenation.
+  }
+  \ExecuteMetaData[../Monoids.tex]{list-monoid}
+  \pause
+  \note<3>{
+    The type itself parameterized by the number of variables it contains. Users
+    can refer to variables by their index.
+
+    And we can interpret this language with values for each variable supplied in
+    a vector:
+  }
+  \ExecuteMetaData[../Monoids.tex]{list-eval}
+\end{frame}
+\begin{frame}
+  \note{
+    Compare this language to the language of monoid expressions that Figure???
+    uses: both have identity elements and a binary operator, and both refer to
+    variables. Our language of lists, however, has one significant advantage:
+    the monoid operations don't depend on the contents of the lists, only the
+    structure. In other words, an expression in the language of lists will
+    reduce to a flat list even if it has elements which are abstract variables.
+    As a result, the identity from Figure is \emph{definitionally} true when
+    written in the language of lists
+  } 
+  \ExecuteMetaData[../Monoids.tex]{list-obvious}
+\end{frame}
+\begin{frame}
+  \frametitle{Extracting Evidence}
+  \note<1>{
+    While this is beginning to look like a solver, it's still not entirely clear
+    how we're going to join up the pieces. The first step is to get a concrete
+    representation of expressions which we can manipulate and pattern-match on.
+  }
+  \ExecuteMetaData[../Monoids.tex]{mon-ast}
+  \pause
+  \note<2-3>{
+    This can be converted to an expression (evaluated) in one of two ways: the
+    straightforward way
+  }
+  \pause
+  \ExecuteMetaData[../Monoids.tex]{eval-ast}
+  \note<3>{
+    Or we could convert it to the normal form (lists) first, and \emph{then}
+    evaluate it. This finally gives us a link between the normalised and
+    non-normalised forms.
+  }
+\end{frame}
+\begin{frame}[fragile]
+  \note{
+    The goal is to construct a proof of equivalence between the two expressions
+    at the bottom: to do this, we first construct the AST which represents the
+    two expressions (for now, we'll assume the user constructs this AST
+    themselves. Later we'll see how too construct it automatically from the
+    provided expressions). Then, we can evaluate it into either the normalized
+    form, or the unnormalized form. Since the normalized forms are syntactically
+    equal, all we need is \(\AgdaInductiveConstructor{refl}\) to prove their
+    equality. The only missing part now is \(\AgdaFunction{correct}\), which is
+    the task of the next section.
+  }
+  \adjustbox{width=1.15\linewidth, center}{
+    \begin{tikzpicture}
+      % \draw[help lines] (-8,-4) grid (8,3); 
+      \node (ln) at (-2, 2) {\includegraphics[draft=false,trim={25 10 25 10}]{../graphics/rhs-norm}};
+      \node (rn) at ( 2, 2) {\includegraphics[draft=false,trim={25 10 25 10}]{../graphics/rhs-norm}};
+      \node (la) at (-6, 0) {\includegraphics[draft=false,trim={25 10 22 10}]{../graphics/lhs-ast}};
+      \node (ra) at ( 6, 0) {\includegraphics[draft=false,trim={25 10 48 10}]{../graphics/rhs-ast}};
+      \node (le) at (-2,-2) {\includegraphics[draft=false,trim={25 10 23 10}]{../graphics/lhs-expr}};
+      \node (re) at ( 2,-2) {\includegraphics[draft=false,trim={25 10 20 10}]{../graphics/rhs-expr}};
+      \draw[|-stealth] (la) to[out=90 , in=180] node[midway, fill=bg] {\AgdaFunction{⟦\_⇓⟧}} (ln);
+      \draw[|-stealth] (la) to[out=270, in=180] node[midway, fill=bg] {\AgdaFunction{⟦\_⟧} } (le);
+      \draw[|-stealth] (ra) to[out=90 , in=0  ] node[midway, fill=bg] {\AgdaFunction{⟦\_⇓⟧}} (rn);
+      \draw[|-stealth] (ra) to[out=270, in=0  ] node[midway, fill=bg] {\AgdaFunction{⟦\_⟧} } (re);
+      \foreach \e/\n in {le/ln,re/rn}
+        \foreach \shft in {-0.6pt,0.6pt}
+          \draw[AgdaField, transform canvas={xshift=\shft}, snake=coil, segment aspect=0, segment amplitude=0.4pt, segment length=4pt] (\e) -- (\n);
+      \node[fill=bg] at (-2, 0) {\AgdaFunction{correct}};
+      \node[fill=bg] at ( 2, 0) {\AgdaFunction{correct}};
+      \foreach \shft in {-1.6pt, 0pt}
+        \draw[AgdaDatatype, transform canvas={yshift=\shft}] (ln) -- (rn);
+      \draw[AgdaDatatype, transform canvas={yshift=1.6pt}] (ln) -- (rn) node[midway, above] {\AgdaInductiveConstructor{refl}};
+    \end{tikzpicture}
+  }
+\end{frame}
+\begin{frame}[standout]
+  Now, just to prove homomorphism!
+  \note{
+    I won't go through the homomorphism proofs, but effectively we need to prove
+    it for each case in the expression constructor.
+  }
+\end{frame}
+\begin{frame}
+  \frametitle{Moving on to Polynomials}
+  \note{
+    We now know the components required for an automatic solver for some
+    algebra: a canonical form, a concrete representation of expressions, and a
+    proof of correctness. We now turn our focus to polynomials.
+
+    The state-of-the art approach is presented in this paper.
+  }
+  \bibentry{gregoire_proving_2005}
+\end{frame}
+\begin{frame}
+  \frametitle{Canonical Form}
+  \note{
+    The canonical representation of polynomials is a list of coefficients, least
+    significant first (``Horner Normal Form''). Our initial attempt at encoding
+    this representation is as follows.
+  }
+  \ExecuteMetaData[../Rings.tex]{dense-impl}
+\end{frame} 
+\begin{frame}
+  \frametitle{Horner's Rule}
+  \note<1>{
+    Horner's rule is a method for evaluating polynomials which lets you avoid
+    repeatedly exponentiating the input variable.
+  }
+  \begin{align*}
+  p(x) &= a_0x^0 + a_1x^1 + a_2x^2 + ... a_nx^n \\
+       &= a_0 + x(a_1 + x(a_2 + x (... a_n + x(0))))
+  \end{align*}
+  \pause
+  \note<2>{
+    Haskellers will recognize it as a foldr operation.
+  }
+  \ExecuteMetaData[../Rings.tex]{dense-eval}
+\end{frame}
+\begin{frame}
+  \frametitle{Problems}
+  \note<1>{As it stands, the above representation has two problems}
+  \pause
+
+  \note<2>{
+    The representation suffers from the problem of trailing zeroes. In other
+    words, the polynomial $2x$ could be represented by any of the following:
+
+    This is a problem for a solver: the whole \emph{point} is that equivalent
+    expressions are represented the same way. 
+  }
+  \begin{description}
+  \item[Redundancy]
+      \begin{align*}
+        2x = \; & 0, 2 \\
+                & 0, 2, 0 \\
+                & 0, 2, 0, 0 \\
+                & 0, 2, 0, 0, 0, 0, 0
+      \end{align*}
+      \pause
+    \item[Inefficiency]
+  \end{description}
+
+  \note<3>{
+    Expressions will tend to have large gaps, full only of zeroes. Something
+    like $x^5$ will be represented as a list with 6 elements, only the last one
+    being of interest. Since addition is linear in the length of the list, and
+    multiplication quadratic, this is a major concern.
+  }
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{A Sparse Encoding}
+  \note<1>{
+    The solution usually used is a ``power index''. A representation of the gap
+    between adjacent nonzero coefficients.
+
+    We rewrite the following equation as so:
+  }
+
+  \(3 + 2x^2 + 4x^5 + 2x^7\) \pause \(= x^0 (3 + x x^1 (2 + x x^2 * (4 + x x^1 (2 + x 0))))\)
+  \note<2>{
+    And then we can represent it in a list like so:
+  }
+
+  \begin{minted}[autogobble]{Haskell}
+    [(3,0),(2,1),(4,2),(2,1)]
+  \end{minted}
+\end{frame}
+\begin{frame}
+  \note{
+    We actually go further than the previous approach, because we \emph{prove}
+    that the coefficients are in normal form.
+  }
+  \ExecuteMetaData[../Rings.tex]{sparse-decl}
+\end{frame}
+\begin{frame}
+  \frametitle{Algebra of Programming}
+  \note{
+    The full implementation continues like that, and we add more variables, and
+    so on.
+
+    One component of the implementation needs to prove termination, which we do
+    with well-founded recursion.
+
+    The only last thing I'll mention is with regards to the nature of the
+    proofs. They use a technique called the ``algebra of programming'' to
+    shorten them up: because most of our functions are defined using
+    higher-order folds and so on, we can express the proofs in very abstract,
+    terse terms.
+
+    The proofs are still roughly 1000 lines long, though.
+  }
+  \bibentry{bird_algebra_1997}
+
+  \bibentry{mu_algebra_2009}
+\end{frame}
+\begin{frame}
+  \frametitle{Interface}
+  \note{
+    Though what we have works, it's still awkward to use, because we ask the
+    user to construct the AST themselves. This means they write the type twice,
+    and it is often tedious to do so.
+
+    This is the ``automatic'' proof for the monoid solver we had previously.
+  }
+  \ExecuteMetaData[../Monoids.tex]{ident-auto-proof}
+\end{frame}
+\begin{frame}[t, fragile]
+  \vspace*{2.5cm}
+  \adjustbox{width=1.15\linewidth, center}{
+    \begin{tikzpicture}
+      % \draw[help lines] (-8,-4) grid (8,3); 
+      \node (ln) at (-2, 2) {\includegraphics[draft=false,trim={25 10 25 10}]{../graphics/rhs-norm}};
+      \node (rn) at ( 2, 2) {\includegraphics[draft=false,trim={25 10 25 10}]{../graphics/rhs-norm}};
+      \node (la) at (-6, 0) {\includegraphics[draft=false,trim={25 10 22 10}]{../graphics/lhs-ast}};
+      \node (ra) at ( 6, 0) {\includegraphics[draft=false,trim={25 10 48 10}]{../graphics/rhs-ast}};
+      \node (le) at (-2,-2) {\includegraphics[draft=false,trim={25 10 23 10}]{../graphics/lhs-expr}};
+      \node (re) at ( 2,-2) {\includegraphics[draft=false,trim={25 10 20 10}]{../graphics/rhs-expr}};
+      \draw[|-stealth] (la) to[out=90 , in=180] node[midway, fill=bg] {\AgdaFunction{⟦\_⇓⟧}} (ln);
+      \draw[|-stealth] (la) to[out=270, in=180] node[midway, fill=bg] {\AgdaFunction{⟦\_⟧} } (le);
+      \draw[|-stealth] (ra) to[out=90 , in=0  ] node[midway, fill=bg] {\AgdaFunction{⟦\_⇓⟧}} (rn);
+      \draw[|-stealth] (ra) to[out=270, in=0  ] node[midway, fill=bg] {\AgdaFunction{⟦\_⟧} } (re);
+      \foreach \e/\n in {le/ln,re/rn}
+        \foreach \shft in {-0.6pt,0.6pt}
+          \draw[AgdaField, transform canvas={xshift=\shft}, snake=coil, segment aspect=0, segment amplitude=0.4pt, segment length=4pt] (\e) -- (\n);
+      \node[fill=bg] at (-2, 0) {\AgdaFunction{correct}};
+      \node[fill=bg] at ( 2, 0) {\AgdaFunction{correct}};
+      \foreach \shft in {-1.6pt, 0pt}
+        \draw[AgdaDatatype, transform canvas={yshift=\shft}] (ln) -- (rn);
+      \draw[AgdaDatatype, transform canvas={yshift=1.6pt}] (ln) -- (rn) node[midway, above] {\AgdaInductiveConstructor{refl}};
+      \draw<2>[-angle 90, dashed] (re) to[out=270, in=270] node[near start, fill=bg] {\AgdaKeyword{quoteTerm}} ([shift={(1,0)}]ra.south);
+      \draw<2>[-angle 90, dashed] (le) to[out=270, in=270] node[near start, fill=bg] {\AgdaKeyword{quoteTerm}} ([shift={(-1,0)}]la.south);
+    \end{tikzpicture}
+  }
+  \note<1>{
+    What we'd like to do is provide the ASTs here automatically, from the two
+    expressions at the bottom.
+  }
+  \note<2>{
+    What can we use for that? \emph{Reflection}
+
+    Reflection is often thought to be the purview of unsafe or dynamic
+    languages, but it actually fits really well into the dependently typed
+    setting. As it happens, Agda has a decent (type-directed) macro system. The
+    end result is a very clean system
+  }
+\end{frame}
+\begin{frame}[standout]
+  The Finished Solver
+\end{frame}
+\begin{frame}
+  \note{
+    Even more, because this relies on the \emph{type} of the hole (the inferred
+    obligation) if you need to prove two things line up, you just pinpoint where
+    they son't match, and say ``solve, please!''
+  }
+  \ExecuteMetaData[../ReflectDemo.tex]{refl-lemma}
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{Setoids}
+  \note<1>{
+    We used a setoid throughout the solver, which really made things difficult
+    for us.
+
+    Usually, The purpose of this particular hair shirt is flexibility: users can
+    still use the solver even if their type only satisfies the monoid laws
+    modulo some equivalence relation (perhaps they are have an implementation of
+    finite, mergeable sets as balanced trees, and want to treat two sets as
+    equivalent if their elements are equal, even if their internal structures
+    are not).
+
+    It also frees up some very interesting applications, though.
+  }
+  \note<2>{
+    All you need a setoid to be is something with symmetry, reflexivity, and
+    transitivity. One example would be a list of rewrite rules! Now, the output
+    is a proof, along with a \emph{step-by-step} solution to how you got from
+    one equation to the other. We get wolfram alpha for free! And it's verified!
+
+    Reflexivity is the empty list.
+
+    Transitivity is concatenation.
+
+    Symmetry is reverse.
+  }
+  \pause
+
+  \only<2>{
+    \begin{block}{Pedagogical Solutions}
+      \ExecuteMetaData[BasicTypes.tex]{traced}
+    \end{block}
+  }
+
+  \only<3>{
+    \begin{block}{Isomorphisms}
+      \ExecuteMetaData[BasicTypes.tex]{iso}
+    \end{block}
+  }
+  \note<3>{
+    Some of the type operations we mentioned earlier were ring-like: sum types,
+    product types, the empty type, the singleton type, etc.
+
+    Turns out these can be directly translated into polynomials!
+
+    And the equivalence relation? An isomorphism! So now we can automatically
+    construct isomorphisms between equivalent types.
+  }
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{The Correct-by-Construction Approach}
+  \note<1>{
+    The Agda and Coq communities exhibit something of a cultural difference when it
+    comes to proving things. Coq users seem to prefer writing simpler, almost
+    non-dependent code and algorithms, to separately prove properties about that
+    code in auxiliary lemmas. Agda users, on the other hand, seem to prefer baking
+    the properties into the definition of the types themselves, and writing the
+    functions in such a way that they prove those properties as they go (the
+    ``correct-by-construction'' approach).
+
+    There are advantages and disadvantages to each approach. The Coq approach, for
+    instance, allows you to reuse the same functions in different settings,
+    verifying different properties about them depending on what's required. In Agda,
+    this is more difficult: you usually need a new type for every invariant you
+    maintain (lists, and then length-indexed lists, and then sorted lists, etc.). On
+    the other hand, the proofs themselves often contain a lot of duplication of the
+    logic in the implementation: in the Agda style, you avoid this duplication, by
+    doing both at once. Also worth noting is that occasionally attempting to write a
+    function that is correct by construction will lead to a much more elegant
+    formulation of the original algorithm, or expose symmetries between the proof
+    and implementation that would have been difficult to see otherwise.
+  }
+  \note<2>{
+    The gregoire version as an example, is very much in the Coq style: the
+    definition of the polynomial type has no type indices, and makes no requirements
+    on its internal structure:
+
+    The implementation presented here straddles both camps: we verify
+    homomorphism in separate lemmas, but the type itself does carry information:
+    it's indexed by the number of variables it contains, for instance, and it
+    statically ensures it's always in canonical form. 
+  }
+  \begin{onlyenv}<2>
+    \bibentry{gregoire_proving_2005}
+
+    \begin{minted}[autogobble]{Coq}
+      Inductive Pol (C:Set) : Set :=
+        | Pc : C -> Pol C
+        | Pinj : positive -> Pol C -> Pol C
+        | PX : Pol C -> positive -> Pol C -> Pol C.
+    \end{minted}
+  \end{onlyenv} 
+
+  \only<3>{\bibentry{geuvers_automatically_2017}}
+  \note<3>{
+    The correct-by-construction approach is explored in Idris, but they don't
+    employ the same level of reflection or optimisation as we do.
+  }
+  \only<4>{\ExecuteMetaData[../Constr.tex]{constr-def}}
+  \note<4>{
+    Nonetheless, we do provide an implementation of this version, for
+    comparison.
+  }
+\end{frame}
 \section{The \(p\)-Adics}
 \end{document}

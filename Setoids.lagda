@@ -20,7 +20,8 @@ data _≡⋯≡_ : A → A → Set a where
         → x ≡⋯≡ y
         → f y ≡⋯≡ z
         → f x ≡⋯≡ z
-  cong₂ : ∀ {x₁ x₂ y₁ y₂ z} {f : A → A → A}
+  cong₂ : ∀ {x₁ x₂ y₁ y₂ z}
+            {f : A → A → A}
         → String
         → x₁ ≡⋯≡ x₂
         → y₁ ≡⋯≡ y₂
