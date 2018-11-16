@@ -1,0 +1,37 @@
+\documentclass[twocolumn]{article}
+\usepackage{cite}
+\usepackage[strings]{underscore}
+\author{Donnacha Oisín Kidney}
+\title{Outline For FYP: A Solver for Commutative Rings in Agda}
+\begin{document}
+\maketitle
+
+Dependently typed programming languages, such as
+Agda\cite{norell_dependently_2008}, Idris\cite{brady_idris_2013}, and
+Coq\cite{the_coq_development_team_2018_1219885}, extend the type systems of
+programming languages to allow for proofs to be written as programs. They are of
+interest to mathematicians and programmers alike: as they're based on a
+constructivist interpretation of mathematics, the languages themselves are
+viable avenues for a formal foundation of modern mathematics; as programming
+languages, many of the features and concepts that have been developed have
+proven useful in mainstream languages.
+
+Mathematics must be rebuilt from the ground-up in each of these languages. The
+goal of this project is to build a tool for one particular area in the language
+Agda.
+
+The tool is an automated solver for equalities in commutative rings. Without the
+solver, proofs of basic equalities can be hundreds of lines long, and difficult
+to understand or write. Automating the process isn't as simple as just checking
+if two sides of an equation are the same, though: the solver has to be
+\emph{evidence-providing}, meaning that it constructs a formal proof of the
+equality based on the ring axioms.
+
+Such a solver already exists for Agda\cite{danielsson_agda_2018}: the target
+implementation for this project is a highly optimized version of the existing
+solver, which dramatically improves the efficiency. The optimizations are the
+same as those in Coq's ring solver\cite{gregoire_proving_2005}, although the
+implementation strategy is different, and more properties are verified.
+\bibliographystyle{IEEEtranS}
+\bibliography{../horners-rule.bib}
+\end{document}

@@ -81,54 +81,159 @@
 \tableofcontents
 \bibliographystyle{plain}
 \nobibliography{../horners-rule.bib}
-\section{What do we want from a Language for Mathematics?}
+\section{Formalising Mathematics}
 \begin{frame}
-  \frametitle{What do we want from a Language for Mathematics?}
-  \note<1>{
-    As it turns out, the languages we use for maths already look a little like
-    programming languages.
+  Formalised mathematics is an attempt to find a core set of axioms and
+  consistent rules from which all mathematical truths can be derived.
 
-    In designing them we encounter a lot of the same goals.
+  \note{
+    We're trying to address the foundational crisis of mathematics from the
+    early 20th century
+  }
+
+  Hilbert's program: ``dispose of the foundational questions in mathematics once
+  and for all.''
+\end{frame}
+\begin{frame}[fragile]
+  \frametitle{But didn't Hilbert's program fail?}
+  \begin{columns}
+    \column{0.5\linewidth}
+    \onslide<2->{
+      \bibentry{whitehead_principia_1910} p. 379
+    }
+    \column{0.5\linewidth}
+    \onslide<5->{\alert{Formal systems have improved}}
+  \end{columns}
+  \vfill
+  \note<2>{
+    This is the citation for Whitehead and Russell's proof of the fact that
+    1+1=2.
+
+    It was the first real crack at the foundational problem.
+
+    If it was \emph{that tedious} to figure out something so simple, what chance
+    do we have of more complex proofs---\emph{exactly} the kinds of things we
+    \emph{want} to formalise?
+  }
+  \note<5>{
+    We have much better formalisms now.
+
+    Although they're still tedious, they're nowhere near the verbosity of
+    principia.
+  }
+  \begin{columns}
+    \column{0.5\linewidth}
+    \onslide<3->{Gödel showed that universal formal systems are incomplete}
+    \column{0.5\linewidth}
+    \onslide<6->{\alert{We don't need universal systems!}}
+  \end{columns}
+
+  \note<3>{
+    Any ``good enough'' system (formal, effectively axiomatized, consistent)
+    isn't going to be complete! There are statements we can't prove, in other
+    words.
+  }
+  \note<6>{
+    Turns out we don't need all of the power of the ``good enough''.
+
+    We get very far with just \emph{slightly} less.
+  }
+  \vfill
+  \begin{columns}
+    \column{0.5\linewidth}
+    \onslide<4->{Church Proved the Entscheidungsproblem is unsolvable!}
+    \column{0.5\linewidth}
+    \onslide<7->{\alert{We don't automate everything}}
+  \end{columns}
+  \note<4>{
+    Church showed that the decision problem is undecidable in general. This is
+    really the final nail in the coffin for Hilbert's program.
+
+    There is no program which, given a decision problem, can solve it
+    automatically.
+  }
+  \note<7>{
+    Again, we give up the full goal, but we can get \emph{close}: automation and
+    decidability assist our construction of proofs.
+  }
+
+  \bibentry{paulson2016future}
+\end{frame}
+\begin{frame}
+  \frametitle{What Does our System Look Like?}
+  \note<1>{
+    So what have we given up since Hilbert's program?
   }
   \pause
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-    \begin{block}{A \emph{Syntax} that is}
-      \begin{itemize}
-        \item Readable
-        \item Precise
-        \item Terse
-      \end{itemize}
+  \begin{columns}
+    \column{0.5\linewidth}
+    \begin{block}{Constructivist}
+      To show something exists, you have to \emph{construct} it.
+      \pause
+      \begin{description}
+        \item[Law of the Excluded Middle] \(\times\) \(p \vee \neg p\) 
+        \item[Proof By Contradiction] \(\times\) \(\neg \neg p \rightarrow p\)
+        \item[Principle of Explosion] \(\checkmark\) \(\neg p \land p \rightarrow q \)
+      \end{description}
     \end{block}
     \pause
-    \column{0.5\textwidth}
-    \begin{block}{\emph{Semantics} that are}
-      \note<3>{
-        Semantics/axiomatic core
-      }
-      \begin{itemize}
-        \item Small
-        \item Powerful
-        \item Consistent
-      \end{itemize}
+    \column{0.5\linewidth}
+    \begin{block}{\emph{Partially} Automated}
+      While our system can't solve arbitrary problems, we can write certain
+      solvers for specific domains---that's the purpose of this project.
+
+      It's similar to the goal of machine learning and AI today, in this sense.
+      While we probably can't build something to solve \emph{everything}, we can
+      build a system that assists us in solving ``everything''.
     \end{block}
   \end{columns}
+  \note<2>{
+    We're going to work in a constructivist setting.
+
+    This means that to prove something exists you actually have to construct the
+    thing.
+
+    In that sense, it's proof ``by example'', although you can indeed prove
+    things with a ``forall'' quantifier before them, as we'll see in a minute.
+  }
   \note<3>{
-    Some of these are conflicting!
+    In practice, it means you basically have to throw out a couple familiar
+    big-ticket axioms like proof by contradiction and the law of the excluded
+    middle.
+
+    There's some confusion floating around about what exactly you lose when you
+    discard these axioms---you keep the principle of explosion, for instance.
+
+    Furthermore, within the constructivist framework, you can model classical
+    logic, if all of your proofs are just double negatives. In other words, you
+    can prove the double negation of classical logic statements.
+
+    It's important to note that we \emph{want} to give up these two axioms: they
+    don't make sense in a constructivist context. The law of the excluded
+    middle is effectively the Entscheidungsproblem---given a statement, it will
+    provide a proof of its truth, or of its negation.
+
+    There are other axioms we may want to have, but that we lose in the
+    particular framework we're going to choose. The design space for these
+    theories is quite large, and especially around the area of ``equality''
+    people haven't nailed down the perfect base yet.
   }
 \end{frame}
 \begin{frame}[standout]
-  Why not use a Programming Language?
+  What do Programming Languages Have to do with it?
 \end{frame}
 \begin{frame}
-  \frametitle{Reason 1: Because Computer-Assisted Proofs are ``Bad''}
   \note<1>{
-    Aren't computer-assisted proofs bad? Inelegant? Less rigorous?
+    For one thing, it would be nice if the proofs we wrote were \emph{checkable}
+    by a computer.
   }
 
   \pause
   \bibentry{appel_solution_1977}
   \note<2>{
+    In particular, it would be great if we could check \emph{computer-assisted}
+    proofs. 
+
     The famous example is the four-colour map theorem.
 
     First major mathematical proof which relied heavily on computer assistance.
@@ -138,142 +243,30 @@
 
     The proof effectively relied on checking a large number of different
     cases---a computer program was used to check each one.
+
+    A computer is a perfect candidate for checking computer programs.
   }
   \pause
-  \begin{itemize}
-  \item Non-Surveyable
-    \pause
-    \note<3>{
-      The proof is too large for another mathematician to check its work! (that
-      is, after all, why a computer was used)
-    }
-  \item Doesn't Provide Insight
-    \pause
-    \note<4>{
-      This is maybe an aesthetic concern, but the prevailing attitude is that a
-      non computer-assisted proof would provide a deeper understanding of the
-      problem, and more general tools to be used later, rather than a simple
-      statement ``yes the proposition is true'' or ``no it's false''.
 
-      Of course, in practice, working a proof to a level where it becomes
-      solvable via a computer requires insight in and of itself, but perhaps
-      less insight than another method.
-    }
-
-  \item Requires Trust
-    \note<5>{
-      We have to believe that the program used to prove the proposition doesn't
-      contain bugs!
-    }
-  \end{itemize}
-  \pause
   Did contain bugs!
-  \note<6>{
-    Although they weren't critical to the correctness.
-  }
-\end{frame}
-\begin{frame}
-  \frametitle{This is Different}
-  \pause
-  We're looking for a core set of axioms/semantics and a syntax to talk about
-  mathematics
-  \note<2>{
-    We're going to use PL theory to help get us there
-  }
-  
-  \pause
-  If we do it right, it should be so simple that ``even a computer could
-  understand it''
-  \note<3>{
-    But this is incidental!
-
-    The real work is in finding the language that works.
-
-    Even now, most compilers for these languages are grad students!
-  }
-
-
-  \pause
-  \begin{block}{Why would we want a computer to understand our language?}
-    \pause
-    \begin{itemize}
-      \item So it can check our proofs! \pause
-      \item So it can check our \emph{automated} proofs!
-    \end{itemize}
-  \end{block}
-
-  \note<5>{
-    If a machine can read your proofs, then it can \emph{check} your proofs.
-
-    This adds a level of rigour that you just don't get with handwritten proofs.
-  }
-  \note<6>{
-    A perfect candidate for the kinds of proofs we'd like a machine to check
-    \emph{are} computer-assisted proofs.
-
-    Remember, our language is a programming language: write the automated
-    theorem prover in it, and then \emph{verify} the theorem prover in it!
-  }
-
   \pause
   \bibentry{gonthier_formal_2008}
-  \note<7>{
+  \note<3>{
     Unfortunately, this is still difficult to do
 
     The formalized version of the four-colour theorem came out a full 29 years
     later!
   }
 \end{frame}
-\begin{frame}[fragile]
-  \frametitle{Reason 2: Haven't We Tried This Before?}
-  \note<1>{
-    Fully formalizing mathematics from the ground-up has long been a goal.
-    (Hilbert)
-
-    Haven't other attempts failed?
-  }
-  \begin{columns}
-    \column{0.5\linewidth}
-    \onslide<2->{
-      \bibentry{whitehead_principia_1910} p. 379
-    }
-    \column{0.5\linewidth}
-    \onslide<4->{\alert{Formal systems have improved}}
-  \end{columns}
-  \note<2>{
-    This is the citation for Whitehead and Russell's proof of the fact that
-    1+1=2 
-
-    Is a formalization really going to be \emph{this} tedious?
-  }
-  \note<4>{
-    We have much better formalisms now.
-
-    Although they're still tedious, they're nowhere near the verbosity of
-    principia.
+\begin{frame}
+  \frametitle{Programming Proofs}
+  \note{
+    Beyond just checking proofs, or automating proofs, it turns out that
+    programming languages---and in particular \emph{type systems}---are pretty
+    decent formalisms for writing proofs.
   }
 
-  \vfill
-  
-  \begin{columns}
-    \column{0.5\linewidth}
-    \onslide<3->{Gödel showed that universal formal systems are incomplete}
-    \column{0.5\linewidth}
-    \onslide<5->{\alert{We don't need universal systems}}
-  \end{columns}
-
-  \note<3>{
-    Besides---hasn't it been shown to be impossible, anyway?
-  }
-  \note<5>{
-    A universal system is too powerful---we can get by with less.
-
-    Law of the Excluded Middle
-  }
-
-  \vfill
-
-  \bibentry{paulson2016future}
+  \bibentry{martin-lof_intuitionistic_1980}
 \end{frame}
 \begin{frame}[fragile]
   \frametitle{Why Would a Programmer Want to Use this Language?}
@@ -355,7 +348,8 @@
 \end{frame}
 \begin{frame}[fragile]
   \frametitle{Existential Proofs}
-  \note<1>{We use a trick to translate: put a ``there exists'' before the type.}
+  \note<1>{We use a trick to translate: put a ``there exists'' before the type.
+    Remember, we're constructivist!}
   \pause
   \begin{columns}[T]
     \column{0.5\textwidth}
@@ -455,24 +449,15 @@
 \begin{frame}[fragile]
   \frametitle{But Let's Try Anyway!}
   \only<1>{
-    Function definition syntax
-
-    \note{Agda functions are defined (usually) with \emph{pattern-matching}. For
-      the natural numbers, we use the Peano numbers, which gives us 2 patterns:
-      zero, and successor.}
-    \ExecuteMetaData[BasicTypes.tex]{fib}
-  }
-
-  \only<2>{
     \note{For lists, we also have two patterns: the empty list, and the head
       element followed by the rest of the list.}
 
     \ExecuteMetaData[BasicTypes.tex]{length}
   }
-  \only<3->{
+  \only<2->{
     \ExecuteMetaData[BasicTypes.tex]{head1}
-    \onslide<6->{\ExecuteMetaData[BasicTypes.tex]{head2}}
-    \note<3>{
+    \onslide<5->{\ExecuteMetaData[BasicTypes.tex]{head2}}
+    \note<2>{
       Here's a candidate definition for head.
 
       Remember, we shouldn't be able to write it, so if this definition is
@@ -480,19 +465,19 @@
 
       So how do we disallow it?
     }
-    \note<4>{
+    \note<3>{
       We disallow it because it doesn't match all patterns.
 
       Agda will only accept functions which are defined for \emph{all} of their
       inputs.
     }
-    \note<5>{
+    \note<4>{
       So we need something to write for the second clause, the empty list.
 
       It seems like we can't, but people familiar with Haskell may have spotted a
       way to do it.
     }
-    \note<6>{
+    \note<5>{
       In Haskell, a definition like this is perfectly acceptable: it's just
       recursive.
 
@@ -503,17 +488,17 @@
       turns out to be enough to keep the logic consistent.
     }
 
-    \onslide<4->{
+    \onslide<3->{
       \begin{block}{Rule 1}
         No partial functions
       \end{block}
     }
-    \onslide<7->{
+    \onslide<6->{
       \begin{block}{Rule 2}
         All programs are total
       \end{block}
     }
-    \note<7>{
+    \note<6>{
       Bear in mind that even if we don't obey the rules the program can still be
       a valid proof---we just have to run it first.
 
@@ -561,6 +546,10 @@
     could write a function that runs for some finite number of steps, and
     produces a finite result, or a function which produces an infinite result,
     though.
+
+    The limitation is that there will be terminating programs that we can't
+    prove are terminating. In this case, we can default to saying ``maybe
+    terminating''.
   }
   \pause
   You can write terminating and non-terminating programs: \emph{you just have to
@@ -700,122 +689,6 @@
     Tautology is kind of the ``boring'' type.
   }
 \end{frame}
-\begin{frame}[fragile]
-  \frametitle{Conjunction}
-  \note<1>{
-    Conjunction (``and'') is represented as a data type.
-  }
-  \pause
-  \ExecuteMetaData[BasicTypes.tex]{prod-record}
-  \note<2>{
-    It has two type parameters, and two fields.
-  }
-  \begin{overlayarea}{\textwidth}{7cm}
-    \begin{onlyenv}<3>
-      \begin{columns}[T]
-        \column{0.5\linewidth}
-        \begin{block}{Swift}
-          \begin{minted}[autogobble]{Swift}
-            struct Pair<A,B>{
-              let fst: A
-              let snd: B
-            }
-          \end{minted}
-        \end{block}
-        \column{0.5\linewidth}
-        \begin{block}{Python}
-          \begin{minted}[autogobble]{Python}
-            class Pair:
-              def __init__(self, x, y):
-                self.fst = x
-                self.snd = y
-          \end{minted}
-        \end{block}
-      \end{columns}
-    \end{onlyenv}
-    \note<3>{
-      Syntax-wise, it's equivalent to a \emph{class} in other languages.
-    }
-    \begin{onlyenv}<4>
-      \ExecuteMetaData[BasicTypes.tex]{prod}
-    \end{onlyenv}
-    \note<4>{
-      We could also have written it like this. (Haskell-style)
-
-      The definition is basically equivalent, but we don't get two field accessors
-      (we'd have to define them manually) and some of the syntax is better suited
-      to the record form.
-
-      It does show the type of the constructor, though (which is the same in
-      both).
-
-      It's curried, which you don't need to understand: just think of it as taking
-      two arguments.
-
-      ``If you have a proof of A, and a proof of B, you have a proof of A
-      \emph{and} B''
-    }
-    \begin{onlyenv}<5>
-      \begin{block}{Type Theory}
-        2-Tuple
-      \end{block}
-    \end{onlyenv}
-    \begin{onlyenv}<6>
-      \begin{block}{Set Theory}
-        Cartesian Product
-        \[\{t, f\} \times \{1, 2, 3\} = \{(t, 1), (f, 1), (t, 2), (f, 2), (t, 3),
-          (f, 3)\} \]
-      \end{block}
-    \end{onlyenv}
-    \begin{onlyenv}<7>
-      Familiar identities: conjunction-elimination
-      \begin{columns}
-        \column{0.5\textwidth}
-        \ExecuteMetaData[BasicTypes.tex]{cnj-elim}
-        \column{0.5\textwidth}
-        \[A \wedge B \implies A\]
-      \end{columns}
-    \end{onlyenv}
-  \end{overlayarea}
-\end{frame}
-\begin{frame}[fragile]
-  \frametitle{Currying}
-  \note{
-    Just a short note on currying.
-
-    People familiar with Haskell will know what it is, I won't explain it in its
-    entirety here, though. Just a little interesting thing on how it translates
-    into logic.
-  }
-  \begin{onlyenv}<2>
-    \ExecuteMetaData[BasicTypes.tex]{curry}
-  \end{onlyenv}
-
-  \only<3-6>{
-    \begin{table}
-      \begin{tabularx}{\textwidth}{XX}
-        \only<3-6>{The type:              } & \only<4-6>{Is isomorphic to:                  }  \\
-        \only<3-6>{\(A , B \rightarrow C\)} & \only<4-6>{\(A \rightarrow (B \rightarrow C)\)}  \\[1cm]
-        \only<5-6>{Because the statement: } & \only<6>{Is the same as saying:             }  \\
-        \only<5-6>{``A and B implies C''  } & \only<6>{``A implies B implies C''          }
-      \end{tabularx}
-    \end{table}
-  }
-
-  \only<7-8>{
-    ``If I'm outside and it's raining, I'm going to get wet''
-    \[Outside \wedge Raining \implies Wet\]
-
-    \onslide<8>{
-      ``When I'm outside, if it's raining I'm going to get wet''
-      \[Outside \implies Raining \implies Wet\]
-    }
-  }
-\end{frame}
-\begin{frame}
-  \frametitle{Disjunction}
-  \ExecuteMetaData[BasicTypes.tex]{disj}
-\end{frame}
 \begin{frame}
   \frametitle{Dependent Types}
   \pause
@@ -841,118 +714,29 @@
   \bibentry{martin-lof_intuitionistic_1980}
 \end{frame}
 \begin{frame}
-  \frametitle{The \(\Pi\) Type}
+  \frametitle{Russell's Paradox}
+  ``The Set of all Sets which do not contain themselves''
 
+  \onslide<2->{\bibentry{girard_interpretation_1972}}
+  \begin{columns}
+    \column{0.5\textwidth}
+    \onslide<3->{\ExecuteMetaData[BasicTypes.tex]{not}}
+    \column{0.5\textwidth}
+    \onslide<4>{\ExecuteMetaData[BasicTypes.tex]{neg}}
+  \end{columns}
   \note<1>{
-    First, we upgrade the function arrow, so the right-hand-side can talk about
-    the value on the left.
-
-    This is the dependent product type.
-  }
-  \pause
-  Upgrade the \emph{function arrow}
-  \note<2>{
-    This lets us easily express \emph{properties}
-  }
-  \pause
-  \ExecuteMetaData[BasicTypes.tex]{pi-example}
-  \pause
-
-  Now we have a proper \(\forall\)
-\end{frame}
-\begin{frame}
-  \frametitle{The \(\Sigma\) Type}
-  \pause
-  Upgrade \emph{product types}
-
-  \pause
-  \ExecuteMetaData[BasicTypes.tex]{sigma-example}
-
-  (Now they become sum types!)
-
-  \note<3>{
-    Later fields can refer to earlier ones.
-
-    This is the dependent sum type.
-  }
-  \pause
-  Now we have a proper \(\exists\)
-\end{frame}
-\begin{frame}
-  \frametitle{The Equality Type}
-  \ExecuteMetaData[BasicTypes.tex]{eq-example}
-  \note{
-    Final piece of the puzzle.
-
-    The type of this type has 2 parameters.
-
-    But the only way to construct the type is if the two parameters are the
-    same.
-
-    You then get evidence of their sameness when you pattern-match on that
-    constructor.
-  }
-\end{frame}
-\begin{frame}
-  \frametitle{Equality}
-  \note<1>{
-    Agda uses propositional equality
-
-    You can construct the equality proof when it's obvious.
-  }
-  \ExecuteMetaData[BasicTypes.tex]{plus-def}
-  \ExecuteMetaData[BasicTypes.tex]{plus-obvious}
-  \pause
-  \note<2>{
-    you need to supply the proof yourself when it's not obvious.
-  }
-  \ExecuteMetaData[BasicTypes.tex]{plus-not-obvious}
-\end{frame}
-\begin{frame}
-  \frametitle{Open Areas and Weirdness}
-  \note<1>{
-    To keep the logic consistent, we need to lose a few things. (These are the
-    things we lose when we get rid of ``universalness'')
-  }
-  \only<2-3>{
-    \begin{block}{Law of the Excluded Middle}
-      ``For any proposition, either it's true or its negation is true''
-
-      \onslide<3>{\ExecuteMetaData[BasicTypes.tex]{lem}}
-    \end{block}
-  }
-  \note<2>{
-    While this may seem obvious, it's not provable in our logic!
-
-    Proving it would be the equivalent to taking a question, and finding the
-    answer to it: this is fundamentally undecidable in the general case.
-  }
-  \only<4-7>{
-    \begin{block}{Russell's Paradox}
-      ``The Set of all Sets which do not contain themselves''
-
-      \onslide<5->{\bibentry{girard_interpretation_1972}}
-      \begin{columns}
-        \column{0.5\textwidth}
-        \onslide<6->{\ExecuteMetaData[BasicTypes.tex]{not}}
-        \column{0.5\textwidth}
-        \onslide<7>{\ExecuteMetaData[BasicTypes.tex]{neg}}
-      \end{columns}
-  \end{block}
-  }
-  \note<4>{
     One of the things that tripped up early logicians is Russell's paradox.
   }
-  \note<5>{
+  \note<2>{
     In type theory, it's called Girard's paradox.
   }
-  \note<6>{
+  \note<3>{
     Remember that types are defined as sets. Bool is a set, int is a set, etc.
 
     Values have types, and types are sets. Bool -> Bool, for instance, is the
     type of not. Bool -> Bool is a Set.
   }
-  \note<7>{
+  \note<4>{
     However, we've already broken this boundary: The type of negation was Set ->
     Set. Is Set -> Set a type?
 
@@ -967,13 +751,14 @@
     There are a number of different ways to avoid it; in Agda, all types are
     ``Set''s. Set -> Set, though, is a Set1. Set1 -> Set1 is a Set2. And so on.
   }
-  \only<8>{
-    \begin{block}{Function Extensionality/Data Constructor Injectivity}
-      \ExecuteMetaData[BasicTypes.tex]{ext}
-    \end{block}
-  }
-  \note<8>{
-    Again, seems like something you should be able to do.
+\end{frame}
+\begin{frame}
+  \frametitle{Function Extensionality}
+  \ExecuteMetaData[BasicTypes.tex]{ext}
+  \note{
+    In contrast to LEM etc., this is a law that it would be nice to have.
+
+    In fact, certain type theories \emph{do} have it.
 
     But all of these small rules around equality are very much in flux: if you
     grant constructor Injectivity (a very similar rule to this one), you can
@@ -1255,6 +1040,14 @@
     that the coefficients are in normal form.
   }
   \ExecuteMetaData[../Rings.tex]{sparse-decl}
+\end{frame}
+\begin{frame}
+  \frametitle{Termination}
+  \note{
+    Ever-present in Agda is the need to prove termination.
+
+    
+  }
 \end{frame}
 \begin{frame}
   \frametitle{Algebra of Programming}

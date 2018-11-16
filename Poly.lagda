@@ -425,7 +425,11 @@ module SparseNesting
 %<*run-fold>
 \begin{code}
   fold : ∀ {i} → Fold i → Coeffs i → Coeffs i
-  fold f = foldr (λ { (x ≠0 Δ i) → uncurry (λ y ys → y ^ i ∷↓ ys) ∘ curry f x}) []
+  fold f =
+    foldr (λ { (x ≠0 Δ i) →
+                  uncurry (λ y ys → y ^ i ∷↓ ys) ∘
+                  curry f x
+              }) []
 \end{code}
 %</run-fold>
 %<*semantics-opening>

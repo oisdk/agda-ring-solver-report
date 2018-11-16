@@ -861,8 +861,6 @@ it can take a proof of \(x \; \AgdaField{≈} \; y\), and put it in a larger
 context:
 \ExecuteMetaData[Reasoning.tex]{cong-example}
 
-\subsubsection{Examples}
-\todo{Expand on the proofs. Maybe include an example proof?}
 \subsection{The Algebra of Programming}
 The structure of the homomorphism proofs can be seen in figure~\ref{hom-struct}.
 For every function \(f\) that we want to use, we'll have to prove that
@@ -909,9 +907,6 @@ The \(\AgdaFunction{PolyF}\) type is the \(x + xs\times\rho\) expression from
 above. Actually running the fold is simply a matter of applying all of the
 normalization operators:
 \ExecuteMetaData[Poly.tex]{run-fold}
-
-\todo{Pin rest of info about proofs}
-
 
 \section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
@@ -1157,11 +1152,7 @@ It will demonstrate where exactly it fails, with the error message:
 \]
 
 This is because we pass it \(\AgdaField{refl}\) as the proof that the normal
-forms are equal: if they're not, this is where we'll get an error
-
-\begin{description}
-  \item[Don't typecheck]
-\end{description}
+forms are equal: if they're not, this is where we'll get an error.
 
 \section{Setoid Applications} \label{setoid-applications}
 I mentioned that the notion of equality we were using was more general than
@@ -1177,11 +1168,19 @@ And it does indeed implement the expected properties of an equivalence relation:
 \ExecuteMetaData[Setoids.tex]{trace-impl}
 \todo{Expand on the traced version, maybe clean it up? Also provide some
   examples.}
+How to improve the quality of the results is yet to be explored: for instance,
+most associativity rewrites can be elided, as readers tend to do those in their
+heads. Also, in rewriting both sides to a normal form, we may reach definitional
+equality far \emph{before} the actual normal form, leaving a chain of rewrites
+in the middle which uselessly transforms forwards and back an expression.
+Removing these useless rewrites may well be worthwhile.
 \subsection{Isomorphisms}
-\todo{Use the proof to translate between types. Check out Conor McBride's work
-  on containers for this.}
-\subsection{Counterexamples}
-\todo{Possible to provide counterexamples if a proof fails?}
+Types themselves, of course, are a kind of rings. Under isomorphism, they
+exhibit all the requires associativity, commutativity, and so on. 
+
+In this way, our solver can be used to construct translation functions between
+equivalent types, automatically and efficiently. I don't know of any serious
+uses for this, but it is an interesting avenue to explore.
 \section{The Correct-by-Construction Approach} \label{correct-by-constr}
 The Agda and Coq communities exhibit something of a cultural difference when it
 comes to proving things. Coq users seem to prefer writing simpler, almost
@@ -1220,10 +1219,13 @@ it's always in canonical form.
 
 Performing the same task in a correct-by-construction way is explored
 in\cite{geuvers_automatically_2017} (in Idris\cite{brady_idris_2013}).
-\todo{Expand on this section.}
 
-Here we provide a similar implementation:
+Here we provide a similar implementation, using the following definition:
 \ExecuteMetaData[Constr.tex]{constr-def}
+
+While this approach reduced the amount of code we needed to write, we found it
+made optimizations more difficult, as it combined the execution and proof code
+together.
 \ExecuteMetaData[Constr.tex]{constr-add}
 \bibliographystyle{IEEEtranS}
 \bibliography{horners-rule.bib}
