@@ -1,6 +1,28 @@
 \begin{code}
 module Presentation.BasicTypes where
+module WellfoundedExample where
+  open import Function
+  open import Data.Nat as ℕ using (ℕ; suc; zero)
+\end{code}
+%<*wellfounded>
+\begin{code}
+  data Acc {A : Set} (_R_ : A → A → Set) (x : A) : Set where
+    acc : (∀ y → y R x → Acc _R_ y) → Acc _R_ x
 
+  data _<_ (m : ℕ) : ℕ → Set where
+    0<1  : m < suc m
+    m<s  : ∀ {n} → m < n → m < suc n
+
+  <-wellFounded : ∀ m → Acc _<_ m
+  <-wellFounded = acc ∘ go
+    where
+    go : ∀ m n → n < m → Acc _<_ n
+    go zero n ()
+    go (suc m) .m 0<1 = <-wellFounded m
+    go (suc m) n (m<s n<m) = go m n n<m
+\end{code}
+%</wellfounded>
+\begin{code}
 open import Data.Nat hiding (_+_)
 module Streams where
 \end{code}
@@ -69,15 +91,29 @@ x = 1
 open import Data.List hiding (length; head; reverse)
 
 pattern 1+ x = suc x
+module TermFib where
 \end{code}
 %<*fib>
 \begin{code}
-fib : ℕ → ℕ
-fib 0            = 0
-fib (1+ 0)       = 1+ 0
-fib (1+ (1+ n))  = fib (1+ n) + fib n
+  fib : ℕ → ℕ
+  fib 0 = 0
+  fib 1 = 1
+  fib (1+ (1+ n))  = fib (1+ n) + fib n
 \end{code}
 %</fib>
+\begin{code}
+module NonTermFib where
+  open import Data.Nat using (_∸_)
+  {-# TERMINATING #-}
+\end{code}
+%<*fib-nonterm>
+\begin{code}
+  fib : ℕ → ℕ
+  fib 0 = 0
+  fib 1 = 1
+  fib n = fib (n ∸ 1) + fib (n ∸ 2)
+\end{code}
+%</fib-nonterm>
 %<*length>
 \begin{code}
 length : {A : Set} → List A → ℕ
@@ -284,3 +320,7 @@ postulate function-extensionality
             → f ≡ g
 \end{code}
 %</ext>
+
+\begin{code}
+module WellFoundedExample {A : Set} where
+\end{code}

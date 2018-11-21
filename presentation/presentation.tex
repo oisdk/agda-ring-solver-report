@@ -52,6 +52,7 @@
 \DeclareUnicodeCharacter{8799}{\ensuremath{\stackrel{?}{=}}}
 \DeclareUnicodeCharacter{10181}{\ensuremath{\lbag}}
 \DeclareUnicodeCharacter{10182}{\ensuremath{\rbag}}
+\DeclareUnicodeCharacter{8760}{\ensuremath{-}}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{autofe}
@@ -81,7 +82,7 @@
 \tableofcontents
 \bibliographystyle{plain}
 \nobibliography{../horners-rule.bib}
-\section{Formalising Mathematics}
+\section{Formalised Mathematics}
 \begin{frame}
   Formalised mathematics is an attempt to find a core set of axioms and
   consistent rules from which all mathematical truths can be derived.
@@ -772,9 +773,13 @@
 \note{
   Project I've been working on for the past few months.
 
-  Deals with one particular area of tedium: rewriting algebraic expression. 
+  As mentioned previously, while we can't automate all of mathematics, there are
+  some restricted areas where we can.
 
-  This kind of thing usually consists of long chains of rewrites, of the style
+  This area is that of equivalence relations between rings of commutative
+  polynomials.
+
+  Doing this by hand usually consists of long chains of rewrites, of the style
   ``apply commutativity of \(+\), then associativity of \(+\), then at this
   position apply distributivity of \(*\) over \(+\)'' and so on, when really the
   programmer wants to say ``rearrange the expression into this form, checking
@@ -783,8 +788,8 @@
 \begin{frame}
   \frametitle{Monoids}
   \note<1>{
-    Before describing the ring solver, first we will explain the technique of
-    writing a solver in Agda in the simpler setting of monoids.
+    Before we see the full polynomial solver, we're going to look at a simpler
+    algebra (monoids) to illustrate the technique the solver is going to use.
   }
   \pause
   \begin{block}{Monoid}
@@ -805,24 +810,13 @@
   }
 \end{frame}
 \begin{frame}
-  \frametitle{Monoids in Agda}
-  \ExecuteMetaData[../Monoids.tex]{mon-def}
-  \note{
-    Monoids can be represented in Agda in a straightforward way, as a record.
-    Immediately it should be noted that we're no longer talking about a monoid
-    over a set, but rather one over a setoid. In other words, rather than using
-    propositional equality (indicated by the \(\AgdaDatatype{≡}\) symbol), we
-    will use a user-supplied equivalence relation (\(\AgdaField{≈}\).
-
-    We'll see how this in particular lets us do some cool things later.
-  }
-  \bibentry{danielsson_agda_2018}
-\end{frame}
-\begin{frame}
   \frametitle{A Boring Proof}
   \ExecuteMetaData[../Monoids.tex]{mon-ident}
   \note<1>{
-    This is the kind of proposition you might want to prove.
+    And this is the kind of proposition we want to automatically prove.
+
+    We have two expressions, each with some free variables, and we want to
+    construct a proof that they're equivalent, relying only on the monoid laws.
 
     To a human, the fact that the identity holds may well be obvious:
     \(\AgdaField{∙}\) is associative, so we can scrub out all the parentheses,
@@ -844,12 +838,85 @@
 
     Interestingly, this syntax isn't built-in: it's defined in the standard
     library.
+
+    What we're \emph{actually} doing here is constructing a relation between the
+    left-hand-side expression and the right, using composition of smaller
+    relations. Each of the ``smaller'' relations is some monoid law. And, of
+    course, each of these relations is an equivalence relation, so it obeys the
+    usual laws (composition is transitivity, and we can see symmetry in the
+    last composition there)
   }
+\end{frame}
+\begin{frame}
+  \frametitle{Automation}
+  \note<1>{
+    So our goal is obvious: write a procedure (or function or whatever) which
+    automates the construction of these relations.
+  }
+  \note<3>{
+    Since we're writing this in a total language, this goal is somewhat
+    thrust upon us.
+
+    Nonetheless, a nontotal solver isn't really a solver at all!
+
+    This will be something we have to prove, alongside everything else.
+  }
+  \note<4>{
+    While our solver will indeed deal only with a subset of propositions, we
+    want that subset to be as large as possible. Therefore, we will constrain
+    the domain as \emph{little} as possible.
+  }
+  \note<5>{
+    The solver will run at compile-time, so the performance isn't \emph{super}
+    important, but ideally we'll stay away from any nastier complexity classes.
+  }
+  \note<7>{
+    Presburger arithmetic is a subset of arithmetic which is consistent,
+    complete, and decidable.
+
+    However, it is \emph{very} constrained.
+
+    Its running-time is also doubly-exponential.
+  }
+  \note<8>{
+    While external solvers are fast and powerful, they're not verified. The
+    objective here is to keep within the bounds of the formal system.
+  }
+  \pause
+  \begin{block}{Goals}
+    \begin{description}
+      \pause
+      \item[Decidable] Should be total, and terminating.
+      \pause
+      \item[General] Should work in as many settings as possible.
+      \pause
+      \item[Efficient] Should actually (as well as theoretically) terminate.
+    \end{description}
+  \end{block}
+
+  \pause
+  \begin{block}{Approaches}
+    \begin{description}
+      \pause
+      \item[Presburger Arithmetic] Decidable, first-order theory of natural
+        numbers.
+      \pause
+      \item[External solvers] (Z3, etc) We don't trust them!
+      \pause
+      \item[Canonical forms] Our approach.
+    \end{description}
+  \end{block}
 \end{frame}
 \begin{frame}
   \frametitle{Canonical Forms}
   \note<1>{
-    One of the ways to automate equality proofs is via canonical form.
+    This approach basically consists of converting each side of the equation
+    into a canonical form, and checking those two forms equal.
+
+    It's not complete, but it's pretty good.
+
+    We do need to prove that the conversion preserves homomorphism, and so on,
+    which we do later.
 
     Not every algebra has a canonical form: monoids do, though, and it's the
     simple list.
@@ -940,13 +1007,6 @@
         \draw[AgdaDatatype, transform canvas={yshift=\shft}] (ln) -- (rn);
       \draw[AgdaDatatype, transform canvas={yshift=1.6pt}] (ln) -- (rn) node[midway, above] {\AgdaInductiveConstructor{refl}};
     \end{tikzpicture}
-  }
-\end{frame}
-\begin{frame}[standout]
-  Now, just to prove homomorphism!
-  \note{
-    I won't go through the homomorphism proofs, but effectively we need to prove
-    it for each case in the expression constructor.
   }
 \end{frame}
 \begin{frame}
@@ -1046,17 +1106,62 @@
   \note{
     Ever-present in Agda is the need to prove termination.
 
-    
+    Our conversion to normal form, and the operations on that normal form, are
+    complex, and not trivially terminating.
+
+    To pass the termination checker, a recursive call has to have structurally
+    smaller arguments. In other words, the arguments must be subterms of what
+    was given.
+
+    Comparing these two recursive functions, only the first passes the
+    termination checker. The first $n$ is a subterm of the argument passed in;
+    in the second example, it's not.
   }
+  \ExecuteMetaData[BasicTypes.tex]{fib}
+
+  \ExecuteMetaData[BasicTypes.tex]{fib-nonterm}
 \end{frame}
 \begin{frame}
-  \frametitle{Algebra of Programming}
-  \note{
-    The full implementation continues like that, and we add more variables, and
-    so on.
+  \frametitle{Well-Founded Recursion}
+  \note<1>{
+    The majority of programs will be structurally recursive.
 
-    One component of the implementation needs to prove termination, which we do
-    with well-founded recursion.
+    However, some (as in the second fib above) will not be, and we will need
+    some extra information to prove termination.
+
+    In Agda, we do this using well-founded relations.
+
+  }
+  \note<2>{
+    We don't add well-founded relations to the theory, as each individual
+    relation may not be consistent with other notions of termination.
+
+    Instead, for any relation, we \emph{reformulate} it in terms of structural
+    recursion.
+  }
+  \only<1>{
+    \begin{block}{Well-Founded Relation}
+      Contains no infinite descending chains.
+
+      ``Less than'' on $\mathbb{N}$
+
+      \[ 1 < 2 < 4 < 8 \]
+    \end{block}
+
+    \bibentry{nordstrom_terminating_1987}
+
+    Is this consistent?
+  }
+  \begin{onlyenv}<2>
+    \ExecuteMetaData[BasicTypes.tex]{wellfounded}
+  \end{onlyenv}
+\end{frame}
+\begin{frame}
+  \frametitle{Homomorphism}
+  \note{
+    After termination is proven, we need to prove that the canonical form
+    corresponds to the underlying carrier. This is proving that the operations
+    we have defined are a ring homomorphism.
 
     The only last thing I'll mention is with regards to the nature of the
     proofs. They use a technique called the ``algebra of programming'' to
@@ -1237,5 +1342,4 @@
     comparison.
   }
 \end{frame}
-\section{The \(p\)-Adics}
 \end{document}
