@@ -1,4 +1,0 @@
-\begin{Verbatim}[commandchars=\\\{\}]
-    \PYG{o}{\PYGZgt{}\PYGZgt{}\PYGZgt{}} \PYG{n}{head} \PYG{k+kt}{[]}
-    \PYG{n+ne}{error} \PYG{l+s}{\PYGZdq{}head: empty list\PYGZdq{}}
-\end{Verbatim}

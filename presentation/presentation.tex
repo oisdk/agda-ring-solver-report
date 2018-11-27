@@ -1,6 +1,5 @@
 \documentclass[usenames,dvipsnames]{beamer}
 \usepackage{pgfpages}
-\setbeameroption{show notes on second screen=right}
 \setbeamertemplate{note page}[plain]
 \usepackage{tikz}
 \usetikzlibrary{cd}
@@ -75,14 +74,46 @@
 \usepackage{tabularx}
 \metroset{block=fill}
 \usepackage{adjustbox}
-\title{Talking About Mathematics in a Programming Language}
+\title{An efficient and flexible evidence-providing solver for polynomial equalities in Agda}
 \author{Donnacha Oisín Kidney}
 \begin{document}
 \maketitle
+\begin{frame}[standout]
+  Talking about Mathematics in a Programming Language
+\end{frame}
 \tableofcontents
 \bibliographystyle{plain}
 \nobibliography{../horners-rule.bib}
-\section{Formalised Mathematics}
+\section{Formalised and Mechanized Mathematics}
+\begin{frame}
+  \frametitle{Why?}
+  \note<1>{
+    For one thing, it would be nice if the proofs we wrote were \emph{checkable}
+    by a computer.
+  }
+
+  \pause
+  \bibentry{appel_solution_1977}
+  \note<2>{
+    In particular, it would be great if we could check \emph{computer-assisted}
+    proofs. 
+
+    The famous example is the four-colour map theorem.
+
+    First major mathematical proof which relied heavily on computer assistance.
+
+    The problem is thus: can you colour a map, with only four colours, so that
+    every border has two different colours?
+
+    The proof effectively relied on checking a large number of different
+    cases---a computer program was used to check each one.
+
+    A computer is a perfect candidate for checking computer programs.
+  }
+  \pause
+
+  Did contain bugs!
+\end{frame}
 \begin{frame}
   Formalised mathematics is an attempt to find a core set of axioms and
   consistent rules from which all mathematical truths can be derived.
@@ -161,6 +192,33 @@
   \bibentry{paulson2016future}
 \end{frame}
 \begin{frame}
+  \frametitle{So Where Are We Now?}
+  \pause
+  \begin{itemize}
+  \item \alert{93\%} of the ``Top 100'' Theorems
+
+    \bibentry{wiedijk_formalizing_2018}
+  \pause
+  \item Metamath
+
+    \bibentry{megill_metamath_2007}
+    \pause
+  \item Coq, Agda, etc.
+
+    \bibentry{gonthier_formal_2008}
+  \end{itemize}
+  \note<2>{
+    Number of ``top 100'' theorems which have been formalized (constructive
+    number is smaller)
+  }
+  \note<3>{
+    Notable language is metamath: python interpreter is ~350 lines
+  }
+  \note<4>{
+    Coq proof of 4-colour thoerem came out
+  }
+\end{frame}
+\begin{frame}
   \frametitle{What Does our System Look Like?}
   \note<1>{
     So what have we given up since Hilbert's program?
@@ -220,45 +278,7 @@
     people haven't nailed down the perfect base yet.
   }
 \end{frame}
-\begin{frame}[standout]
-  What do Programming Languages Have to do with it?
-\end{frame}
-\begin{frame}
-  \note<1>{
-    For one thing, it would be nice if the proofs we wrote were \emph{checkable}
-    by a computer.
-  }
-
-  \pause
-  \bibentry{appel_solution_1977}
-  \note<2>{
-    In particular, it would be great if we could check \emph{computer-assisted}
-    proofs. 
-
-    The famous example is the four-colour map theorem.
-
-    First major mathematical proof which relied heavily on computer assistance.
-
-    The problem is thus: can you colour a map, with only four colours, so that
-    every border has two different colours?
-
-    The proof effectively relied on checking a large number of different
-    cases---a computer program was used to check each one.
-
-    A computer is a perfect candidate for checking computer programs.
-  }
-  \pause
-
-  Did contain bugs!
-  \pause
-  \bibentry{gonthier_formal_2008}
-  \note<3>{
-    Unfortunately, this is still difficult to do
-
-    The formalized version of the four-colour theorem came out a full 29 years
-    later!
-  }
-\end{frame}
+\section{Programming is Proving}
 \begin{frame}
   \frametitle{Programming Proofs}
   \note{
@@ -304,7 +324,6 @@
     \end{onlyenv}
   \end{overlayarea}
 \end{frame}
-\section{Programming is Proving}
 \begin{frame}[fragile]
   \frametitle{The Curry-Howard Correspondence}
   \note<1>{
@@ -333,270 +352,6 @@
   \end{onlyenv}
   \vfill
   \bibentry{wadler_propositions_2015-1}
-\end{frame}
-\begin{frame}
-  \frametitle{Types are Propositions}
-  Types are (usually):
-  \begin{itemize}
-    \item \(\AgdaDatatype{Int}\)
-    \item \(\AgdaDatatype{String}\)
-    \item ...
-  \end{itemize}
-
-  How are these propositions?
-  \note{Propositions are things like ``there are infinite primes'', etc. Int
-    certainly doesn't \emph{look} like a proposition.}
-\end{frame}
-\begin{frame}[fragile]
-  \frametitle{Existential Proofs}
-  \note<1>{We use a trick to translate: put a ``there exists'' before the type.
-    Remember, we're constructivist!}
-  \pause
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-    \centering
-    So when you see:
-    \ExecuteMetaData[BasicTypes.tex]{xint}
-    \column{0.5\textwidth}
-    \centering
-    \pause
-    Think:
-    \[\exists. \mathbb{N}\]
-  \end{columns}
-  \pause
-
-  \begin{block}{NB}
-    We'll see a more powerful and precise version of \(\exists\) later.
-  \end{block}
-
-  \pause
-  Proof is ``by example'':
-
-  \pause
-  \ExecuteMetaData[BasicTypes.tex]{xprf}
-\end{frame}
-\begin{frame}[fragile]
-  \frametitle{Programs are Proofs}
-  \note<1>{Let's start working with a function as if it were a proof. The function
-    we'll choose gets the first element from a list. It's commonly called
-    ``head'' in functional programming.}
-  \pause
-  \begin{minted}{haskell}
-    >>> head [1,2,3]
-    1
-  \end{minted}
-  \pause
-
-  Here's the type:
-  \ExecuteMetaData[BasicTypes.tex]{headty}
-\end{frame}
-\begin{frame}[fragile]
-  \frametitle{Basic Agda Syntax}
-  \note<1>{\(\AgdaFunction{head}\) is what would be called a ``generic''
-    function in languages like Java. In other words, the type \(A\) is not
-    specified in the implementation of the function.}
-
-  \pause
-  Equivalent in other languages:
-
-  \begin{description}
-    \item[Haskell]
-      \begin{minted}{haskell}
-        head :: [a] -> a
-      \end{minted}
-    \item[Swift]
-      \begin{minted}{swift}
-        func head<A>(xs : [A]) -> A {
-      \end{minted}
-  \end{description}
-
-  \pause
-  \note<3>{In Agda, you must supply the type to the function: the curly brackets
-    mean the argument is implicit.}
-  \begin{columns}
-    \column{0.5\textwidth}
-    \ExecuteMetaData[BasicTypes.tex]{headty}
-    \pause
-    \column{0.5\textwidth}
-    ``Takes a list of things, and returns one of those things''.
-  \end{columns}
-
-\end{frame}
-\begin{frame}[fragile]
-  \frametitle{The Proposition is False!}
-  \begin{minted}{haskell}
-    >>> head []
-    error "head: empty list"
-  \end{minted}
-  \note<1>{head isn't defined on the empty list, so the function \emph{doesn't}
-    exist. In other words, its type is a false proposition.}
-  \pause
-
-  \begin{columns}
-    \column{0.5\textwidth}
-    \ExecuteMetaData[BasicTypes.tex]{headty}
-    \pause
-    \column{0.5\textwidth}
-    \centering
-    \alert{False}
-  \end{columns}
-\end{frame}
-\begin{frame}
-  If Agda is correct (as a formal logic):
-
-  \only<2>{\alert{We shouldn't be able to prove this using Agda}}
-  \only<3>{\alert{We shouldn't be able write this function in Agda}}
-\end{frame}
-\begin{frame}[fragile]
-  \frametitle{But Let's Try Anyway!}
-  \only<1>{
-    \note{For lists, we also have two patterns: the empty list, and the head
-      element followed by the rest of the list.}
-
-    \ExecuteMetaData[BasicTypes.tex]{length}
-  }
-  \only<2->{
-    \ExecuteMetaData[BasicTypes.tex]{head1}
-    \onslide<5->{\ExecuteMetaData[BasicTypes.tex]{head2}}
-    \note<2>{
-      Here's a candidate definition for head.
-
-      Remember, we shouldn't be able to write it, so if this definition is
-      accepted by Agda, then Agda isn't correct.
-
-      So how do we disallow it?
-    }
-    \note<3>{
-      We disallow it because it doesn't match all patterns.
-
-      Agda will only accept functions which are defined for \emph{all} of their
-      inputs.
-    }
-    \note<4>{
-      So we need something to write for the second clause, the empty list.
-
-      It seems like we can't, but people familiar with Haskell may have spotted a
-      way to do it.
-    }
-    \note<5>{
-      In Haskell, a definition like this is perfectly acceptable: it's just
-      recursive.
-
-      Here, though, we've obviously proved a falsehood, so we need some way to
-      disallow it.
-
-      If we were to run this program, it would just loop forever: disallowing that
-      turns out to be enough to keep the logic consistent.
-    }
-
-    \onslide<3->{
-      \begin{block}{Rule 1}
-        No partial functions
-      \end{block}
-    }
-    \onslide<6->{
-      \begin{block}{Rule 2}
-        All programs are total
-      \end{block}
-    }
-    \note<6>{
-      Bear in mind that even if we don't obey the rules the program can still be
-      a valid proof---we just have to run it first.
-
-      Obeying these rules ensures that the proofs are valid if they typecheck.
-      
-      What does ``total'' mean? Well, it's something like terminating...
-    }
-}
-\end{frame}
-\begin{frame}
-  \frametitle{Turing Completeness}
-  \pause
-  \note<1>{
-    Have we just thrown out Turing completeness?
-
-    If we're not allowed infinite loops, then we're not turing complete, right?
-
-    Well, no...
-  }
-  The dual to termination is \emph{productivity}
-  \note<2>{
-    Consider a program like a webserver, or a clock on your computer.
-
-    Neither of these things should ``terminate'', but we don't want them to
-    contain infinite loops, either.
-
-    The property we want them to posses is called \emph{productivity}: they
-    always produce another step of computation in finite time, even if there are
-    infinitely many steps.
-
-    Agda can check for productivity, too.
-  }
-  \pause
-  \ExecuteMetaData[BasicTypes.tex]{stream}
-  \note<3>{
-    The definition of this type (and the coinductive keyword) change the
-    behaviour of the termination-checker. We can now construct infinite
-    structures.
-
-    Using types like this, we can (for instance), simulate a turing machine, or
-    write a lambda-calculus interpreter.
-
-    What we \emph{can't} do is lie about the types of those programs: we won't
-    be able to write a function like ``run'' which produces a finite result. We
-    could write a function that runs for some finite number of steps, and
-    produces a finite result, or a function which produces an infinite result,
-    though.
-
-    The limitation is that there will be terminating programs that we can't
-    prove are terminating. In this case, we can default to saying ``maybe
-    terminating''.
-  }
-  \pause
-  You can write terminating and non-terminating programs: \emph{you just have to
-  say so}
-\end{frame}
-\begin{frame}
-  \note<1>{
-    Enough Restrictions!
-
-    That's a lot of things we \emph{can't} prove.
-
-    How about something that we can?
-
-    How about the converse?
-  }
-  \pause
-  Can we \emph{prove} that \(\AgdaFunction{head}\) doesn't exist?
-
-  \note<2>{
-    After all, all we have so far is ``proof by trying really hard''.
-  }
-\end{frame}
-\begin{frame}
-  \frametitle{Falsehood}
-  \note<1>{First we'll need a notion of ``False''. Often it's said that you can't
-    prove negatives in dependently typed programming: not true! We'll use the
-    principle of explosion: ``A false thing is one that can be used to prove
-    anything''.}
-
-  \begin{columns}
-    \column{0.5\textwidth}<3->
-    \ExecuteMetaData[BasicTypes.tex]{false}
-    \column{0.5\textwidth}<2->
-    \begin{block}{Principle of Explosion}
-      \emph{``Ex falso quodlibet''} \\
-      If you stand for nothing, you'll fall for anything.
-    \end{block}
-  \end{columns}
-\end{frame}
-\begin{frame}
-  \ExecuteMetaData[BasicTypes.tex]{head-not}
-
-  \note{Here's how the proof works: for falsehood, we need to prove the supplied
-    proposition, no matter what it is. If \(\AgdaFunction{head}\) exists, this
-    is no problem! Just get the head of a list of proofs of the proposition,
-    which can be empty.}
 \end{frame}
 \begin{frame}
   \frametitle{Proofs are Programs}
@@ -691,28 +446,51 @@
   }
 \end{frame}
 \begin{frame}
-  \frametitle{Dependent Types}
+  \frametitle{Turing Completeness}
   \pause
-  Everything so far has been non-dependent
+  \note<1>{
+    Have we just thrown out Turing completeness?
 
-  \pause
-  Proving things using this bare-bones toolbox is difficult (though possible)
+    If we're not allowed infinite loops, then we're not turing complete, right?
 
-  \pause
-  To make things easier, we're going to add some things to our types
+    Well, no...
+  }
+  The dual to termination is \emph{productivity}
   \note<2>{
-    In other words, lots of modern languages support it. (Haskell)
-  }
+    Consider a program like a webserver, or a clock on your computer.
 
+    Neither of these things should ``terminate'', but we don't want them to
+    contain infinite loops, either.
+
+    The property we want them to posses is called \emph{productivity}: they
+    always produce another step of computation in finite time, even if there are
+    infinitely many steps.
+
+    Agda can check for productivity, too.
+  }
+  \pause
+  \ExecuteMetaData[BasicTypes.tex]{stream}
   \note<3>{
-    The proof that head doesn't exists, for instance, could be written in
-    vanilla Haskell.
+    The definition of this type (and the coinductive keyword) change the
+    behaviour of the termination-checker. We can now construct infinite
+    structures.
 
-    It's difficult to prove more complex statements using this pretty bare-bones
-    toolbox, though, so we're going to introduce some extra handy features.
+    Using types like this, we can (for instance), simulate a turing machine, or
+    write a lambda-calculus interpreter.
+
+    What we \emph{can't} do is lie about the types of those programs: we won't
+    be able to write a function like ``run'' which produces a finite result. We
+    could write a function that runs for some finite number of steps, and
+    produces a finite result, or a function which produces an infinite result,
+    though.
+
+    The limitation is that there will be terminating programs that we can't
+    prove are terminating. In this case, we can default to saying ``maybe
+    terminating''.
   }
-
-  \bibentry{martin-lof_intuitionistic_1980}
+  \pause
+  You can write terminating and non-terminating programs: \emph{you just have to
+  say so}
 \end{frame}
 \begin{frame}
   \frametitle{Russell's Paradox}
@@ -1017,6 +795,8 @@
     proof of correctness. We now turn our focus to polynomials.
 
     The state-of-the art approach is presented in this paper.
+
+    Also: choice of algebra.
   }
   \bibentry{gregoire_proving_2005}
 \end{frame}
@@ -1341,5 +1121,8 @@
     Nonetheless, we do provide an implementation of this version, for
     comparison.
   }
+\end{frame}
+\begin{frame}[standout]
+  Questions?
 \end{frame}
 \end{document}
