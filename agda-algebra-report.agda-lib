@@ -1,0 +1,3 @@
+name: agda-algebra-report
+include: .
+depend: agda-algebra
