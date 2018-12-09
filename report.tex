@@ -168,9 +168,7 @@ in\cite{lioubartsev_constructing_2016}.
     efficient correct-by-construction code.
   \item[A Simple Reflection-Based Interface] We use Agda's reflection machinery
     to provide the following interface to the solver:
-
     \ExecuteMetaData[Contributions.tex]{lemma}
-
     It imposes minimal overhead on the user: only the \(\AgdaDatatype{Ring}\)
     implementation is required, with no need for user implementations of
     quoting. Despite this, it is generic over any type which implements ring.
@@ -180,181 +178,144 @@ in\cite{lioubartsev_constructing_2016}.
     has been exploited in Agda before to generate isomorphisms over containers,
     we use it here to construct didactic (or ``step-by-step'') solutions.
 \end{description}
+\section{Explaining The Reflexive Technique With Monoids}
+Before jumping into commutative rings, we will first illustrate a general
+technique for automatically constructing equivalence proofs over a simpler
+algebra---\emph{monoids}.
 
-% Dependently typed programming languages allow programmers and mathematicians
-% alike to write proofs which can be executed. For programmers, this often means
-% being able to formally verify the properties of their programs; for
-% mathematicians, it provides a system for writing machine-checked (rather than
-% hand-checked) proofs.
+\begin{definition}[Monoids]
+  A monoid is a set equipped with a binary operation, \(\bullet\), and a
+  distinguished element \(\epsilon\), such that the following equations hold:
+  \begin{align}
+    x \bullet (y \bullet z) &= (x \bullet y) \bullet z \tag{Associativity} \\
+    x \bullet \epsilon      &= x \tag{Left Identity} \\
+    \epsilon \bullet x      &= x \tag{Right Identity}
+  \end{align}
+  Addition and multiplication (with 0 and 1 being the respective identity
+  elements) are perhaps the most obvious instances of the algebra. In computer
+  science, monoids have proved a useful abstraction for formalizing concurrency
+  (in a sense, an associative operator is one which can be evaluated in any
+  order).
+\end{definition}
+\subsection{A ``Trivial'' Identity}
+\begin{figure}
+  \ExecuteMetaData[Monoids.tex]{mon-ident}
+  \caption{A Simple Identity Of Monoids}
+  \label{mon-ident}
+\end{figure}
 
-% Naïve usage of these systems can be tedious: the typechecker is often
-% over-zealous in its rigor, demanding justification for every minute step in a
-% proof, no matter how obvious or trivial it may seem to a human. For algebraic
-% proofs, this kind of thing usually consists of long chains of rewrites, of the
-% style ``apply commutativity of \(+\), then associativity of \(+\), then at this
-% position apply distributivity of \(*\) over \(+\)'' and so on, when really the
-% programmer wants to say ``rearrange the expression into this form, checking it's
-% correct''.
+As a running example for this section, we will use the identity in
+figure~\ref{mon-ident}. To a human, the fact that the identity holds may well be
+obvious: \(\AgdaField{∙}\) is associative, so we can scrub out all the
+parentheses, and \(\AgdaField{ε}\) is the identity element, so scrub it out too.
+After that, both sides are equal, so voilà! 
 
-% However, since our proof assistant is also a programming language, we can
-% automate this process by writing a verified program to compute these proofs for
-% us. 
-% \section{A Case Study in Monoids}
-% Before describing the ring solver, first we will explain the technique of
-% writing a solver in Agda in the simpler setting of monoids.
+Unfortunately, our compiler isn't nearly that clever. As alluded to before, we
+need to painstakingly specify every intermediate step, justifying every move:
 
-% \begin{definition}{Monoids}
-%   A monoid is a set equipped with a binary operation, \(\bullet\), and a
-%   distinguished element \(\epsilon\), such that the following equations hold:
-%   \begin{align}
-%     x \bullet (y \bullet z) &= (x \bullet y) \bullet z \tag{Associativity} \\
-%     x \bullet \epsilon      &= x \tag{Left Identity} \\
-%     \epsilon \bullet x      &= x \tag{Right Identity}
-%   \end{align}
-% \end{definition}
-% Addition and multiplication (with 0 and 1 being the respective identity
-% elements) are perhaps the most obvious instances of the algebra. In computer
-% science, monoids have proved a useful abstraction for formalizing concurrency
-% (in a sense, an associative operator is one which can be evaluated in any
-% order).
+\begin{samepage}
+  \begin{linenumbers}
+    \ExecuteMetaData[Monoids.tex]{mon-proof}
+  \end{linenumbers}
+\end{samepage}
 
-% Monoids can be represented in Agda in a straightforward way, as a record (see
-% Figure~\ref{mon-def}). Immediately it should be noted that we're no longer
-% talking about a monoid over a set, but rather one over a setoid. In other words,
-% rather than using propositional equality (indicated by the \(\AgdaDatatype{≡}\)
-% symbol), we will use a user-supplied equivalence relation (\(\AgdaField{≈}\) in
-% Figure~\ref{mon-def}) in our proofs.
-% \begin{figure}
-%   \ExecuteMetaData[Monoids.tex]{mon-def}
-%   \caption{The definition of Monoid in the Agda Standard
-%     Library\cite{danielsson_agda_2018}}
-%   \label{mon-def}
-% \end{figure}
-% \subsection{Equivalence Proofs}
-% Propositions are stated in type signatures in dependently typed languages.
-% Figure~\ref{mon-ident} is an example of such a proposition.
-% \begin{figure}[h]
-%   \ExecuteMetaData[Monoids.tex]{mon-ident}
-%   \caption{Example Identity}
-%   \label{mon-ident}
-% \end{figure}
-% To a human, the fact that the identity holds may well be obvious:
-% \(\AgdaField{∙}\) is associative, so we can scrub out all the parentheses, and
-% \(\AgdaField{ε}\) is the identity element, so scrub it out too. After that, both
-% sides are equal, so voilà!
+The syntax is designed to mimic that of a handwritten proof: line 3 is the
+expression on the left-hand side of \(\AgdaField{≈}\) in the type, and line 9
+the right-hand-side. In between, the expression is repeatedly rewritten into
+equivalent forms, with justification provided inside the angle brackets. For
+instance, to translate the expression from the form on line 3 to that on line 5,
+the associative property of \(\AgdaField{∙}\) is used on line 4.
 
-% Unfortunately, to convince the compiler we need to specify every instance of
-% associativity and identity, rewriting the left-hand-side repeatedly until it
-% matches the right:
+One trick worth pointing out is on line 6: the \(\AgdaFunction{∙-cong}\) lifts
+two equalities to either side of a \(\AgdaField{∙}\). In other words, given a
+proof that \(x_1 \; \AgdaField{≈} \; x_2\), and \(y_1 \; \AgdaField{≈} \; y_2\),
+it will provide a proof that \(x_1 \; \AgdaField{∙} \; y_1 \; \AgdaField{≈} \;
+x_2 \; \AgdaField{∙} \; y_2\). This function needs to be explicitly provided by
+the user, as we only require \(\AgdaField{≈}\) to be an equivalence relation
+(not just propositional equality). In other words, we don't require it to be
+substitutive.
+\subsection{ASTs for the Language of Monoids}
+The first hurdle for automatically constructing proofs comes from the fact that
+the identity is opaque: it's hidden behind a lambda. We can't scrutinize or
+pattern-match on its contents. Our first step, then, is to define an AST for
+these expressions which we \emph{can} pattern-match on:
 
-% \begin{samepage}
-%   \begin{linenumbers}
-%     \ExecuteMetaData[Monoids.tex]{mon-proof}
-%   \end{linenumbers}
-% \end{samepage}
+\begin{samepage}
+  \ExecuteMetaData[Monoids.tex]{mon-ast}
+\end{samepage}
 
-% The syntax is designed to mimic that of a handwritten proof: line 3 is the
-% expression on the left-hand side of \(\AgdaField{≈}\) in the type, and line 9
-% the right-hand-side. In between, the expression is repeatedly rewritten into
-% equivalent forms, with justification provided inside the angle brackets. For
-% instance, to translate the expression from the form on line 3 to that on line 5,
-% the associative property of \(\AgdaField{∙}\) is used on line 4.
+We have constructors for both monoid operations, and a way to refer to
+variables. These are referred to by their de Bruijn indices (the type itself is
+indexed by the number of variables it contains). Here is how we would represent
+the left-hand-side of the identity in figure~\ref{mon-ident}:
+\begin{center}
+  \includegraphics[draft=false]{graphics/lhs-ast}
+\end{center}
 
-% Because we're not using propositional equality, some familiar tools are
-% unavailable, like Agda's rewrite mechanism, or function congruence (this is why
-% we have to explicitly specify the congruence we're using on line 6). The purpose
-% of this particular hair shirt is flexibility: users can still use the solver
-% even if their type only satisfies the monoid laws modulo some equivalence
-% relation (perhaps they are have an implementation of finite, mergeable sets as
-% balanced trees, and want to treat two sets as equivalent if their elements are
-% equal, even if their internal structures are not). Beyond flexibility, we get
-% some other interesting applications, which are explored in
-% section~\ref{setoid-applications}.
+To get \emph{back} to the original expression, we can write an ``evaluator'':
+\ExecuteMetaData[Monoids.tex]{eval-ast}
 
-% Despite the pleasant syntax, the proof is mechanical, and it's clear that
-% similar proofs would become tedious with more variables or more complex algebras
-% (like rings). To avoid the tedium, then, we automate the procedure.
-% \subsection{Canonical Forms}
-% Automation of equality proofs like the one above can be accomplished by first
-% rewriting both sides of the equation into a canonical form. Not every algebra
-% has a canonical form: monoids do, though, and it's the simple list.
-% \ExecuteMetaData[Monoids.tex]{list-def}
-% We're going to treat this type like an AST for a simple ``language of lists''.
-% This language supports two functions: the empty list, and concatenation.
-% \ExecuteMetaData[Monoids.tex]{list-monoid}
-% The type itself parameterized by the number of variables it contains. Users can
-% refer to variables by their index:
-% \ExecuteMetaData[Monoids.tex]{list-vars}
-% And we can interpret this language with values for each variable supplied in a
-% vector:
-% \ExecuteMetaData[Monoids.tex]{list-eval}
+This performs no normalization, and as such its refult is \emph{definitionally}
+equal to the original expression\footnotemark:
+\footnotetext{
+  The type of the unnormalized expression has changed slightly: instead of being
+  a curried function of \(n\) arguments, it's now a function which takes a
+  vector of length \(n\). The final solver has an extra translation step for
+  going between these two representations, but it's a little fiddly, and not
+  directly relevant to what we're doing here, so we've glossed over it. We refer
+  the interested reader to the Relation.Binary.Reflection module of Agda's
+  standard library\cite{danielsson_agda_2018} for an implementation.
+}
+\ExecuteMetaData[Monoids.tex]{eval-nonnorm}
 
-% Compare this language to the language of monoid expressions that
-% Figure~\ref{mon-ident} uses: both have identity elements and a binary operator,
-% and both refer to variables. Our language of lists, however, has one significant
-% advantage: the monoid operations don't depend on the contents of the lists, only
-% the structure. In other words, an expression in the language of lists will
-% reduce to a flat list even if it has elements which are abstract variables. As a
-% result, the identity from Figure~\ref{mon-ident} is \emph{definitionally} true
-% when written in the language of lists:
-% \ExecuteMetaData[Monoids.tex]{list-obvious}
-% \subsection{Extracting Evidence}
-% While this is beginning to look like a solver, it's still not entirely clear how
-% we're going to join up the pieces. The first step is to get a concrete
-% representation of expressions which we can manipulate and pattern-match on
-% (Figure~\ref{mon-ast}).
-% \begin{figure}[h]
-%   \ExecuteMetaData[Monoids.tex]{mon-ast}
-%   \caption{The AST for monoid expressions}
-%   \label{mon-ast}
-% \end{figure}
-% It has constructors for each of the monoid operations
-% (\(\AgdaInductiveConstructor{⊕}\) and \(\AgdaInductiveConstructor{e}\) are
-% \(\AgdaField{∙}\) and \(\AgdaField{ε}\), respectively), and it's indexed by the
-% number of variables it contains, which are constructed with
-% \(\AgdaInductiveConstructor{ν}\).
+We've thoroughly set the table now, but we still don't have a solver. What's
+missing is another evaluation function: one that normalizes.
+\subsection{Canonical Forms}
+In both the monoid and ring solver, we will make use of the \emph{canonical
+  forms} of expressions in each algebra. Like the AST we defined above, these
+canonical forms represent expressions in the algebra, however \emph{unlike} the
+AST, they definitionally obey the laws of the algebra. 
 
-% We can convert from this AST to an unnormalized expression like so\footnotemark:
-% \ExecuteMetaData[Monoids.tex]{eval-ast}
-% Because this function performs no normalization or transformation, the output is
-% definitionally equal to its equivalent expression. This means that we can
-% discharge the proof obligation with \(\AgdaFunction{refl}\):
-% \footnotetext{
-%   The type of the unnormalized expression has changed slightly: instead of being
-%   a curried function of \(n\) arguments, it's now a function which takes a
-%   vector of length \(n\). The final solver has an extra translation step for
-%   going between these two representations, but it's a little fiddly, and not
-%   directly relevant to what we're doing here, so we've glossed over it. We refer
-%   the interested reader to the Relation.Binary.Reflection module of Agda's
-%   standard library\cite{danielsson_agda_2018} for an implementation.
-% }
-% \ExecuteMetaData[Monoids.tex]{eval-nonnorm}
+For monoids, the canonical form is \emph{lists}.
 
-% The AST might look ugly, but it gives us a link between the expressions we had
-% in Figure~\ref{mon-ident} and a concrete representation. The next link is
-% between the AST and the normalized expression. We can convert from the AST to a
-% normal form like so:
-% \ExecuteMetaData[Monoids.tex]{ast-norm}
-% And since we already defined how to ``evaluate'' the list normal form, we can
-% combine both steps into one:
-% \ExecuteMetaData[Monoids.tex]{ast-norm-interp}
+\ExecuteMetaData[Monoids.tex]{list-def}
 
-% Now we have a concrete way to link the normalized and non-normalized forms of
-% the expressions. A diagram of the strategy for constructing our proof is in
-% Figure~\ref{proof-process}. The goal is to construct a proof of equivalence
-% between the two expressions at the bottom: to do this, we first construct the
-% AST which represents the two expressions (for now, we'll assume the user
-% constructs this AST themselves. Later we'll see how too construct it
-% automatically from the provided expressions). Then, we can evaluate it into
-% either the normalized form, or the unnormalized form. Since the normalized forms
-% are syntactically equal, all we need is \(\AgdaInductiveConstructor{refl}\) to
-% prove their equality. The only missing part now is \(\AgdaFunction{correct}\),
-% which is the task of the next section.
+\(\AgdaField{ε}\) here is simply the empty list, and \(\AgdaField{∙}\) is
+concatenation:
+\ExecuteMetaData[Monoids.tex]{list-monoid}
+
+Similarly to the previous AST, it has variables and is indexed by the number of
+variables it contains. Its evaluation will be recognizable to functional
+programmers:
+\ExecuteMetaData[Monoids.tex]{list-eval}
+
+And finally (as promised) the opening identity is \emph{definitionally} true
+when written in this language:
+\ExecuteMetaData[Monoids.tex]{list-obvious}
+
+Now, to ``evaluate'' a monoid expression in a \emph{normalized} way, we simply
+first convert to the language of lists:
+\ExecuteMetaData[Monoids.tex]{ast-norm}
+
+Or, combining both steps into one:
+\ExecuteMetaData[Monoids.tex]{ast-norm-interp}
+\subsection{Homomorphism}
+Now we have a concrete way to link the normalized and non-normalized forms of
+the expressions. A diagram of the strategy for constructing our proof is in
+Figure~\ref{proof-process}. The goal is to construct a proof of equivalence
+between the two expressions at the bottom: to do this, we first construct the
+AST which represents the two expressions (for now, we'll assume the user
+constructs this AST themselves. Later we'll see how too construct it
+automatically from the provided expressions). Then, we can evaluate it into
+either the normalized form, or the unnormalized form. Since the normalized forms
+are syntactically equal, all we need is \(\AgdaInductiveConstructor{refl}\) to
+prove their equality. The only missing part now is \(\AgdaFunction{correct}\),
+which is the task of this section.
 
 \begin{figure*}
   \makebox[\textwidth][c]{
-    \includegraphics[draft=false]{graphics/reflexive-process};
-    }
+    \includegraphics[draft=false]{graphics/reflexive-process}
+  }
   \caption{The Reflexive Proof Process}
   \label{proof-process}
 \end{figure*}

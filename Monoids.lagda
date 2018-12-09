@@ -1,6 +1,23 @@
 \begin{code}
 module Monoids where
 open import Function
+open import Agda.Builtin.FromNat
+open Number {{...}} public
+open import Data.Nat as ℕ using (ℕ)
+import Data.Nat.Literals
+open import Data.Fin as Fin using (Fin)
+import Data.Fin.Literals
+
+open import Level using (Lift; lift; lower)
+
+instance
+  NatLit : Number ℕ
+  NatLit = Data.Nat.Literals.number
+
+instance
+  FinLit : ∀ {n} → Number (Fin n)
+  FinLit {n} = Data.Fin.Literals.number n
+
 import Algebra
 module MonDef where
   open import Level
@@ -27,7 +44,7 @@ module MonIdent {c ℓ}
   open Algebra.Monoid M
   open import Relation.Binary.EqReasoning setoid
   open import Data.Nat
-  open import Data.Fin
+  open import Data.Fin hiding (lift)
   open import Data.Vec as Vec using (Vec; lookup; _∷_; [])
 \end{code}
 %<*mon-ident>
@@ -58,7 +75,15 @@ module MonIdent {c ℓ}
     _∷_ : Fin i → List i → List i
 \end{code}
 %</list-def>
+\begin{code}
+  open Number
 
+  instance
+    ListLit : ∀ {n} → Number (List n)
+    ListLit {n} = record
+      { Constraint = λ i →  ((Data.Fin.Literals.number n) .Constraint i)
+      ; fromNat = λ i → (Data.Fin.Literals.number n .fromNat i) ∷ [] }
+\end{code}
 %<*list-monoid>
 \begin{code}
   infixr 5 _⊙_
@@ -88,8 +113,8 @@ module MonIdent {c ℓ}
 \begin{code}
   obvious
     : (List 4 ∋
-    ((η # 0 ⊙ []) ⊙ (η # 1 ⊙ η # 2)) ⊙ η # 3)
-    ≡ (η # 0 ⊙ η # 1) ⊙ (η # 2 ⊙ η # 3)
+    ((0 ⊙ []) ⊙ (1 ⊙ 2)) ⊙ 3)
+    ≡ (0 ⊙ 1) ⊙ (2 ⊙ 3)
   obvious = ≡.refl
 \end{code}
 %</list-obvious>
@@ -97,6 +122,7 @@ module MonIdent {c ℓ}
   module Exprs where
     infixr 7 _⊕_
     infix 9 ν_
+    open Number
 \end{code}
 %<*mon-ast>
 \begin{code}
@@ -106,6 +132,11 @@ module MonIdent {c ℓ}
       ν_   : Fin i → Expr i
 \end{code}
 %</mon-ast>
+\begin{code}
+    instance
+      ExprLit : ∀ {n} → Number (Expr n)
+      ExprLit {n} = record { Constraint = λ i →  Lift c ((Data.Fin.Literals.number n) .Constraint i) ; fromNat = λ i ⦃ x ⦄ → ν (Data.Fin.Literals.number n .fromNat i ⦃ lower x ⦄) }
+\end{code}
 %<*eval-ast>
 \begin{code}
     ⟦_⟧ : ∀ {i} → Expr i → Vec Carrier i → Carrier
@@ -119,7 +150,7 @@ module MonIdent {c ℓ}
     definitional
       : ∀ {w x y z}
       → (w ∙ x) ∙ (y ∙ z)
-        ≈ ⟦ (ν # 0 ⊕ ν # 1) ⊕ (ν # 2 ⊕ ν # 3) ⟧
+        ≈ ⟦ (0 ⊕ 1) ⊕ (2 ⊕ 3) ⟧
           (w ∷ x ∷ y ∷ z ∷ [])
     definitional = refl
 \end{code}
@@ -127,9 +158,9 @@ module MonIdent {c ℓ}
 %<*ast-norm>
 \begin{code}
     norm : ∀ {i} → Expr i → List i
-    norm (x ⊕ y) = norm x ⊙ norm y
-    norm e = []
-    norm (ν x) = η x
+    norm (x ⊕ y)  = norm x ⊙ norm y
+    norm e        = []
+    norm (ν x)    = η x
 \end{code}
 %</ast-norm>
 %<*ast-norm-interp>
@@ -147,7 +178,7 @@ module MonIdent {c ℓ}
 \end{code}
 %<*rhs-ast>
 \begin{code}
-      (ν # 0 ⊕ ν # 1) ⊕ (ν # 2 ⊕ ν # 3)
+      (0 ⊕ 1) ⊕ (2 ⊕ 3)
 \end{code}
 %</rhs-ast>
 \begin{code}
@@ -161,7 +192,7 @@ module MonIdent {c ℓ}
 \begin{code}
     rhs-nonnorm = refl
 
-    rhs-norm : ∀ {w x y z} → ⟦ (ν # 0 ⊕ ν # 1) ⊕ (ν # 2 ⊕ ν # 3) ⇓⟧ (w ∷ x ∷ y ∷ z ∷ []) ≈
+    rhs-norm : ∀ {w x y z} → ⟦ (0 ⊕ 1) ⊕ (2 ⊕ 3) ⇓⟧ (w ∷ x ∷ y ∷ z ∷ []) ≈
 \end{code}
 %<*rhs-norm>
 \begin{code}
@@ -183,7 +214,7 @@ module MonIdent {c ℓ}
 \end{code}
 %<*lhs-ast>
 \begin{code}
-      ((ν # 0 ⊕ e) ⊕ (ν # 1 ⊕ ν # 2)) ⊕ ν # 3
+      ((0 ⊕ e) ⊕ (1 ⊕ 2)) ⊕ 3
 \end{code}
 %</lhs-ast>
 \begin{code}
