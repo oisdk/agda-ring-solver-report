@@ -77,29 +77,12 @@
 \maketitle
 \begin{abstract}
   We present a new library which automates the construction of equivalence
-  proofs between polynomials over commutative rings in the programming language
-  Agda\cite{norell_dependently_2008}. The library makes use of Agda's reflection
-  machinery to provide an extremely simple interface, and is extremely flexible
-  in its output, requiring only equivalence (not propositional equality) to
-  construct proofs.
+  proofs between polynomials over commutative rings and semirings in the
+  programming language Agda\cite{norell_dependently_2008}. The library makes use
+  of Agda's reflection machinery to provide an extremely simple interface, and
+  is extremely flexible in its output, requiring only equivalence (not
+  propositional equality) to construct proofs.
 \end{abstract}
-
-
-  % The underlying algorithm is the same as
-  % that in Coq's\cite{the_coq_development_team_2018_1219885} \verb+ring+ tactic
-  % \cite{gregoire_proving_2005}.
-
-
-  
-
-  % We demonstrate techniques for constructing proofs based on the theory of
-  % lists, show how Agda's reflection system can be used to provide a safe and
-  % simple interface to the solver, and compare the ``correct by construction''
-  % approach to that of auxiliary proofs.
-  
-  % We also show that, as a by-product of proving equivalences rather than
-  % equalities, the prover can be used to provide artifacts other than equational
-  % proofs, including step-by-step solutions, and isomorphisms.
 \tableofcontents
 \section{Introduction}
 Truly formal proofs of even basic mathematical identities are notoriously
@@ -179,13 +162,6 @@ in\cite{lioubartsev_constructing_2016}.
     we use it here to construct didactic (or ``step-by-step'') solutions.
 \end{description}
 \section{Explaining The Reflexive Technique With Monoids}
-\begin{figure*}
-  \makebox[\textwidth][c]{
-    \includegraphics[draft=false]{graphics/reflexive-process}
-  }
-  \caption{The Reflexive Proof Process}
-  \label{proof-process}
-\end{figure*}
 Before jumping into commutative rings, we will first illustrate a general
 technique for automatically constructing equivalence proofs over a simpler
 algebra---\emph{monoids}.
@@ -255,9 +231,7 @@ We have constructors for both monoid operations, and a way to refer to
 variables. These are referred to by their de Bruijn indices (the type itself is
 indexed by the number of variables it contains). Here is how we would represent
 the left-hand-side of the identity in figure~\ref{mon-ident}:
-\begin{center}
-  \includegraphics[draft=false]{graphics/lhs-ast}
-\end{center}
+\ExecuteMetaData[Monoids.tex]{lhs-ast}
 
 To get \emph{back} to the original expression, we can write an ``evaluator'':
 \ExecuteMetaData[Monoids.tex]{eval-ast}
@@ -307,9 +281,16 @@ first convert to the language of lists:
 Or, combining both steps into one:
 \ExecuteMetaData[Monoids.tex]{ast-norm-interp}
 \subsection{Homomorphism}
+\begin{figure*}
+  \makebox[\textwidth][c]{
+    \includegraphics[draft=false]{graphics/reflexive-process}
+  }
+  \caption{The Reflexive Proof Process}
+  \label{proof-process}
+\end{figure*}
 Now we have a concrete way to link the normalized and non-normalized forms of
 the expressions. A diagram of the strategy for constructing our proof is in
-Figure~\ref{proof-process}. The goal is to construct a proof of equivalence
+figure~\ref{proof-process}. The goal is to construct a proof of equivalence
 between the two expressions at the bottom: to do this, we first construct the
 AST which represents the two expressions (for now, we'll assume the user
 constructs this AST themselves. Later we'll see how too construct it
@@ -345,9 +326,41 @@ Combining all of the components above, with some plumbing provided by the
 \(\AgdaModule{Relation.Binary.Reflection}\) module, we can finally automate the
 solving of the original identity in figure~\ref{mon-ident}:
 \ExecuteMetaData[Monoids.tex]{ident-auto-proof}
+\subsubsection{Reflection}
+While the procedure is now automated, the interface isn't ideal: users have to
+write the identity they want to prove \emph{and} the AST representing the
+identity. Removing this step is the job of reflection
+(section~\ref{reflection}): in figure~\ref{proof-process} it's represented by
+the path labeled \(\AgdaKeyword{quoteTerm}\).
+\section{A Polynomial Solver}
+We now know the components required for an automatic solver for some algebra: a
+canonical form, a concrete representation of expressions, and a proof of
+correctness (homomorphism). We now turn our focus to polynomials.
+\subsection{Choice of Algebra}
+The choice of algebra has been glossed over thus far, but it is an important
+design decision: choose one with too many laws, and the solver becomes unusable
+for several types; too few, and we may miss out on normalization opportunities.
 
-Some of the duplication is undesirable: we will later use reflection to
-eliminate it.
+The algebra defined in \cite{gregoire_proving_2005} is that of an
+\emph{almost-ring}. It's very close in definition too a ring, but it discards
+the requirement that negation is an inverse (\(x + (-x) = 0\)). Instead, it
+merely requires that negation distribute over addition and multiplication
+appropriately. This allows the solver to be used with non-negative types, like
+\(\mathbb{N}\), where negation is simply the identity function.
+
+A potential worry is that because we don't require \(x + (-x) = 0\)
+axiomatically, it won't be provable in our system. This is not so: as long as
+\(1 - 1\) reduces to \(0\) in the coefficient set, the solver will verify the
+identity.
+\subsection{Horner Normal Form}
+\subsection{Eliminating Redundancy}
+\subsection{Efficiency in Indexed Types}
+\subsection{Abstraction and Folds for Simpler Proofs}
+\section{Reflection} \label{reflection}
+\section{Setoid Applications}
+\subsection{Isomorphisms}
+\subsection{Didactic Solutions}
+\section{The Correct-By-Construction Approach}
 \bibliographystyle{IEEEtranS}
 \bibliography{bibliography.bib}
 \end{document}
