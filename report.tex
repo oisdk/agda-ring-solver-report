@@ -179,6 +179,13 @@ in\cite{lioubartsev_constructing_2016}.
     we use it here to construct didactic (or ``step-by-step'') solutions.
 \end{description}
 \section{Explaining The Reflexive Technique With Monoids}
+\begin{figure*}
+  \makebox[\textwidth][c]{
+    \includegraphics[draft=false]{graphics/reflexive-process}
+  }
+  \caption{The Reflexive Proof Process}
+  \label{proof-process}
+\end{figure*}
 Before jumping into commutative rings, we will first illustrate a general
 technique for automatically constructing equivalence proofs over a simpler
 algebra---\emph{monoids}.
@@ -312,13 +319,35 @@ are syntactically equal, all we need is \(\AgdaInductiveConstructor{refl}\) to
 prove their equality. The only missing part now is \(\AgdaFunction{correct}\),
 which is the task of this section.
 
-\begin{figure*}
-  \makebox[\textwidth][c]{
-    \includegraphics[draft=false]{graphics/reflexive-process}
-  }
-  \caption{The Reflexive Proof Process}
-  \label{proof-process}
-\end{figure*}
+Taking the non-normalizing interpreter as a template, the three cases are as
+follows\footnotemark:
+\begin{align}
+  \AgdaFunction{⟦} x \AgdaInductiveConstructor{⊕} y \AgdaFunction{⟧} \rho \;
+    &\AgdaField{≈} \; \AgdaFunction{⟦} x \AgdaInductiveConstructor{⊕} y
+    \AgdaFunction{⇓⟧} \rho \label{plus-hom} \\
+  \AgdaFunction{⟦} \AgdaInductiveConstructor{e} \AgdaFunction{⟧} \rho \;
+    &\AgdaField{≈} \; \AgdaFunction{⟦} \AgdaInductiveConstructor{e}
+    \AgdaFunction{⇓⟧} \rho \label{e-hom} \\
+  \AgdaFunction{⟦} \AgdaInductiveConstructor{ν} i \AgdaFunction{⟧} \rho \;
+    &\AgdaField{≈} \; \AgdaFunction{⟦} \AgdaInductiveConstructor{ν} i
+    \AgdaFunction{⇓⟧} \rho \label{var-hom}
+\end{align}
+\footnotetext{
+  Equations \ref{plus-hom} and \ref{e-hom} comprise a monoid
+  homomorphism.
+}
+
+Proving each of these cases in turn finally verifies the correctness of our list
+language.
+\ExecuteMetaData[Monoids.tex]{correct-ast}
+\subsection{Usage}
+Combining all of the components above, with some plumbing provided by the
+\(\AgdaModule{Relation.Binary.Reflection}\) module, we can finally automate the
+solving of the original identity in figure~\ref{mon-ident}:
+\ExecuteMetaData[Monoids.tex]{ident-auto-proof}
+
+Some of the duplication is undesirable: we will later use reflection to
+eliminate it.
 \bibliographystyle{IEEEtranS}
 \bibliography{bibliography.bib}
 \end{document}

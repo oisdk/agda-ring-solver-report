@@ -6,4 +6,5 @@
 \contentsline {subsection}{\numberline {4.1}A ``Trivial'' Identity}{2}{subsection.4.1}
 \contentsline {subsection}{\numberline {4.2}ASTs for the Language of Monoids}{3}{subsection.4.2}
 \contentsline {subsection}{\numberline {4.3}Canonical Forms}{4}{subsection.4.3}
-\contentsline {subsection}{\numberline {4.4}Homomorphism}{4}{subsection.4.4}
+\contentsline {subsection}{\numberline {4.4}Homomorphism}{5}{subsection.4.4}
+\contentsline {subsection}{\numberline {4.5}Usage}{5}{subsection.4.5}
