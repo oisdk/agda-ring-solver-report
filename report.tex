@@ -105,7 +105,7 @@ automated computer-algebra systems. Unlike most CASs, those written in Coq or
 Agda come with added guarantees of correctness in their operation. Furthermore,
 these systems can be used to automate the construction of identity proofs which
 would otherwise be too tedious to do by hand.
-\section{Related Work}
+\subsection{Related Work}
 The state-of-the-art solver for polynomial equalities (over commutative rings)
 was originally presented in\cite{gregoire_proving_2005}, and is used in Coq's
 \verb+ring+ solver. This work improved on the already existing
@@ -142,7 +142,7 @@ describes the manipulation of polynomials in both Haskell and Agda.
 
 Finally, the study of \emph{didactic} computer algebra systems is explored
 in\cite{lioubartsev_constructing_2016}.
-\section{Contributions}
+\subsection{Contributions}
 \begin{description}
   \item[An New, Efficient Ring Solver]
     We provide an implementation of a polynomial solver which uses the same
@@ -154,7 +154,7 @@ in\cite{lioubartsev_constructing_2016}.
     languages with type systems powerful enough to express invariants.
   \item[A Simple Reflection-Based Interface] We use Agda's reflection machinery
     to provide the following interface to the solver:
-    \ExecuteMetaData[Contributions.tex]{lemma}
+    \ExecuteMetaData[Introduction.tex]{lemma}
     It imposes minimal overhead on the user: only the \(\AgdaDatatype{Ring}\)
     implementation is required, with no need for user implementations of
     quoting. Despite this, it is generic over any type which implements ring.
@@ -368,7 +368,93 @@ the coefficient set for 0. Instead of requiring this predicate to be decidable,
 we only ask for it to be \emph{weakly} decidable (i.e. we don't require a proof
 of the negation).
 \subsection{Horner Normal Form}
+The canonical representation of polynomials is a list of coefficients, least
+significant first (``Horner Normal Form''). Our initial attempt at encoding this
+representation will begin like so:
+\ExecuteMetaData[HornerNormalForm.tex]{opening}
+The entire module is parameterized by the choice of coefficient. This
+coefficient should support the ring operations, but it is ``raw'', i.e. it
+doesn't prove the ring laws. The operations on the polynomial itself are defined
+like so\footnotemark:
+\ExecuteMetaData[HornerNormalForm.tex]{impl}
+\footnotetext{
+  Symbols chosen for operators use the following mnemonic:
+  \begin{enumerate}
+    \item Operators preceded with ``\(\mathbb{N}.\)'' are defined over
+      \(\mathbb{N}\); e.g. \(\mathbb{N}.+\), \(\mathbb{N}.*\).
+    \item Plain operators, like \(+\) and \(*\), are defined over the
+      coefficients.
+    \item Boxed operators, like \(\boxplus\) and \(\boxtimes\), are defined over
+      polynomials.
+    \item Operators which are boxed on one side are defined over polynomials on
+      the corresponding side, and the coefficient on the other; e.g.
+      \(\ltimes\), \(\rtimes\).
+  \end{enumerate}
+}
+Finally, evaluation of the polynomial uses ``Horner's rule'' to minimize
+multiplications:
+\ExecuteMetaData[HornerNormalForm.tex]{eval}
 \subsection{Eliminating Redundancy}
+As it stands, the above representation has two problems:
+
+\begin{description}
+  \item[Redundancy] The representation suffers from the problem of trailing
+    zeroes. In other words, the polynomial $2x$ could be represented by any of
+    the following:
+  
+    \begin{align*}
+      & 0, 2 \\
+      & 0, 2, 0 \\
+      & 0, 2, 0, 0 \\
+      & 0, 2, 0, 0, 0, 0, 0
+    \end{align*}
+    
+    This is a problem for a solver: the whole \emph{point} is that equivalent
+    expressions are represented the same way.
+
+  \item[Inefficiency] Expressions will tend to have large gaps, full only of
+    zeroes. Something like $x^5$ will be represented as a list with 6 elements,
+    only the last one being of interest. Since addition is linear in the length
+    of the list, and multiplication quadratic, this is a major concern.
+\end{description}
+
+In\cite{gregoire_proving_2005}, the problem is addressed primarily from the
+efficiency perspective: they add a field for the ``power index''. For our case,
+we'll just store a list of pairs, where the second element of the pair is the
+power index\footnote{
+  In\cite{gregoire_proving_2005}, the expression \((c , i) \squaredots P\)
+  represents \(P \times X^i + c\). We found that \(X^i \times (c + X \times P)\)
+  is a more natural translation, and it's what we use here. A power index of
+  \(i\) in this representation is equivalent to a power index of \(i+1\)
+  in\cite{gregoire_proving_2005}.
+}.
+
+As an example, the polynomial:
+\[ 3 + 2x^2 + 4x^5 + 2x^7 \]
+Will be represented as:
+\[ (3,0),(2,1),(4,2),(2,1) \]
+Or, mathematically:
+\[ x^0 (3 + x x^1 (2 + x x^2 * (4 + x x^1 (2 + x 0)))) \]
+
+\begin{definition}[Dense and Sparse Encodings]
+  In situations like this, where inductive types have large ``gaps'' of
+  zero-like terms between interesting (non-zero-like) terms, the encoding which
+  uses an index to represent the distance to the next interesting term will be
+  called \emph{sparse}, and the encoding which simply stores the zero term will
+  be called \emph{dense}.
+\end{definition}
+\subsubsection{Uniqueness}
+While this form solves our efficiency problem, we still have redundant
+representations of the same polynomials. In\cite{gregoire_proving_2005}, care
+is taken to ensure all operations include a normalizing step, but this is not
+verified: in other words, it is not proven that the polynomials are always in
+normal form.
+
+Expressing that a polynomial is in normal form turns out to be as simple as
+disallowing zeroes: without them, there can be no trailing zeroes, and all gaps
+must be represented by power indices. To check for zero, we require the user
+supply a decidable predicate on the coefficients. This changes the module
+declaration like so:
 \subsection{Efficiency in Indexed Types}
 \subsection{Abstraction and Folds for Simpler Proofs}
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}
