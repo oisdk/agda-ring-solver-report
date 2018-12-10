@@ -147,8 +147,11 @@ in\cite{lioubartsev_constructing_2016}.
   \item[An New, Efficient Ring Solver]
     We provide an implementation of a polynomial solver which uses the same
     optimizations described in\cite{gregoire_proving_2005} in the programming
-    language Agda. Along the way, we demonstrate several techniques for writing
-    efficient correct-by-construction code.
+    language Agda.
+  \item[Techniques For Efficient Verification] We demonstrate several techniques
+    to thread verification and proof logic through algorithms \emph{without}
+    changing complexity class. These techniques are of general use in functional
+    languages with type systems powerful enough to express invariants.
   \item[A Simple Reflection-Based Interface] We use Agda's reflection machinery
     to provide the following interface to the solver:
     \ExecuteMetaData[Contributions.tex]{lemma}
@@ -181,7 +184,7 @@ algebra---\emph{monoids}.
   order).
 \end{definition}
 \subsection{A ``Trivial'' Identity}
-\begin{figure}
+\begin{figure}[h]
   \ExecuteMetaData[Monoids.tex]{mon-ident}
   \caption{A Simple Identity Of Monoids}
   \label{mon-ident}
@@ -303,15 +306,9 @@ which is the task of this section.
 Taking the non-normalizing interpreter as a template, the three cases are as
 follows\footnotemark:
 \begin{align}
-  \AgdaFunction{⟦} x \AgdaInductiveConstructor{⊕} y \AgdaFunction{⟧} \rho \;
-    &\AgdaField{≈} \; \AgdaFunction{⟦} x \AgdaInductiveConstructor{⊕} y
-    \AgdaFunction{⇓⟧} \rho \label{plus-hom} \\
-  \AgdaFunction{⟦} \AgdaInductiveConstructor{e} \AgdaFunction{⟧} \rho \;
-    &\AgdaField{≈} \; \AgdaFunction{⟦} \AgdaInductiveConstructor{e}
-    \AgdaFunction{⇓⟧} \rho \label{e-hom} \\
-  \AgdaFunction{⟦} \AgdaInductiveConstructor{ν} i \AgdaFunction{⟧} \rho \;
-    &\AgdaField{≈} \; \AgdaFunction{⟦} \AgdaInductiveConstructor{ν} i
-    \AgdaFunction{⇓⟧} \rho \label{var-hom}
+  \AgdaFunction{⟦} \; x \; \AgdaInductiveConstructor{⊕} \; y \; \AgdaFunction{⟧} \; \rho \; &\AgdaField{≈} \; \AgdaFunction{⟦} \; x \; \AgdaInductiveConstructor{⊕} \; y \; \AgdaFunction{⇓⟧} \; \rho \label{plus-hom} \\
+  \AgdaFunction{⟦}      \; \AgdaInductiveConstructor{e}      \; \AgdaFunction{⟧} \; \rho \; &\AgdaField{≈} \; \AgdaFunction{⟦}      \; \AgdaInductiveConstructor{e}      \; \AgdaFunction{⇓⟧} \; \rho \label{e-hom}    \\
+  \AgdaFunction{⟦}      \; \AgdaInductiveConstructor{ν} \; i \; \AgdaFunction{⟧} \; \rho \; &\AgdaField{≈} \; \AgdaFunction{⟦}      \; \AgdaInductiveConstructor{ν} \; i \; \AgdaFunction{⇓⟧} \; \rho \label{var-hom}
 \end{align}
 \footnotetext{
   Equations \ref{plus-hom} and \ref{e-hom} comprise a monoid
@@ -337,25 +334,44 @@ We now know the components required for an automatic solver for some algebra: a
 canonical form, a concrete representation of expressions, and a proof of
 correctness (homomorphism). We now turn our focus to polynomials.
 \subsection{Choice of Algebra}
-The choice of algebra has been glossed over thus far, but it is an important
-design decision: choose one with too many laws, and the solver becomes unusable
-for several types; too few, and we may miss out on normalization opportunities.
+So far, we've assumed the solver is defined over commutative rings. That wasn't
+the only algebra available to us when writing a solver, though: we've
+demonstrated techniques using monoids in the previous section, and
+indeed\cite{geuvers_automatically_2017} uses \emph{non}commutative rings as its
+algebra. Here, we will justify our\footnotemark choice (and admit to a minor lie).
+\footnotetext{
+  ``Our'' choice here is the same choice as in\cite{gregoire_proving_2005}.
+}
 
-The algebra defined in \cite{gregoire_proving_2005} is that of an
-\emph{almost-ring}. It's very close in definition too a ring, but it discards
-the requirement that negation is an inverse (\(x + (-x) = 0\)). Instead, it
-merely requires that negation distribute over addition and multiplication
-appropriately. This allows the solver to be used with non-negative types, like
-\(\mathbb{N}\), where negation is simply the identity function.
+Because we want to solve arithmetic equations, we will need the basic operations
+of addition, multiplication, subtraction, and exponentiation (to a power in
+\(\mathbb{N}\)). This is only half of the story, though: along with those
+operations we will need to specify the laws or equations that they obey
+(commutativity, associativity, etc.). Here we need balance: the more equations
+specified, the more equalities the solver can prove, but the fewer types the
+solver will be available for.
 
-A potential worry is that because we don't require \(x + (-x) = 0\)
-axiomatically, it won't be provable in our system. This is not so: as long as
-\(1 - 1\) reduces to \(0\) in the coefficient set, the solver will verify the
-identity.
+The elephant in the room here is \(\mathbb{N}\): perhaps the most used numeric
+type in Agda, it doesn't have an additive inverse. So that our solver will still
+function with it as a carrier type, we don't require
+\[x - x = 0\]
+to hold. This lets us lawfully define negation as the identity function for
+\(\mathbb{N}\).
+
+A potential worry is that because we don't require \(x - x = 0\)
+axiomatically, it won't be provable in our system. This is not so: as is pointed
+out in\cite{gregoire_proving_2005},as long as \(1 - 1\) reduces to \(0\) in the
+coefficient set, the solver will verify the identity.
+
+Finally, in order to have a sparse representation, we need to be able to test
+the coefficient set for 0. Instead of requiring this predicate to be decidable,
+we only ask for it to be \emph{weakly} decidable (i.e. we don't require a proof
+of the negation).
 \subsection{Horner Normal Form}
 \subsection{Eliminating Redundancy}
 \subsection{Efficiency in Indexed Types}
 \subsection{Abstraction and Folds for Simpler Proofs}
+\subsection{Proving Higher-Order Termination With Well-Founded Recursion}
 \section{Reflection} \label{reflection}
 \section{Setoid Applications}
 \subsection{Isomorphisms}

@@ -11,12 +11,13 @@
 \contentsline {subsubsection}{\numberline {4.5.1}Reflection}{6}{subsubsection.4.5.1}
 \contentsline {section}{\numberline {5}A Polynomial Solver}{6}{section.5}
 \contentsline {subsection}{\numberline {5.1}Choice of Algebra}{6}{subsection.5.1}
-\contentsline {subsection}{\numberline {5.2}Horner Normal Form}{6}{subsection.5.2}
-\contentsline {subsection}{\numberline {5.3}Eliminating Redundancy}{6}{subsection.5.3}
-\contentsline {subsection}{\numberline {5.4}Efficiency in Indexed Types}{6}{subsection.5.4}
-\contentsline {subsection}{\numberline {5.5}Abstraction and Folds for Simpler Proofs}{6}{subsection.5.5}
-\contentsline {section}{\numberline {6}Reflection}{6}{section.6}
-\contentsline {section}{\numberline {7}Setoid Applications}{6}{section.7}
-\contentsline {subsection}{\numberline {7.1}Isomorphisms}{6}{subsection.7.1}
-\contentsline {subsection}{\numberline {7.2}Didactic Solutions}{6}{subsection.7.2}
-\contentsline {section}{\numberline {8}The Correct-By-Construction Approach}{6}{section.8}
+\contentsline {subsection}{\numberline {5.2}Horner Normal Form}{7}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}Eliminating Redundancy}{7}{subsection.5.3}
+\contentsline {subsection}{\numberline {5.4}Efficiency in Indexed Types}{7}{subsection.5.4}
+\contentsline {subsection}{\numberline {5.5}Abstraction and Folds for Simpler Proofs}{7}{subsection.5.5}
+\contentsline {subsection}{\numberline {5.6}Proving Higher-Order Termination With Well-Founded Recursion}{7}{subsection.5.6}
+\contentsline {section}{\numberline {6}Reflection}{7}{section.6}
+\contentsline {section}{\numberline {7}Setoid Applications}{7}{section.7}
+\contentsline {subsection}{\numberline {7.1}Isomorphisms}{7}{subsection.7.1}
+\contentsline {subsection}{\numberline {7.2}Didactic Solutions}{7}{subsection.7.2}
+\contentsline {section}{\numberline {8}The Correct-By-Construction Approach}{7}{section.8}
