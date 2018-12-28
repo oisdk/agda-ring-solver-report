@@ -76,6 +76,13 @@ module MonIdent {c ℓ}
 \end{code}
 %</list-def>
 \begin{code}
+  foldr : ∀ {i a} {A : Set a}
+        → (Fin i → A → A)
+        → A
+        → List i
+        → A
+  foldr f b [] = b
+  foldr f b (x ∷ xs) = f x (foldr f b xs)
   open Number
 
   instance
@@ -95,8 +102,7 @@ module MonIdent {c ℓ}
 %<*list-eval>
 \begin{code}
   _μ_ : ∀ {i} → List i → Vec Carrier i → Carrier
-  [] μ ρ = ε
-  (x ∷ xs) μ ρ = lookup x ρ ∙ xs μ ρ
+  xs μ ρ = foldr (λ x xs → lookup x ρ ∙ xs) ε xs
 \end{code}
 %</list-eval>
 %<*list-vars>

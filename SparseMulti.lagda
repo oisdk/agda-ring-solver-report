@@ -1,5 +1,5 @@
 \begin{code}
-module EfficiencyInIndexedTypes where
+module SparseMulti where
 \end{code}
 \begin{code}
 open import Algebra

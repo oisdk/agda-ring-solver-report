@@ -25,6 +25,20 @@
 }
 \newcommand{\oeq}{\ensuremath{\incircbin{=}}}
 \makeatother
+\makeatletter
+\newcommand\insquarebin
+{%
+  \mathpalette\@insquarebin
+}
+\newcommand\@insquarebin[2]
+{%
+  \mathbin%
+  {%
+    \ooalign{\hidewidth$#1#2$\hidewidth\crcr$#1\bigbox$}%
+  }%
+}
+\newcommand{\sqtri}{\ensuremath{\insquarebin{\triangle}}}
+\makeatother
 \usepackage{ucs}
 \DeclareUnicodeCharacter{8759}{\ensuremath{\squaredots}}
 \DeclareUnicodeCharacter{951}{\textgreek{\texteta}}
@@ -40,7 +54,7 @@
 \DeclareUnicodeCharacter{10215}{\ensuremath{\rsem}}
 \DeclareUnicodeCharacter{8857}{\mdoubleplus}
 \DeclareUnicodeCharacter{8860}{\oeq}
-\DeclareUnicodeCharacter{9043}{\ensuremath{\triangle}}
+\DeclareUnicodeCharacter{9043}{\ensuremath{\sqtri}}
 \DeclareUnicodeCharacter{928}{\textgreek{\textPi}}
 \DeclareUnicodeCharacter{922}{\textgreek{\textKappa}}
 \DeclareUnicodeCharacter{931}{\textgreek{\textSigma}}
@@ -78,10 +92,9 @@
 \begin{abstract}
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
-  programming language Agda\cite{norell_dependently_2008}. The library makes use
-  of Agda's reflection machinery to provide an extremely simple interface, and
-  is extremely flexible in its output, requiring only equivalence (not
-  propositional equality) to construct proofs.
+  programming language Agda\cite{norell_dependently_2008}. We use Agda's
+  reflection machinery to provide a simple interface to the solver, and
+  demonstrate a novel use of the constructed relations.
 \end{abstract}
 \tableofcontents
 \section{Introduction}
@@ -91,13 +104,13 @@ proof that \(1+1=2\), which finally arrives on page 379 of Principia
 Mathematica\cite{whitehead_principia_1910}. 
 
 More modern systems have greatly simplified the underlying formalisms, but they
-still often suffer from a degree of explicitness that makes elementary
+still often suffer from a degree of explicitness that makes even elementary
 identities daunting. Dependently-typed programming languages like
 Agda\cite{norell_dependently_2008} and
 Coq\cite{the_coq_development_team_2018_1219885} are examples of such systems:
 used in the naïve way, equivalence proofs require the programmer to specify
 every individual step (``here we rely on the commutativity of \(+\), followed by
-the associativity of \(\times\) on its right side'', and so on).
+the associativity of \(\times\) on its right-hand-side'', and so on).
 
 Coq and Agda are not just programming languages in name, though: they are
 fully-fledged and powerful, capable of producing useful software, including
@@ -152,6 +165,9 @@ in\cite{lioubartsev_constructing_2016}.
     to thread verification and proof logic through algorithms \emph{without}
     changing complexity class. These techniques are of general use in functional
     languages with type systems powerful enough to express invariants.
+
+    We also demonstrate a use of the Algebra of Programming approach in
+    Agda\cite{mu_algebra_2009}.
   \item[A Simple Reflection-Based Interface] We use Agda's reflection machinery
     to provide the following interface to the solver:
     \ExecuteMetaData[Introduction.tex]{lemma}
@@ -160,7 +176,7 @@ in\cite{lioubartsev_constructing_2016}.
     quoting. Despite this, it is generic over any type which implements ring.
   \item[A Didactic Computer-Algebra System] As a result of the flexibility of
     the solver, the equivalence relation it constructs can be instantiated into
-    a number of different forms (not just equality, for instance). While This
+    a number of different forms (not just equality, for instance). While this
     has been exploited in Agda before to generate isomorphisms over containers,
     we use it here to construct didactic (or ``step-by-step'') solutions.
 \end{description}
@@ -270,7 +286,7 @@ concatenation:
 
 Similarly to the previous AST, it has variables and is indexed by the number of
 variables it contains. Its evaluation will be recognizable to functional
-programmers:
+programmers as the \(\AgdaFunction{foldr}\) function:
 \ExecuteMetaData[Monoids.tex]{list-eval}
 
 And finally (as promised) the opening identity is \emph{definitionally} true
@@ -362,11 +378,6 @@ A potential worry is that because we don't require \(x - x = 0\)
 axiomatically, it won't be provable in our system. This is not so: as is pointed
 out in\cite{gregoire_proving_2005},as long as \(1 - 1\) reduces to \(0\) in the
 coefficient set, the solver will verify the identity.
-
-Finally, in order to have a sparse representation, we need to be able to test
-the coefficient set for 0. Instead of requiring this predicate to be decidable,
-we only ask for it to be \emph{weakly} decidable (i.e. we don't require a proof
-of the negation).
 \subsection{Horner Normal Form}
 The canonical representation of polynomials is a list of coefficients, least
 significant first (``Horner Normal Form''). Our initial attempt at encoding this
@@ -386,9 +397,6 @@ like so\footnotemark:
       coefficients.
     \item Boxed operators, like \(\boxplus\) and \(\boxtimes\), are defined over
       polynomials.
-    \item Operators which are boxed on one side are defined over polynomials on
-      the corresponding side, and the coefficient on the other; e.g.
-      \(\ltimes\), \(\rtimes\).
   \end{enumerate}
 }
 Finally, evaluation of the polynomial uses ``Horner's rule'' to minimize
@@ -455,7 +463,43 @@ disallowing zeroes: without them, there can be no trailing zeroes, and all gaps
 must be represented by power indices. To check for zero, we require the user
 supply a decidable predicate on the coefficients. This changes the module
 declaration like so:
-\subsection{Efficiency in Indexed Types}
+\ExecuteMetaData[EliminatingRedundancy.tex]{opening}
+
+Importantly, we don't require that the user provides a decidable proof of
+\emph{equivalence}, rather just a decidable proof of some predicate which can
+later be translated into an equivalence with zero. Functionally, this means the
+user could supply a predicate which is always false, or a predicate which is
+only \emph{weakly} decidable.
+
+And now we have a definition for sparse polynomials:
+\ExecuteMetaData[EliminatingRedundancy.tex]{decl}
+
+The proof of nonzero is marked irrelevant (preceded with a dot) to avoid
+computing it at runtime.
+
+We can wrap up the implementation with a cleaner interface by providing a
+normalizing version of \(\AgdaInductiveConstructor{\_∷\_}\):
+\ExecuteMetaData[EliminatingRedundancy.tex]{norm-cons}
+\subsection{A Sparse Encoding for Multiple Variables}
+So far, the polynomials have been (suspiciously) single-variable. Luckily,
+there's a natural technique to support multiple variables: for a polynomial with
+$n$ variables, it has coefficients of $n-1$ variables. In types:
+\ExecuteMetaData[SparseMulti.tex]{dense-poly}
+
+However, this encoding is again a dense one. In a polynomial of $n$ variables,
+addressing the $n^{th}$ variable needlessly requires $n-1$ layers of nesting.
+Alternatively, a constant expression in this polynomial is hidden behind $n$
+layers of nesting.
+
+In contrast to the previous sparse encoding, though, the size of the gap is
+type-relevant. Because the polynomial types are \emph{indexed} by the number of
+variables they contain, storing a simple \(\AgdaDatatype{ℕ}\) won't carry enough
+information to properly type the resulting operations. Instead, we need to store
+the size of the inner and outer polynomial, and a proof that the inner
+polynomial does indeed have fewer variables than the outer.
+
+
+
 \subsection{Abstraction and Folds for Simpler Proofs}
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}
 \section{Reflection} \label{reflection}

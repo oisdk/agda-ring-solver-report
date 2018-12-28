@@ -14,7 +14,7 @@
 \contentsline {subsection}{\numberline {3.2}Horner Normal Form}{6}{subsection.3.2}
 \contentsline {subsection}{\numberline {3.3}Eliminating Redundancy}{7}{subsection.3.3}
 \contentsline {subsubsection}{\numberline {3.3.1}Uniqueness}{7}{subsubsection.3.3.1}
-\contentsline {subsection}{\numberline {3.4}Efficiency in Indexed Types}{8}{subsection.3.4}
+\contentsline {subsection}{\numberline {3.4}A Sparse Encoding for Multiple Variables}{8}{subsection.3.4}
 \contentsline {subsection}{\numberline {3.5}Abstraction and Folds for Simpler Proofs}{8}{subsection.3.5}
 \contentsline {subsection}{\numberline {3.6}Proving Higher-Order Termination With Well-Founded Recursion}{8}{subsection.3.6}
 \contentsline {section}{\numberline {4}Reflection}{8}{section.4}

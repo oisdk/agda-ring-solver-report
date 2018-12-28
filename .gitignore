@@ -10,16 +10,6 @@
 *.blg
 *.bbl
 *.bcf
-Code.tex
 *.el
-Monoids.tex
-Poly.tex
 *.out
-Poly.tex
-Reasoning.tex
-Poly.tex
-*.out
-*.out
-*.toc
-Poly.tex
 *.toc
