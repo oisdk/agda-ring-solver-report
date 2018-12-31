@@ -75,7 +75,7 @@
 \usepackage{amsthm}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
-\theoremstyle{remark}
+\theoremstyle{definition}
 \newtheorem{principle}{Principle}[section]
 \usepackage{subcaption}
 \usepackage{graphicx}
@@ -385,9 +385,8 @@ representation will begin like so:
 \ExecuteMetaData[HornerNormalForm.tex]{opening}
 The entire module is parameterized by the choice of coefficient. This
 coefficient should support the ring operations, but it is ``raw'', i.e. it
-doesn't prove the ring laws. The operations on the polynomial itself are defined
-like so\footnotemark:
-\ExecuteMetaData[HornerNormalForm.tex]{impl}
+doesn't prove the ring laws. The operations\footnotemark on the polynomial
+itself are defined in figure~\ref{simple-ops}.
 \footnotetext{
   Symbols chosen for operators use the following mnemonic:
   \begin{enumerate}
@@ -399,6 +398,13 @@ like so\footnotemark:
       polynomials.
   \end{enumerate}
 }
+
+\begin{figure}
+  \ExecuteMetaData[HornerNormalForm.tex]{impl}
+  \caption{
+    Simple Operations on Dense Horner Normal Form}
+  \label{simple-ops}
+\end{figure}
 Finally, evaluation of the polynomial uses ``Horner's rule'' to minimize
 multiplications:
 \ExecuteMetaData[HornerNormalForm.tex]{eval}
@@ -497,8 +503,47 @@ variables they contain, storing a simple \(\AgdaDatatype{ℕ}\) won't carry enou
 information to properly type the resulting operations. Instead, we need to store
 the size of the inner and outer polynomial, and a proof that the inner
 polynomial does indeed have fewer variables than the outer.
+\ExecuteMetaData[SparseMulti.tex]{sparse-poly}
 
+We will defer the description of the implementation of \(\leq\) for now.
+\subsection{Efficiency in Indexed Types}
+While both sparse encodings provide a more space-efficient representation, the
+computational efficiency has yet to be realized. Starting with the sparse
+monomial, we'll look at the addition function to start off. In the dense
+encoding (figure~\ref{simple-ops}), we needed to line up corresponding
+coefficients to add together. For this encoding, the ``corresponding''
+coefficients are slightly harder to find. In order to line things p correctly,
+we'll need to compare the gap indices. This, however, presents our first
+problem:
+\ExecuteMetaData[EliminatingRedundancy.tex]{nonterm-add}
+The above definition won't pass the termination checker. While it does indeed
+terminate, it isn't structurally decreasing in its arguments. To argue our case
+that the function does terminate, we have to reveal this fact to the compiler
+using a well-known optimization for functional languages called ``call-pattern
+specialization''\cite{jones_call-pattern_2007}.
+\begin{principle}[To make termination obvious, perform call-pattern
+    specialization]
+  Unpack any constructors into function arguments as soon as possible, and
+  eliminate any redundant pattern matches in the offending functions. Happily,
+  this transformation both makes termination more obvious \emph{and} improves
+  performance.
 
+  This transformation is performed automatically by GHC as an optimization:
+  perhaps a similar transformation could be performed by Agda's termination
+  checker to reveal more terminating programs.
+\end{principle}
+
+For our case, the principle applied can be seen in figure~\ref{term-add}.
+
+\begin{figure*}
+  \centering
+  \ExecuteMetaData[EliminatingRedundancy.tex]{term-add}
+  \caption{Termination by Call-Pattern Specialization}
+  \label{term-add}
+\end{figure*}
+
+The second optimization we might rely on involves the call to
+\(\AgdaFunction{compare}\). Instead of 
 
 \subsection{Abstraction and Folds for Simpler Proofs}
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}
