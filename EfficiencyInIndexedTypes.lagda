@@ -78,32 +78,32 @@ module FastCompare where
 \end{code}
 %<*fast-cmp-hom>
 \begin{code}
-  lt-hom : ∀ n m
-         → ((n < m) ≡ true)
-         → m ≡ suc (n + (m ∸ n ∸ 1))
-  lt-hom zero zero ()
-  lt-hom zero (suc m) _ = refl
-  lt-hom (suc n) zero ()
-  lt-hom (suc n) (suc m) n<m =
+  lt-hom  : ∀ n m
+          → ((n < m) ≡ true)
+          → m ≡ suc (n + (m ∸ n ∸ 1))
+  lt-hom zero     zero     ()
+  lt-hom zero     (suc m)  _    = refl
+  lt-hom (suc n)  zero     ()
+  lt-hom (suc n)  (suc m)  n<m  =
     cong suc (lt-hom n m n<m)
 
   eq-hom : ∀ n m
          → ((n == m) ≡ true)
          → n ≡ m
-  eq-hom zero zero _ = refl
-  eq-hom zero (suc m) ()
-  eq-hom (suc n) zero ()
-  eq-hom (suc n) (suc m) n≡m =
+  eq-hom zero      zero     _    = refl
+  eq-hom zero      (suc m)  ()
+  eq-hom (suc n)   zero     ()
+  eq-hom (suc n)   (suc m)  n≡m  =
     cong suc (eq-hom n m n≡m)
 
   gt-hom : ∀ n m
          → ((n < m) ≡ false)
          → ((n == m) ≡ false)
          → n ≡ suc (m + (n ∸ m ∸ 1))
-  gt-hom zero zero n<m ()
-  gt-hom zero (suc m) () n≡m
-  gt-hom (suc n) zero n<m n≡m = refl
-  gt-hom (suc n) (suc m) n<m n≡m =
+  gt-hom zero       zero     n<m  ()
+  gt-hom zero       (suc m)  ()   n≡m
+  gt-hom (suc n)    zero     n<m  n≡m  = refl
+  gt-hom (suc n)    (suc m)  n<m  n≡m  =
     cong suc (gt-hom n m n<m n≡m)
 \end{code}
 %</fast-cmp-hom>
@@ -111,10 +111,10 @@ module FastCompare where
 \begin{code}
   compare : ∀ n m → Ordering n m
   compare n m with n < m  | inspect (_<_ n) m
-  ... | true   | [ n<m  ] rewrite erase (lt-hom n m n<m) = less n (m ∸ n ∸ 1)
+  ... | true   | [ n<m  ] rewrite erase (lt-hom n m n<m)      = less n (m ∸ n ∸ 1)
   ... | false  | [ n≮m  ] with n == m | inspect (_==_ n) m
-  ... | true   | [ n≡m  ] rewrite erase (eq-hom n m n≡m) = equal m
-  ... | false  | [ n≢m  ] rewrite erase (gt-hom n m n≮m n≢m) = greater m (n ∸ m ∸ 1)
+  ... | true   | [ n≡m  ] rewrite erase (eq-hom n m n≡m)      = equal m
+  ... | false  | [ n≢m  ] rewrite erase (gt-hom n m n≮m n≢m)  = greater m (n ∸ m ∸ 1)
 \end{code}
 %</fast-cmp>
 %<*sparse-poly>

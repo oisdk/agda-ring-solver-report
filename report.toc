@@ -2,12 +2,12 @@
 \contentsline {section}{\numberline {1}Introduction}{1}{section.1}
 \contentsline {subsection}{\numberline {1.1}Related Work}{2}{subsection.1.1}
 \contentsline {subsection}{\numberline {1.2}Contributions}{2}{subsection.1.2}
-\contentsline {section}{\numberline {2}Explaining The Reflexive Technique With Monoids}{2}{section.2}
+\contentsline {section}{\numberline {2}Explaining The Reflexive Technique With Monoids}{3}{section.2}
 \contentsline {subsection}{\numberline {2.1}A ``Trivial'' Identity}{3}{subsection.2.1}
 \contentsline {subsection}{\numberline {2.2}ASTs for the Language of Monoids}{3}{subsection.2.2}
 \contentsline {subsection}{\numberline {2.3}Canonical Forms}{4}{subsection.2.3}
-\contentsline {subsection}{\numberline {2.4}Homomorphism}{4}{subsection.2.4}
-\contentsline {subsection}{\numberline {2.5}Usage}{5}{subsection.2.5}
+\contentsline {subsection}{\numberline {2.4}Homomorphism}{5}{subsection.2.4}
+\contentsline {subsection}{\numberline {2.5}Usage}{6}{subsection.2.5}
 \contentsline {subsubsection}{\numberline {2.5.1}Reflection}{6}{subsubsection.2.5.1}
 \contentsline {section}{\numberline {3}A Polynomial Solver}{6}{section.3}
 \contentsline {subsection}{\numberline {3.1}Choice of Algebra}{6}{subsection.3.1}
@@ -16,10 +16,13 @@
 \contentsline {subsubsection}{\numberline {3.3.1}Uniqueness}{7}{subsubsection.3.3.1}
 \contentsline {subsection}{\numberline {3.4}A Sparse Encoding for Multiple Variables}{8}{subsection.3.4}
 \contentsline {subsection}{\numberline {3.5}Efficiency in Indexed Types}{9}{subsection.3.5}
-\contentsline {subsection}{\numberline {3.6}Abstraction and Folds for Simpler Proofs}{11}{subsection.3.6}
-\contentsline {subsection}{\numberline {3.7}Proving Higher-Order Termination With Well-Founded Recursion}{11}{subsection.3.7}
-\contentsline {section}{\numberline {4}Reflection}{11}{section.4}
-\contentsline {section}{\numberline {5}Setoid Applications}{11}{section.5}
-\contentsline {subsection}{\numberline {5.1}Isomorphisms}{11}{subsection.5.1}
-\contentsline {subsection}{\numberline {5.2}Didactic Solutions}{11}{subsection.5.2}
-\contentsline {section}{\numberline {6}The Correct-By-Construction Approach}{11}{section.6}
+\contentsline {subsubsection}{\numberline {3.5.1}Call-Pattern Specialization}{9}{subsubsection.3.5.1}
+\contentsline {subsubsection}{\numberline {3.5.2}Built-In Functions}{10}{subsubsection.3.5.2}
+\contentsline {subsubsection}{\numberline {3.5.3}Hanging Indices}{10}{subsubsection.3.5.3}
+\contentsline {subsection}{\numberline {3.6}Abstraction and Folds for Simpler Proofs}{12}{subsection.3.6}
+\contentsline {subsection}{\numberline {3.7}Proving Higher-Order Termination With Well-Founded Recursion}{12}{subsection.3.7}
+\contentsline {section}{\numberline {4}Reflection}{12}{section.4}
+\contentsline {section}{\numberline {5}Setoid Applications}{12}{section.5}
+\contentsline {subsection}{\numberline {5.1}Isomorphisms}{12}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Didactic Solutions}{12}{subsection.5.2}
+\contentsline {section}{\numberline {6}The Correct-By-Construction Approach}{12}{section.6}

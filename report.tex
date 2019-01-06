@@ -508,6 +508,7 @@ polynomial does indeed have fewer variables than the outer.
 
 We will defer the description of the implementation of \(\leq\) for now.
 \subsection{Efficiency in Indexed Types}
+\subsubsection{Call-Pattern Specialization}
 While both sparse encodings provide a more space-efficient representation, the
 computational efficiency has yet to be realized. Starting with the sparse
 monomial, we'll look at the addition function to start off. In the dense
@@ -543,10 +544,10 @@ For our case, the principle applied can be seen in figure~\ref{term-add}.
   \label{term-add}
 \end{figure*}
 
+\subsubsection{Built-In Functions}
 The second optimization we might rely on involves the call to
 \(\AgdaFunction{compare}\). This is a classic ``leftist'' function: it returns
 an \emph{indexed} data type:
-
 
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{ord-type}
 
@@ -554,16 +555,28 @@ The compare function itself is \(\mathcal{O}(\min(n, m))\):
 
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{cmp-impl}
 
-To improve on this bound, we can rely on Agda's support for a small number of
-built-in functions on natural numbers. Depending on the compiler backend, these
-functions switch to a faster representation at runtime, while still relying on
-the unary implementation in Agda for proofs. For our case, then, we can juggle
-both the unary implementation and built-in, allowing the faster representation
-to kick in a runtime, and aggressively using \(\AgdaFunction{erase}\) in
-combination with \(\AgdaFunction{inspect}\) to justify its use. The
-justifications are as follows:
+The implementation of \(\AgdaFunction{compare}\) may raise suspicion with
+regards to efficiency: if this encoding of polynomials improves time complexity
+by skipping the gaps, don't we lose all of that when we encode the gaps as Peano
+numbers?
+
+The answer is a tentative no. Firstly, since we are comparing gaps, the
+complexity can be no larger than that of the dense implementation. Secondly, the
+operations we're most concerned about are those on the underlying coefficient;
+and, indeed, this sparse encoding does reduce the number of those significantly.
+Thirdly, if a fast implementation of \(\AgdaFunction{compare}\) is really and
+truly demanded, there are tricks we can employ.
+
+Agda has a number of built-in functions on the natural numbers: when applied to
+closed terms, these call to an implementation on Haskell's \texttt{Integer}
+type, rather than the unary implementation. For our uses, the functions of
+interest are \(\AgdaFunction{-}\), \(\AgdaFunction{+}\), \(\AgdaFunction{<}\),
+and \(\AgdaFunction{==}\). The comparison functions provide booleans rather than
+evidence, but we can prove they correspond to the evidence-providing versions:
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{fast-cmp-hom}
-And the implementation can be seen in figure~\ref{fast-cmp}.
+Combined with judicious use of \(\AgdaFunction{erase}\) and
+\(\AgdaFunction{inspect}\), we get the implementation which can be seen in
+figure~\ref{fast-cmp}.
 
 \begin{figure*}
   \centering
@@ -572,6 +585,13 @@ And the implementation can be seen in figure~\ref{fast-cmp}.
     numbers}
   \label{fast-cmp}
 \end{figure*}
+\subsubsection{Hanging Indices}
+Finally we return to the unprovided definition of \(\leq\) above. As we saw with
+the exponent indices, we will eventually need to compare gaps. Unlike before,
+though, the evidence provided by the comparison function will have to mesh
+properly with this \(\leq\) proof. In other words, after comparing the two
+indices, we'll need to get another proof bundled with the evidence that one is
+less than another.
 
 \subsection{Abstraction and Folds for Simpler Proofs}
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}
