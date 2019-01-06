@@ -63,6 +63,7 @@
 \DeclareUnicodeCharacter{8799}{\ensuremath{\stackrel{?}{=}}}
 \DeclareUnicodeCharacter{10181}{\ensuremath{\lbag}}
 \DeclareUnicodeCharacter{10182}{\ensuremath{\rbag}}
+\DeclareUnicodeCharacter{8760}{\ensuremath{-}}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{autofe}
@@ -543,7 +544,34 @@ For our case, the principle applied can be seen in figure~\ref{term-add}.
 \end{figure*}
 
 The second optimization we might rely on involves the call to
-\(\AgdaFunction{compare}\). Instead of 
+\(\AgdaFunction{compare}\). This is a classic ``leftist'' function: it returns
+an \emph{indexed} data type:
+
+
+\ExecuteMetaData[EfficiencyInIndexedTypes.tex]{ord-type}
+
+The compare function itself is \(\mathcal{O}(\min(n, m))\):
+
+\ExecuteMetaData[EfficiencyInIndexedTypes.tex]{cmp-impl}
+
+To improve on this bound, we can rely on Agda's support for a small number of
+built-in functions on natural numbers. Depending on the compiler backend, these
+functions switch to a faster representation at runtime, while still relying on
+the unary implementation in Agda for proofs. For our case, then, we can juggle
+both the unary implementation and built-in, allowing the faster representation
+to kick in a runtime, and aggressively using \(\AgdaFunction{erase}\) in
+combination with \(\AgdaFunction{inspect}\) to justify its use. The
+justifications are as follows:
+\ExecuteMetaData[EfficiencyInIndexedTypes.tex]{fast-cmp-hom}
+And the implementation can be seen in figure~\ref{fast-cmp}.
+
+\begin{figure*}
+  \centering
+  \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{fast-cmp}
+  \caption{Fast comparison function using built-in functions on the natural
+    numbers}
+  \label{fast-cmp}
+\end{figure*}
 
 \subsection{Abstraction and Folds for Simpler Proofs}
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}
