@@ -499,14 +499,16 @@ Alternatively, a constant expression in this polynomial is hidden behind $n$
 layers of nesting.
 
 In contrast to the previous sparse encoding, though, the size of the gap is
-type-relevant. Because the polynomial types are \emph{indexed} by the number of
-variables they contain, storing a simple \(\AgdaDatatype{ℕ}\) won't carry enough
-information to properly type the resulting operations. Instead, we need to store
-the size of the inner and outer polynomial, and a proof that the inner
-polynomial does indeed have fewer variables than the outer.
-\ExecuteMetaData[SparseMulti.tex]{sparse-poly}
+type-relevant. Because of this, the gap will have to be lifted into an index
+(figure~\ref{sparse-poly}).
+\begin{figure}
+  \ExecuteMetaData[SparseMulti.tex]{sparse-poly}
+  \caption{A Sparse Multivariate Polynomial}
+  \label{sparse-poly}
+\end{figure}
 
-We will defer the description of the implementation of \(\leq\) for now.
+This ``type-relevant'' gap will present some problems later on, but we will
+leave the definition as it is for now.
 \subsection{Efficiency in Indexed Types}
 \subsubsection{Call-Pattern Specialization}
 While both sparse encodings provide a more space-efficient representation, the
@@ -545,13 +547,15 @@ For our case, the principle applied can be seen in figure~\ref{term-add}.
 \end{figure*}
 
 \subsubsection{Built-In Functions}
+\begin{figure}
+  \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{ord-type}
+  \caption{The Ordering Indexed Type}
+  \label{ord-type}
+\end{figure}
 The second optimization we might rely on involves the call to
 \(\AgdaFunction{compare}\). This is a classic ``leftist'' function: it returns
-an \emph{indexed} data type:
-
-\ExecuteMetaData[EfficiencyInIndexedTypes.tex]{ord-type}
-
-The compare function itself is \(\mathcal{O}(\min(n, m))\):
+an \emph{indexed} data type (figure~\ref{ord-type}). The compare function itself
+is \(\mathcal{O}(\min(n, m))\):
 
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{cmp-impl}
 
@@ -585,13 +589,76 @@ figure~\ref{fast-cmp}.
     numbers}
   \label{fast-cmp}
 \end{figure*}
+\subsubsection{Unification}
+Now we return to the type-relevant \emph{injection} indices. We encoded the
+information in figure~\ref{sparse-poly}. It encodes ``less than'' in the same
+way that the ordering type did (figure~\ref{ord-type}), so it may seem
+(initially) like a perfect fit. However, we run into issues when it comes to
+performing the comparison-like operations above. Because it's an indexed type,
+pattern matching on it will force unification of the index with whatever type
+variable it was bound to. This is problematic because the index is defined by a
+function: pattern match on a pair of \(\AgdaDatatype{Poly}\)s and you're asking
+Agda to unify \(i_1 + j_1\) and \(i_2 + j_2\), a task it will likely find too
+difficult. How do we avoid this?
+\begin{principle}[Don't touch the green slime!]
+  When combining prescriptive and descriptive indices, ensure both are in
+  constructor form. Exclude defined functions which yield difficult unification
+  problems\cite{mcbride_polynomial_2018}.
+\end{principle}
+We'll have to take another route.
 \subsubsection{Hanging Indices}
-Finally we return to the unprovided definition of \(\leq\) above. As we saw with
-the exponent indices, we will eventually need to compare gaps. Unlike before,
-though, the evidence provided by the comparison function will have to mesh
-properly with this \(\leq\) proof. In other words, after comparing the two
-indices, we'll need to get another proof bundled with the evidence that one is
-less than another.
+First, we'll redefine our polynomial like so:
+\ExecuteMetaData[EfficiencyInIndexedTypes.tex]{sparse-poly}
+The type is now parameterized, rather than indexed: our pattern-matching woes
+have been solved. Also, the gap is now implicit; instead, we store a proof that
+the nested polynomial has no more variables then the outer.
+
+The definition for this proof has important performance implications, as the
+proof will need to mesh with whatever comparison function we use for the
+injection indices. As a jumping-off point, we'll look at the three definitions
+of \(\leq\) in the Agda standard library\cite{danielsson_agda_2018}.
+\begin{description}
+  \item[Option 1: The Standard Way] The most commonly used definition of
+    \(\leq\) is as follows:
+    \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-1}
+    Trying to proceed with this type will yield a nasty performance bug, though:
+    first, remember the functions defined on the sparse exponent encoding above.
+    When dealing with two polynomials, they'll have to line them up, comparing
+    the respective gaps to find where two coefficients coincide (see
+    \(\AgdaFunction{⊞-zip}\) in figure~\ref{mono-addition}). We'll have to do
+    the same with this version of sparseness: however, since we're no longer
+    storing the gaps, the comparison will be on the size of the nested
+    polynomial. To see why this is a problem, consider the following sequence of
+    nestings:
+
+    \[ (5 ≤ 6), (4 ≤ 5), (3 ≤ 4), (1 ≤ 3), (0 ≤ 1) \]
+
+    The outer polynomial has 6 variables, but it has a gap to its inner
+    polynomial of 5, and so on. The comparisons will be made on 5, 4, 3, 1, and
+    0. Like repeatedly taking the length of the tail of a list, this is
+    quadratic. There must be a better way.
+  \item[Option 2: With Propositional Equality] Once you realize we need to be
+    comparing the gaps and not the tails, another encoding of \(\leq\) in
+    Data.Nat seems the best option:
+    \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-2}
+    It stores the gap \emph{right there}: in \(\AgdaField{k}\)!
+
+    Unfortunately, though, we're still stuck. While you can indeed run your
+    comparison on \(k\), you're not left with much information about the rest.
+    Say, for instance, you find out that two respective \(\AgdaField{k}\)s are
+    equal. What about the \(m\)s? Of course, you \emph{can} show that they must
+    be equal as well, but it requires a proof. Similarly in the less-than or
+    greater-than cases: each time, you need to show that the information about
+    \(\AgdaField{k}\) corresponds to information about \(m\). Again, all of this
+    can be done, but it all requires propositional proofs, which are messy, and
+    slow. Erasure is an option, but I'm not sure of the correctness of that
+    approach.
+  \item[Option 3] What we really want is to \emph{run} the comparison function
+    on the gap, but get the result on the tail. Turns out we can do exactly that
+    with the following:
+    \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-3}
+    While this structure stores the inequality by induction on the gap.
+\end{description}
 
 \subsection{Abstraction and Folds for Simpler Proofs}
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}

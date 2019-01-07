@@ -117,5 +117,67 @@ module FastCompare where
   ... | false  | [ n≢m  ] rewrite erase (gt-hom n m n≮m n≢m)  = greater m (n ∸ m ∸ 1)
 \end{code}
 %</fast-cmp>
+\begin{code}
+module Slime
+  {a ℓ}
+  (coeffs : RawRing a)
+  (Zero-C : Pred (RawRing.Carrier coeffs) ℓ)
+  (zero-c? : Decidable Zero-C)
+  where
+  open RawRing coeffs
+  open import Data.Nat using (_≤_)
+
+  FlatPoly : ℕ → Set
+  FlatPoly _ = ⊤
+\end{code}
 %<*sparse-poly>
+\begin{code}
+  record Poly (i : ℕ) : Set (a ⊔ ℓ) where
+    inductive
+    constructor _Π_
+    field
+      {j}   : ℕ
+      flat  : FlatPoly j
+      j≤i   : j ≤ i
+\end{code}
 %</sparse-poly>
+\begin{code}
+module LEQ1 where
+\end{code}
+%<*leq-1>
+\begin{code}
+  data _≤_ : ℕ → ℕ → Set where
+    z≤n  : ∀ {n} → zero  ≤ n
+    s≤s  : ∀ {m n}
+         → (m≤n : m ≤ n)
+         → suc m ≤ suc n
+\end{code}
+%</leq-1>
+\begin{code}
+module LEQ2 where
+  open import Relation.Binary.PropositionalEquality
+  open import Data.Nat using (_+_)
+\end{code}
+%<*leq-2>
+\begin{code}
+  record _≤_ (m n : ℕ) : Set where
+    constructor less-than-or-equal
+    field
+      {k}   : ℕ
+      proof : m + k ≡ n
+\end{code}
+%</leq-2>
+\begin{code}
+module LEQ3 where
+  infix 4 _≤_
+\end{code}
+%<*leq-3>
+\begin{code}
+  data _≤_ (m : ℕ) : ℕ → Set where
+    m≤m  : m ≤ m
+    ≤-s  : ∀ {n}
+         → (m≤n : m ≤ n)
+         → m ≤ suc n
+\end{code}
+%</leq-3>
+

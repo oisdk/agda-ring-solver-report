@@ -18,11 +18,12 @@
 \contentsline {subsection}{\numberline {3.5}Efficiency in Indexed Types}{9}{subsection.3.5}
 \contentsline {subsubsection}{\numberline {3.5.1}Call-Pattern Specialization}{9}{subsubsection.3.5.1}
 \contentsline {subsubsection}{\numberline {3.5.2}Built-In Functions}{10}{subsubsection.3.5.2}
-\contentsline {subsubsection}{\numberline {3.5.3}Hanging Indices}{10}{subsubsection.3.5.3}
-\contentsline {subsection}{\numberline {3.6}Abstraction and Folds for Simpler Proofs}{12}{subsection.3.6}
-\contentsline {subsection}{\numberline {3.7}Proving Higher-Order Termination With Well-Founded Recursion}{12}{subsection.3.7}
-\contentsline {section}{\numberline {4}Reflection}{12}{section.4}
-\contentsline {section}{\numberline {5}Setoid Applications}{12}{section.5}
-\contentsline {subsection}{\numberline {5.1}Isomorphisms}{12}{subsection.5.1}
-\contentsline {subsection}{\numberline {5.2}Didactic Solutions}{12}{subsection.5.2}
-\contentsline {section}{\numberline {6}The Correct-By-Construction Approach}{12}{section.6}
+\contentsline {subsubsection}{\numberline {3.5.3}Unification}{10}{subsubsection.3.5.3}
+\contentsline {subsubsection}{\numberline {3.5.4}Hanging Indices}{11}{subsubsection.3.5.4}
+\contentsline {subsection}{\numberline {3.6}Abstraction and Folds for Simpler Proofs}{13}{subsection.3.6}
+\contentsline {subsection}{\numberline {3.7}Proving Higher-Order Termination With Well-Founded Recursion}{13}{subsection.3.7}
+\contentsline {section}{\numberline {4}Reflection}{13}{section.4}
+\contentsline {section}{\numberline {5}Setoid Applications}{13}{section.5}
+\contentsline {subsection}{\numberline {5.1}Isomorphisms}{13}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Didactic Solutions}{13}{subsection.5.2}
+\contentsline {section}{\numberline {6}The Correct-By-Construction Approach}{13}{section.6}

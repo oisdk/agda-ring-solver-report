@@ -67,16 +67,14 @@ module Sparse
 
   mutual
     infixl 6 _Π_
-    record Poly (n : ℕ) : Set (c ⊔ ℓ) where
-      inductive
-      constructor _Π_
-      field
-        {i}   : ℕ
-        flat  : FlatPoly i
-        i≤n   : i ≤ n
+    data Poly : ℕ → Set (c ⊔ ℓ) where
+      _Π_  : ∀ {j}
+           → FlatPoly j
+           → ∀ i
+           → Poly (suc (i ℕ.+ j))
 
     data FlatPoly : ℕ → Set (c ⊔ ℓ) where
-      Κ : Carrier → FlatPoly zero
+      Κ  : Carrier → FlatPoly zero
       Σ  : ∀ {n}
          → (xs : Coeffs n)
          → .{xn : Norm xs}
