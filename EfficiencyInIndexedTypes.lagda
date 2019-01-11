@@ -110,9 +110,9 @@ module FastCompare where
 %<*fast-cmp>
 \begin{code}
   compare : ∀ n m → Ordering n m
-  compare n m with n < m  | inspect (_<_ n) m
+  compare n m with n < m  | inspect (n <_) m
   ... | true   | [ n<m  ] rewrite erase (lt-hom n m n<m)      = less n (m ∸ n ∸ 1)
-  ... | false  | [ n≮m  ] with n == m | inspect (_==_ n) m
+  ... | false  | [ n≮m  ] with n == m | inspect (n ==_) m
   ... | true   | [ n≡m  ] rewrite erase (eq-hom n m n≡m)      = equal m
   ... | false  | [ n≢m  ] rewrite erase (gt-hom n m n≮m n≢m)  = greater m (n ∸ m ∸ 1)
 \end{code}
@@ -168,16 +168,58 @@ module LEQ2 where
 \end{code}
 %</leq-2>
 \begin{code}
-module LEQ3 where
-  infix 4 _≤_
+open import Function
+infix 4 _≤_
 \end{code}
 %<*leq-3>
 \begin{code}
-  data _≤_ (m : ℕ) : ℕ → Set where
-    m≤m  : m ≤ m
-    ≤-s  : ∀ {n}
-         → (m≤n : m ≤ n)
-         → m ≤ suc n
+data _≤_ (m : ℕ) : ℕ → Set where
+  m≤m  : m ≤ m
+  ≤-s  : ∀ {n}
+        → (m≤n : m ≤ n)
+        → m ≤ suc n
 \end{code}
 %</leq-3>
+%<*leq-trans>
+\begin{code}
+≤-trans : ∀ {x y z} → x ≤ y → y ≤ z → x ≤ z
+≤-trans x≤y m≤m = x≤y
+≤-trans x≤y (≤-s y≤z) = ≤-s (≤-trans x≤y y≤z)
+\end{code}
+%</leq-trans>
+%<*leq-compare>
+\begin{code}
+data ≤-Ordering {n : ℕ}  : ∀ {i j}
+                         → (i≤n : i ≤ n)
+                         → (j≤n : j ≤ n)
+                         → Set
+    where
+  ≤-lt  : ∀ {i j-1}
+        → (i≤j-1 : i ≤ j-1)
+        → (j≤n : suc j-1 ≤ n)
+        → ≤-Ordering  (≤-trans (≤-s i≤j-1) j≤n)
+                      j≤n
+  ≤-gt  : ∀ {i-1 j}
+        → (i≤n : suc i-1 ≤ n)
+        → (j≤i-1 : j ≤ i-1)
+        → ≤-Ordering  i≤n
+                      (≤-trans (≤-s j≤i-1) i≤n)
+  ≤-eq  : ∀ {i}
+        → (i≤n : i ≤ n)
+        → ≤-Ordering  i≤n
+                      i≤n
 
+≤-compare  : ∀ {i j n}
+           → (x : i ≤ n)
+           → (y : j ≤ n)
+           → ≤-Ordering x y
+≤-compare m≤m      m≤m      = ≤-eq m≤m
+≤-compare m≤m      (≤-s y)  = ≤-gt m≤m y
+≤-compare (≤-s x)  m≤m      = ≤-lt x m≤m
+≤-compare (≤-s x)  (≤-s y)
+  with ≤-compare x y
+... | ≤-lt i≤j-1 _  = ≤-lt i≤j-1 (≤-s y)
+... | ≤-gt _ j≤i-1  = ≤-gt (≤-s x) j≤i-1
+... | ≤-eq _        = ≤-eq (≤-s x)
+\end{code}
+%</leq-compare>
