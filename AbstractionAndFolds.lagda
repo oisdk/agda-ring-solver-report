@@ -5,7 +5,7 @@ open import Relation.Unary
 open import Relation.Nullary
 open import Level using (_⊔_; lift; lower)
 open import Data.List as List using (List; _∷_; []; foldr)
-open import Data.Nat as ℕ using (ℕ; suc; zero; _≤′_; ≤′-step; ≤′-refl)
+open import Data.Nat as ℕ using (ℕ; suc; zero; _≤′_; ≤′-step; ≤′-refl; _<′_)
 open import Data.Nat.Properties as ℕ-Prop using (≤′-trans)
 open import Data.Product using (_×_; _,_; map₁; map₂; proj₁; proj₂)
 open import Algebra
@@ -71,17 +71,49 @@ module Main
 %</simple>
 \begin{code}
   module Foldr where
-  {-# TERMINATING #-}
+    {-# TERMINATING #-}
 \end{code}
 %<*with-foldr>
 \begin{code}
-  ⊟_ : ∀ {n} → Poly n → Poly n
-  ⊟ (Κ x   Π i≤n) = Κ (- x) Π i≤n
-  ⊟ (Σ xs  Π i≤n) = foldr go [] xs Π↓ i≤n
-    where
-    go = λ { (x ≠0 Δ i) xs → ⊟ x Δ i ∷↓ xs }
+    ⊟_ : ∀ {n} → Poly n → Poly n
+    ⊟ (Κ x   Π i≤n) = Κ (- x) Π i≤n
+    ⊟ (Σ xs  Π i≤n) = foldr go [] xs Π↓ i≤n
+      where
+      go = λ { (x ≠0 Δ i) xs → ⊟ x Δ i ∷↓ xs }
 \end{code}
 %</with-foldr>
+\begin{code}
+  module AccDef where
+\end{code}
+%<*acc-def>
+\begin{code}
+    data Acc  {a r}
+              {A : Set a}
+              (_<_ : A → A → Set r)
+              (x : A) : Set (a ⊔ r) where
+      acc
+        : (∀ y → y < x → Acc _<_ y)
+        → Acc _<_ x
+\end{code}
+%</acc-def>
+\begin{code}
+  module Terminating where
+    open import Induction.WellFounded using (Acc; acc)
+    open import Induction.Nat using (<′-wellFounded)
+\end{code}
+%<*terminating>
+\begin{code}
+    ⊟′ : ∀ {n} → Acc _<′_ n → Poly n → Poly n
+    ⊟′ _        (Κ x  Π i≤n) = Κ (- x) Π i≤n
+    ⊟′ (acc wf) (Σ xs Π i≤n) = foldr go [] xs Π↓ i≤n
+      where
+      go = λ  { (x ≠0 Δ i) xs
+              → ⊟′ (wf _ i≤n) x Δ i ∷↓ xs  }
+
+    ⊟_ : ∀ {n} → Poly n → Poly n
+    ⊟_ = ⊟′ (<′-wellFounded _)
+\end{code}
+%</terminating>
 \begin{code}
 open import Polynomial.Parameters
 

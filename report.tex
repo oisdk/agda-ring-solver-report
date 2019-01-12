@@ -719,7 +719,41 @@ to that difference. In this particular case, we use the following lemma:
 
 \ExecuteMetaData[AbstractionAndFolds.tex]{poly-mapR}
 
+In this way, we demonstrate a concrete and practical use
+of\cite{mu_algebra_2009}.
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}
+Unfortunately, by using a higher-order function, we've obscured the fact that
+the negation operation obviously terminates.
+
+Among the bag of tricks available to Agda programmers to prove termination is
+what's known as \emph{well-founded recursion}\cite{nordstrom_terminating_1987}.
+It works by providing a relation which describes some strictly decreasing finite
+chain: \(<\) on \(\mathbb{N}\), for instance. It's strictly decreasing (the
+first argument always gets smaller, in contrast to, say, \(\leq\)), and it's
+finite, because it must end at 0.
+
+It's a powerful tool, which can be used to prove complex termination patterns:
+multiple relations can be combined lexicographically, for instance, if the
+recursive function decreases on different arguments in different settings.
+
+In Agda,  well-founded recursion is specified with the following type:
+\ExecuteMetaData[AbstractionAndFolds.tex]{acc-def}
+
+This type is a way to construct arguments to functions which are strictly
+decreasing in size. Simply add it as an extra parameter to the dangerous
+functions, pattern match on \(\AgdaInductiveConstructor{acc}\), and you've
+provided evidence that an argument is strictly decreasing.
+
+One of the warts of well-founded recursion is that usually the programmer has to
+separately construct the relation they're interested in. As well as being
+complex, it can be computationally expensive to do so. Usually the compiler can
+elide the calls, recognizing that the argument isn't used, but the optimization
+can't be guaranteed.
+
+Luckily, in our case, the relation is already lying around, in the injection
+index. So we can just use that!
+\ExecuteMetaData[AbstractionAndFolds.tex]{terminating}
+
 \section{Reflection} \label{reflection}
 \section{Setoid Applications}
 \subsection{Isomorphisms}
