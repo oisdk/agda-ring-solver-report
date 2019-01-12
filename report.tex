@@ -680,8 +680,45 @@ for in terms of \(\AgdaDatatype{≤}\). It turns out that equivalence is
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-trans}
 And with that, we have enough to define our comparison function:
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-compare}
-
 \subsection{Abstraction and Folds for Simpler Proofs}
+At this point, following our many optimizations, the task of proving
+homomorphism for these implementations is more than a little daunting. However,
+we can ease the burden somewhat by leveraging the \(\AgdaFunction{foldr}\)
+function, in a similar way to\cite{mu_algebra_2009}.
+
+The goal is to modularize the proofs by independently proving the correctness of
+each optimization. To do this, we will strive to write the arithmetic operations
+as higher-order functions, which operate over the ``unoptimized'' version of the
+polynomials (the dense versions), and have an intermediate function convert to
+and from the dense encoding. As a case study, we'll work with the negation
+function. Our initial definition (on the type defined in
+figure~\ref{final-poly-def}) is as follows:
+
+\ExecuteMetaData[AbstractionAndFolds.tex]{simple}
+
+Immediately we can recognize two functions which are good candidates for
+separated homomorphism proofs: the two normalizing functions. These functions
+will be used in every arithmetic operation, so it stands to reason that a
+separate proof of their correctness should save us some repetition (the
+semantics of the polynomials are defined in figure~\ref{semantics}). These
+lemmas are as follows:
+
+\ExecuteMetaData[AbstractionAndFolds.tex]{lemmas}
+
+Next, the \(\AgdaFunction{go}\) helper function is an obvious candidate for
+\(\AgdaFunction{foldr}\)\footnotemark.
+
+\footnotetext{Using \(\AgdaFunction{foldr}\) will actually yield some
+  termination problems, which we will have to deal with in the next section}.
+
+\ExecuteMetaData[AbstractionAndFolds.tex]{with-foldr}
+
+Continuing in this vein, we are able to isolate the component of this function
+which is different from the other operations, and therefore confine our proofs
+to that difference. In this particular case, we use the following lemma:
+
+\ExecuteMetaData[AbstractionAndFolds.tex]{poly-mapR}
+
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}
 \section{Reflection} \label{reflection}
 \section{Setoid Applications}
@@ -690,4 +727,15 @@ And with that, we have enough to define our comparison function:
 \section{The Correct-By-Construction Approach}
 \bibliographystyle{IEEEtranS}
 \bibliography{bibliography.bib}
+\appendix
+\begin{figure}
+  \ExecuteMetaData[FinalPolyDefinition.tex]{final-poly-def}
+  \caption{Final Definition of Sparse Polynomials}
+  \label{final-poly-def}
+\end{figure}
+\begin{figure}
+  \ExecuteMetaData[AbstractionAndFolds.tex]{semantics}
+  \caption{Semantics of Sparse Polynomials}
+  \label{semantics}
+\end{figure}
 \end{document}

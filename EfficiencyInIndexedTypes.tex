@@ -1025,15 +1025,15 @@
 \\
 \>[0]\AgdaFunction{≤{-}trans}\AgdaSpace{}%
 \AgdaBound{x≤y}\AgdaSpace{}%
-\AgdaInductiveConstructor{m≤m}\AgdaSpace{}%
-\AgdaSymbol{=}\AgdaSpace{}%
+\AgdaInductiveConstructor{m≤m}%
+\>[23]\AgdaSymbol{=}\AgdaSpace{}%
 \AgdaBound{x≤y}\<%
 \\
 \>[0]\AgdaFunction{≤{-}trans}\AgdaSpace{}%
 \AgdaBound{x≤y}\AgdaSpace{}%
 \AgdaSymbol{(}\AgdaInductiveConstructor{≤{-}s}\AgdaSpace{}%
-\AgdaBound{y≤z}\AgdaSymbol{)}\AgdaSpace{}%
-\AgdaSymbol{=}\AgdaSpace{}%
+\AgdaBound{y≤z}\AgdaSymbol{)}%
+\>[23]\AgdaSymbol{=}\AgdaSpace{}%
 \AgdaInductiveConstructor{≤{-}s}\AgdaSpace{}%
 \AgdaSymbol{(}\AgdaFunction{≤{-}trans}\AgdaSpace{}%
 \AgdaBound{x≤y}\AgdaSpace{}%
@@ -1229,7 +1229,8 @@
 \>[19]\AgdaSymbol{(}\AgdaInductiveConstructor{≤{-}s}\AgdaSpace{}%
 \AgdaBound{y}\AgdaSymbol{)}\<%
 \\
-\>[0]\AgdaKeyword{  with}\AgdaSpace{}%
+\>[0][@{}l@{\AgdaIndent{0}}]%
+\>[2]\AgdaKeyword{with}\AgdaSpace{}%
 \AgdaFunction{≤{-}compare}\AgdaSpace{}%
 \AgdaBound{x}\AgdaSpace{}%
 \AgdaBound{y}\<%

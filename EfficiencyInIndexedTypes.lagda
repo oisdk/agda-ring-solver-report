@@ -183,8 +183,8 @@ data _≤_ (m : ℕ) : ℕ → Set where
 %<*leq-trans>
 \begin{code}
 ≤-trans : ∀ {x y z} → x ≤ y → y ≤ z → x ≤ z
-≤-trans x≤y m≤m = x≤y
-≤-trans x≤y (≤-s y≤z) = ≤-s (≤-trans x≤y y≤z)
+≤-trans x≤y m≤m        = x≤y
+≤-trans x≤y (≤-s y≤z)  = ≤-s (≤-trans x≤y y≤z)
 \end{code}
 %</leq-trans>
 %<*leq-compare>
