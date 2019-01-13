@@ -1002,6 +1002,37 @@ The relation is an \emph{isomorphism} between these types. In this way, the
 solver can now automatically construct functions to convert between equivalent
 types. This has been explored before in a number of settings.
 \subsection{Didactic Solutions}
+One of the most widely-used and successful applications of computer algebra,
+especially among non-programmers, has been Wolfram
+Alpha\cite{wolfram_research_inc._wolframalpha_2019}. Perhaps its most used
+feature is didactic (or pedagogic) solutions to maths
+problems\cite{the_development_team_step-by-step_2009}. For instance, given the
+input \(x^2 + 5 x + 6 = 0\), it will give the following output:
+
+\begin{align*}
+  x^2 + 5x + 6   = 0 \\
+  (x + 2)(x + 3) = 0 \\
+  x + 2 = 0   \; \text{or} \; x + 3 = 0 \\
+  x     = -2  \; \text{or} \; x + 2 = 0 \\
+  x     = -2  \; \text{or} \; x     = -3
+\end{align*}
+
+These tools can be invaluable for students learning basic mathematics.
+Unfortunately, much of the software capable of generating usable solutions is
+proprietary, and little information is available as to their implementation
+techniques.\cite{lioubartsev_constructing_2016} is perhaps the best current work
+on the topic, but even so very little exists in the way of the theoretical basis
+for pedagogical solutions.
+
+Taking\cite{lioubartsev_constructing_2016} as a jumping-off point, we can see
+that solutions are treated as \emph{paths}: indeed, A* is the underlying
+algorithm used.
+
+These paths have edges of rewrite rules---``commutativity of addition'', etc.
+The vertices are equation states, and the start and end points of the path are
+the left-hand-side and right-hand-side of the equation, respectively. It's clear
+that we can form from this a relation with symmetry, transitivity and
+reflexivity: enough to satisfy our solver.
 
 \section{The Correct-By-Construction Approach}
 The Agda and Coq communities exhibit something of a cultural difference when it
@@ -1024,7 +1055,7 @@ function that is correct by construction will lead to a much more elegant
 formulation of the original algorithm, or expose symmetries between the proof
 and implementation that would have been difficult to see otherwise.
 
-\cite{hutchison_proving_2005}, as an example, is very much in the Coq style: the
+\cite{gregoire_proving_2005}, as an example, is very much in the Coq style: the
 definition of the polynomial type has no type indices, and makes no requirements
 on its internal structure:
 \begin{verbatim}
