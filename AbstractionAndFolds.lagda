@@ -96,6 +96,18 @@ module Main
         → Acc _<_ x
 \end{code}
 %</acc-def>
+%<*acc-impl>
+\begin{code}
+    mutual
+      <′-wellFounded : ∀ n → Acc _<′_ n
+      <′-wellFounded n = acc (go n)
+
+      go : ∀ n m → m <′ n → Acc _<′_ m
+      go zero     _ ()
+      go (suc n) .n ≤′-refl       = <′-wellFounded n
+      go (suc n)  m (≤′-step m<n) = go n m m<n
+\end{code}
+%</acc-impl>
 \begin{code}
   module Terminating where
     open import Induction.WellFounded using (Acc; acc)

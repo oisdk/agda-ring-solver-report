@@ -195,6 +195,9 @@ solutions\cite{the_development_team_step-by-step_2009}.
     generate ``step-by-step'' solutions for the equalities, with no modification
     of the original code.
 \end{description}
+All of these contributions, while developed together, are entirely modular. For
+instance, both the reflection interface \emph{and} the pedagogical solutions
+work with the old version of the ring solver.
 \section{The Reflexive Technique} \label{reflexive}
 Before describing the specifics of a given solver algorithm, it's important to
 understand how that algorithm can be applied in a dependently-typed language.
@@ -410,8 +413,12 @@ language.
 \subsection{Usage}
 Combining all of the components above, with some plumbing provided by the
 \(\AgdaModule{Relation.Binary.Reflection}\) module, we can finally automate the
-solving of the original identity in figure~\ref{mon-ident}:
-\ExecuteMetaData[Monoids.tex]{ident-auto-proof}
+solving of the original identity: figure~\ref{mon-auto-proof}.
+\begin{figure}
+  \ExecuteMetaData[Monoids.tex]{ident-auto-proof}
+  \caption{Automated Proof of the Identity in figure~\ref{mon-ident}}
+  \label{mon-auto-proof}
+\end{figure}
 \subsubsection{Reflection}
 While the procedure is now automated, the interface isn't ideal: users have to
 write the identity they want to prove \emph{and} the AST representing the
@@ -799,13 +806,40 @@ smaller (in contrast to, say, \(\leq\)), and it's finite because it must end at
 In Agda,  well-founded recursion is specified with the following type:
 \ExecuteMetaData[AbstractionAndFolds.tex]{acc-def}
 
-This type encapsulates the notion of structural termination: constructing it
-requires that the function we give to the constructor
-\(\AgdaInductiveConstructor{acc}\) returns something structurally smaller than
-the outer \(\AgdaDatatype{Acc}\) type itself (otherwise the termination checker
-won't allow you to construct \(\AgdaDatatype{Acc}\)). Pattern-matching on
-\(\AgdaInductiveConstructor{acc}\), then, can be used to provide evidence of
-termination to the compiler. \todo{Maybe explain better?}
+Agda's termination checker algorithm comes from foetus\cite{abel_foetus_1998}:
+it's relatively simple, and relies on \emph{structural termination}. Take the
+following function:
+\[ \AgdaFunction{f} \; x = \AgdaNumber{1} \; \AgdaFunction{+} \;
+  \AgdaFunction{f} \; y \]
+
+Agda will determine \(\AgdaFunction{f}\) to be terminating if and only if \(y\)
+is \emph{structurally smaller} than \(x\). In practice, this means that \(y\)
+needs to be a subnode of \(x\)'s recursive structure. For instance (ignoring
+partiality for now), all of the following are allowed:
+\begin{align*}
+\AgdaFunction{f} \; (\AgdaInductiveConstructor{suc} \; y)     &= \AgdaFunction{f} \; y \\
+\AgdaFunction{f} \; (\_ \; \AgdaInductiveConstructor{∷} \; y) &= \AgdaFunction{f} \; y
+\end{align*}
+
+Crucially, no matter how many arguments \(\AgdaFunction{f}\) has, if any one of
+them is structurally decreasing, it will pass the termination checker. This is
+where \(\AgdaDatatype{Acc}\) comes in: as far as Agda is concerned, whatever's
+returned by the function stored in \(\AgdaDatatype{Acc}\) is structurally
+smaller that the outer type it was wrapped in. So you can add it as a parameter
+to the dangerous functions, and call the wrapped function to generate the new
+\(\AgdaDatatype{Acc}\) to pass to the recursive call.
+
+Of course, to \emph{call} the function you have to supply it with an argument: a
+proof that the relation holds. This part is why well-founded recursion is valid:
+whoever constructed the \(\AgdaDatatype{Acc}\) originally will have had to pass
+the termination checker. In other words, they will have written a recursive
+function to generate nested \(\AgdaDatatype{Acc}\)s, where the only argument to
+that function is the relation. In this way, we have moved the obligation of
+proving termination from the call-site to the construction site. For the
+relation we use, the construction function for \(\AgdaDatatype{Acc}\) is as
+follows:
+
+\ExecuteMetaData[AbstractionAndFolds.tex]{acc-impl}
 
 One of the warts of well-founded recursion is that usually the programmer has to
 separately construct the relation they're interested in. As well as being
@@ -820,20 +854,27 @@ index. So we can just use that!
 \section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
 want to solve twice: once in the type signature, and again in the argument
-supplied to solve. Agda can infer the type signature, but we would prefer to
-write the expression in the type signature, and have it infer the argument to
-solve, as the expression in the type signature is the desired equality, and the
-argument to solve is something of an implementation detail. \todo{rephrase}
-
-This inference can be accomplished using Agda's reflection
-mechanisms\cite{van_der_walt_reflection_2012}.
-
-Reflection in Agda allows a program to inspect and modify its own code. Here, it
-will allow us to build the AST representation of an expression from a stated
-goal in the program, meaning that proofs become as simple as the following:
+supplied to solve. See figure~\ref{mon-auto-proof} for an example of this kind
+of duplication. We can cut down on the writing we need to do by half by omitting
+the type signature, but for a user, this is the \emph{wrong half}: the syntax
+and structure of the AST is something of an implementation detail, and is not
+something we should require the user to learn. Instead, we provide the following
+interface:
 \ExecuteMetaData[ReflectionSection.tex]{refl-lemma}
 
-There are three basic components that we'll use for the reflection machinery:
+The call to \(\AgdaMacro{solve}\) first infers the goal type, then constructs
+the corresponding AST to hand to the solver. Interestingly, the goal type need
+not be provided explicitly: if a user has a type mismatch between two
+expressions, just sticking in a call to \(\AgdaMacro{solve}\) in the appropriate
+place will often fix the problem. Furthermore, by not explicitly writing the AST
+in the program's source code, functions become more extensible and resilient to
+minor changes. As long as the two expressions match up semantically, rather than
+syntactically, the solver will figure it out.
+
+We build this interface using Agda's reflection
+mechanisms\cite{van_der_walt_reflection_2012}. Reflection in Agda allows a
+program to inspect and modify its own code. There are three basic components
+that we'll use for the reflection machinery:
 \begin{description}
   \item[\(\AgdaDatatype{Term}\)] The representation of Agda's AST, retrievable
     via \(\AgdaKeyword{quoteTerm}\).
