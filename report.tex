@@ -99,27 +99,33 @@
 \end{abstract}
 \tableofcontents
 \section{Introduction}
-Truly formal proofs of even basic mathematical identities are notoriously
-tedious and verbose. Perhaps the canonical example is Russell and Whitehead's
-proof that \(1+1=2\), which finally arrives on page 379 of Principia
-Mathematica\cite{whitehead_principia_1910}. 
+Proof assistants and computer algebra systems (CASs) share many of the same
+goals: fundamentally, they aim to help a mathematician through computer
+automation, in much the same way that a word processor might help a writer. One
+promising area in the development of proof assistants uses dependently typed
+programming languages, like Agda\cite{norell_dependently_2008} and
+Coq\cite{the_coq_development_team_2018_1219885}, to automate proof-checking.
+Based on constructivist mathematics, these languages allow the programmer to
+write proofs as \emph{programs}, which are then verified by the compiler.
 
-More modern systems have greatly simplified the underlying formalisms, but they
-still often suffer from a degree of explicitness that makes even elementary
-identities daunting. Dependently-typed programming languages like
-Agda\cite{norell_dependently_2008} and
-Coq\cite{the_coq_development_team_2018_1219885} are examples of such systems:
-used in the naïve way, equivalence proofs require the programmer to specify
-every individual step (``here we rely on the commutativity of \(+\), followed by
-the associativity of \(\times\) on its right-hand-side'', and so on).
+Before they achieve the same widespread usefulness of other CASs, these
+languages have a significant hurdle to overcome: tedium. Truly formal proofs of
+even basic mathematical identities are notoriously verbose (Russell and
+Whitehead required 378 pages of preamble before proving \(1+1=2\)
+\cite{whitehead_principia_1910}). While Coq and Agda have vastly improved the
+situation, they still often suffer from a degree of explicitness that makes even
+elementary identities daunting: used in the naïve way, equivalence proofs
+require the programmer to specify every individual step (``here we rely on the
+commutativity of \(+\), followed by the associativity of \(\times\) on its
+right-hand-side'', and so on).
 
-Coq and Agda are not just programming languages in name, though: they are
-fully-fledged and powerful, capable of producing useful software, including
-automated computer-algebra systems. Unlike most CASs, those written in Coq or
-Agda come with added guarantees of correctness in their operation. Furthermore,
-these systems can be used to automate the construction of identity proofs which
-would otherwise be too tedious to do by hand.
-\subsection{Related Work}
+However, the real promise of dependently-typed languages lies not in the fact
+that their programs are proofs, but rather the reverse: \emph{their proofs are
+  programs}. There is nothing stopping us from implementing standard CAS
+algorithms \emph{in the languages themselves}, and using those algorithms to
+automate the construction of proofs. In doing so we go a step beyond the
+capabilities of most CASs, proving correctness as well as automating it.
+\subsection{Related Work} 
 The state-of-the-art solver for polynomial equalities (over commutative rings)
 was originally presented in\cite{gregoire_proving_2005}, and is used in Coq's
 \verb+ring+ solver. This work improved on the already existing
@@ -154,7 +160,7 @@ is a notable Agda library in this regard: its implementation and goal is
 described in\cite{meshveliani_dependent_2013}. \cite{cheng_functional_2018}
 describes the manipulation of polynomials in both Haskell and Agda.
 
-Finally, the study of \emph{didactic} computer algebra systems is explored
+Finally, the study of \emph{didactic} CASs is explored
 in\cite{lioubartsev_constructing_2016}.
 \subsection{Contributions}
 \begin{description}
