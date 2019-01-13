@@ -1101,8 +1101,23 @@ It will demonstrate where exactly it fails, with the error message:
 This is because we pass it \(\AgdaField{refl}\) as the proof that the normal
 forms are equal: if they're not, this is where we'll get an error.
 \section{Setoid Applications} \label{equivalence}
-After constraining ourselves by only demanding a setoid from the user, we now
-get to reap some rather interesting benefits.
+As mentioned previously, the solver does \emph{not} require the user to prove
+the ring properties up to propositional equality. Instead, we ask them to prove
+them according to some arbitrary relation they have provided. All that we
+require of the \emph{relation} is that it's an equivalence: transitivity,
+reflexivity, and symmetry.
+
+The common use case for equivalence rather than equality is proofs ``modulo
+normalization''. Say, for instance, you have implemented a set using
+size-balanced binary trees. Under propositional equality, this implementation
+can't (efficiently) support the monoid operations: imbalances in the tree mean
+that two sets which contain the same elements may have different internal
+representations. However, equality following \(\AgdaFunction{toList}\)
+\emph{does} follow the monoid laws. Because we didn't use propositional
+equality, the solver is able to work with this use case.
+
+Equivalence relations have much more exotic instantiations than that, though.
+What follows are a few interesting examples.
 \subsection{Isomorphisms}
 The first, and most obvious, ``exotic'' setoid is that over a universe of types.
 The relation is an \emph{isomorphism} between these types. In this way, the
@@ -1115,7 +1130,6 @@ Alpha\cite{wolfram_research_inc._wolframalpha_2019}. Perhaps its most used
 feature is pedagogical (or pedagogic) solutions to maths
 problems\cite{the_development_team_step-by-step_2009}. For instance, given the
 input \(x^2 + 5 x + 6 = 0\), it will give the following output:
-
 \begin{align*}
   x^2 + 5x + 6   = 0 \\
   (x + 2)(x + 3) = 0 \\
