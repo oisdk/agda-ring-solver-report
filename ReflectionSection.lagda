@@ -1,6 +1,21 @@
 \begin{code}
 module ReflectionSection where
 open import Data.Nat as ℕ using (ℕ; suc; zero)
+
+module ExprDef where
+  open import Data.Fin
+\end{code}
+%<*expr-def>
+\begin{code}
+  data Expr  {ℓ} (A : Set ℓ) (n : ℕ) : Set ℓ where
+    Κ    : A → Expr A n
+    I    : Fin n → Expr A n
+    _⊕_  : Expr A n → Expr A n → Expr A n
+    _⊗_  : Expr A n → Expr A n → Expr A n
+    ⊝_   : Expr A n → Expr A n
+\end{code}
+%</expr-def>
+\begin{code}
 open import Data.Nat.Properties
 open import Polynomial.Simple.AlmostCommutativeRing
 NatRing : AlmostCommutativeRing _ _
@@ -35,7 +50,6 @@ nonlemma _ _ _ = tt
 open import Reflection
 open import Data.Unit
 open import Relation.Binary.PropositionalEquality using (_≡_)
-
 
 return-type : Set
 return-type =

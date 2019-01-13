@@ -100,15 +100,16 @@
 \tableofcontents
 \section{Introduction}
 Proof assistants and computer algebra systems (CASs) share many of the same
-goals: fundamentally, they aim to help a mathematician through computer
-automation, in much the same way that a word processor might help a writer. One
-promising area in the development of proof assistants uses dependently typed
-programming languages, like Agda\cite{norell_dependently_2008} and
-Coq\cite{the_coq_development_team_2018_1219885}, to automate proof-checking.
-Based on constructivist mathematics, these languages allow the programmer to
-write proofs as \emph{programs}, which are then verified by the compiler.
+goals: fundamentally, they aim to leverage computer automation to assist a
+mathematician, in much the same way that a word processor might help a writer.
+One promising avenue for the development of proof assistants uses dependently
+typed programming languages, like Agda\cite{norell_dependently_2008} and
+Coq\cite{the_coq_development_team_2018_1219885}, to automate \emph{verification}
+of proofs. Based on constructivist mathematics, these languages allow the
+programmer to write proofs as \emph{programs}, which are then verified by the
+compiler.
 
-Before they achieve the same widespread usefulness of other CASs, these
+Before they achieve the same widespread usefulness of other CASs, however, these
 languages have a significant hurdle to overcome: tedium. Truly formal proofs of
 even basic mathematical identities are notoriously verbose (Russell and
 Whitehead required 378 pages of preamble before proving \(1+1=2\)
@@ -304,27 +305,50 @@ equal to the original expression\footnotemark:
 
 We've thoroughly set the table now, but we still don't have a solver. What's
 missing is another evaluation function: one that normalizes.
-\subsection{Free Objects and Canonical Forms}
-In both the monoid and ring solver, we will make use of the \emph{canonical
-  forms} of expressions in each algebra.
-\begin{definition}[Canonical Forms]
-  The canonical form of an expression is a representation of that expression
-  such that any two \emph{equivalent} expressions have the same representation.
+\subsection{Free Objects and Normal Forms}
+In both the monoid and ring solver, we will make use of the normal and canonical
+forms of expressions in each algebra. In the literature on CASs, the precise
+meaning of ``normal'' and ``canonical'' can vary from writer to writer. When
+used here, their definitions are as follows.
+\begin{definition}[Normal Forms]
+  The ``normal form'' of an expression is the \emph{standard} way of
+  representing that expression. For instance, we may say that our normal forms
+  are fully expanded, with any free variables alphabetized where possible. As an
+  example:
+  \begin{equation}
+  \begin{gathered}
+    (21 + y)(x + y) \\
+    \Downarrow \\
+    xy + 21x + y^2 + 21y
+  \end{gathered}
+  \end{equation}
+  We often use \(\Downarrow\) or \(\downarrow\) to symbolize ``normalization''.
 \end{definition}
-The basic idea is to convert each side of the equation to their canonical forms,
+\begin{definition}[Canonical Forms]
+  The canonical form of an expression is a representation of that expression such
+  that any two \emph{equivalent} expressions have the same representation.
+\end{definition}
+A carefully chosen normal form may also be a canonical form, but it's often
+impractical or impossible to convert an expression to canonical form. Usually,
+we will instead define some normal form which is often (but not always)
+canonical.
+
+The basic idea is to convert each side of the equation to their normal forms,
 and check if those forms are equal.
 
-To convert to the canonical form, we'll use a related concept: the free object.
+To convert to the normal form, we'll use a related concept: the free object.
 \begin{definition}[Free Objects]
   For our purposes, a free object for some algebra is a data structure capable
   of representing expressions in that algebra. It's an AST, in other words.
-  Crucially, it also must have the property that \emph{it is always in canonical
-  form}.
+  Crucially, it also must have the property that the laws or equations of the
+  algebra hold \emph{definitionally}. This implies that every free object is
+  also a canonical form.
 \end{definition}
-So now we can accomplish ``canonicalization'' by converting an expression to the
-free object, and then the free object back to an expression.
-
-For monoids, the free object is \emph{lists}.
+So now we can accomplish ``normalization'' by converting an expression to the
+free object, and then the free object back to an expression. Again, we won't
+always have a free object for the algebra we're interested in, do we will settle
+for something close. Luckily, we do have such an object for monoids: the free
+monoid is more commonly known as the \emph{list}.
 
 \ExecuteMetaData[Monoids.tex]{list-def}
 
@@ -396,7 +420,7 @@ identity. Removing this step is the job of reflection
 the path labeled \(\AgdaKeyword{quoteTerm}\).
 \section{A Polynomial Solver}
 With the monoid solver as a template, the components required for the ring
-solver are as follows: a canonical form, a concrete representation of
+solver are as follows: a normal form, a concrete representation of
 expressions, and a proof of correctness (homomorphism). Before addressing each
 of these, a small digression.
 \subsection{Choice of Algebra}
@@ -504,16 +528,14 @@ Or, mathematically:
   will be called \emph{sparse}, and the encoding which simply stores the zero
   terms will be called \emph{dense}.
 \end{definition}
-\subsubsection{Uniqueness}
-While this form solves our efficiency problem, does it prevent redundant
-representations of the same polynomials? In \cite{gregoire_proving_2005}, care
-is taken to ensure all operations include a normalizing step, but this is not
-verified: here, we prove that the polynomials are always in normal form.
 
-Disallowing zeroes is a strong enough condition to ensure normal form: without
-them, there can be no trailing zeroes, and all gaps must be represented by power
-indices. To check for zero, we require the user supply a decidable predicate on
-the coefficients. This changes the module declaration like so:
+Now that we have chosen a normal form (polynomials without 0), can we prove that
+our implementation always maintains it? In \cite{gregoire_proving_2005}, care
+is taken to ensure all operations include a normalizing step, but this is not
+verified: here, we do exactly that.
+
+To check for zero, we require the user supply a decidable predicate on the
+coefficients. This changes the module declaration like so:
 \ExecuteMetaData[EliminatingRedundancy.tex]{opening}
 
 Importantly, we don't require that the user provides a decidable proof of
@@ -537,24 +559,23 @@ there's a natural way to add multiple variables: nesting. For a polynomial with
 one variable (\(x\), say), the implementation is as before. For \emph{two}
 variables (\(x\) and \(y\)), we will have an outer polynomial in \(y\), whose
 \emph{coefficients} are polynomials in \(x\). Put inductively, a polynomial with
-0 variables is simply a coefficient; a polynomial with $n$ variables, is a list
+0 variables is simply a coefficient; a polynomial with $n$ variables is a list
 of polynomials with $n-1$ variables. In types:
-\ExecuteMetaData[SparseMulti.tex]{dense-poly}
+\ExecuteMetaData[SparseMulti.tex]{dense-poly} 
 \subsection{Efficiency in Indexed Types}
 \subsubsection{Call-Pattern Specialization}
 While both sparse encodings provide a more space-efficient representation, the
 computational efficiency has yet to be realized. Starting with the sparse
-monomial, we'll look at the addition function to start off. In the dense
-encoding (figure~\ref{simple-ops}), we needed to line up corresponding
-coefficients to add together. For this encoding, the ``corresponding''
-coefficients are slightly harder to find. In order to line things p correctly,
-we'll need to compare the gap indices. This, however, presents our first
-problem:
+monomial, we'll look at the addition function. In the dense encoding
+(figure~\ref{simple-ops}), we needed to line up corresponding coefficients to
+add together. For this encoding, the ``corresponding'' coefficients are slightly
+harder to find. In order to line things p correctly, we'll need to compare the
+gap indices. This, however, presents our first problem:
 \ExecuteMetaData[EliminatingRedundancy.tex]{nonterm-add}
-The above definition won't pass the termination checker. While it does indeed
-terminate, it isn't structurally decreasing in its arguments. To make it
-structurally decreasing, and therefore show the compiler it terminates, we'll
-use a well-known optimization for functional languages called ``call-pattern
+It doesn't pass the termination checker! While it does indeed terminate, it
+isn't structurally decreasing in its arguments. To make it structurally
+decreasing, and therefore show the compiler it terminates, we'll use a
+well-known optimization for functional languages called ``call-pattern
 specialization''\cite{jones_call-pattern_2007}.
 \begin{principle}[To make termination obvious, perform call-pattern
     specialization]
@@ -644,7 +665,7 @@ unification of the index with whatever type variable it was bound to. This is
 problematic because the index is defined by a function: pattern match on a pair
 of \(\AgdaDatatype{Poly}\)s and you're asking Agda to unify \(i_1 + j_1\) and
 \(i_2 + j_2\), a task it will likely find too difficult. How do we avoid this?
-\begin{principle}[Don't touch the green slime!]
+\begin{principle}[Don't touch the green slime]
   When combining prescriptive and descriptive indices, ensure both are in
   constructor form. Exclude defined functions which yield difficult unification
   problems\cite{mcbride_polynomial_2018}.
@@ -894,8 +915,11 @@ to be extra careful about scope.
 Though \(\AgdaDatatype{Term}\) is itself an AST we could theoretically
 manipulate and use in the prover, as is demonstrated above it's complex and
 unwieldy: what we really want is to use a smaller AST for ring expressions, like
-the one for lists.\todo{Show that AST for ring expressions here!} To that end,
-we'll need build the \(\AgdaDatatype{Term}\) which will construct it for us.
+the one for lists.
+\ExecuteMetaData[ReflectionSection.tex]{expr-def}
+
+To that end, we'll need build the \(\AgdaDatatype{Term}\) which will construct
+it for us.
 
 First, to make things easier on ourselves, we'll define some pattern synonyms:
 \ExecuteMetaData[ReflectionSection.tex]{synonyms}
@@ -913,7 +937,7 @@ might seem suboptimal: we can probably figure out the values of those
 underscores, so shouldn't we try and find them, and supply them instead? In our
 experience, the answer is no.
 
-\begin{principle}{Don't help the compiler!}
+\begin{principle}[Don't help the compiler]
   Supply the \emph{minimal} amount of information possible in the AST to be
   unquoted, relying on inference as much as possible. The metalanguage is
   fragile and finicky with regards to scopes and context: the compiler isn't.
@@ -942,7 +966,7 @@ up the relevant ones with the relevant constructor from the AST. It may seem
 strange that there are ``extra'' arguments: surely these operators should have
 the same number of arguments as their arity?
 
-\begin{principle}{Don't assume structure!}
+\begin{principle}[Don't assume structure]
   Details like the order or number of implicit arguments to a function often
   can't be relied upon: be accommodating in your matching functions, only
   extracting components you really and truly need. In this case, for instance,
@@ -963,8 +987,8 @@ expression, we simply leave it as is. We can do this because we're using the
 interface provided by \(\AgdaModule{Relation.Binary.Reflection}\) as an
 intermediary: it will wrap up the variables in our \(\AgdaDatatype{Expr}\) for
 us automatically. Which leads us to another observation:
-\begin{principle}{Try and implement as much of the logic outside of reflection
-    as possible.}
+\begin{principle}[Try and implement as much of the logic outside of reflection
+    as possible]
   The expressive power granted by reflection comes with poor error messages,
   fragility, and a loss of first-class status. If something can be done without
   reflection, \emph{do it}, and use reflection as the glue to get from one
@@ -1004,7 +1028,7 @@ But what about incorrectly constructed expressions? What if the user makes a
 mistake in what they ask us to solve: surely we can't \emph{assume} correctness?
 Well actually:
 
-\begin{principle}{Ask for forgiveness, not permission.}
+\begin{principle}[Ask for forgiveness, not permission]
   If the input to your macro requires the user to write an expression which
   conforms to a certain structure, \emph{assume} that they have done so; don't
   check for it and proceed conditionally. With careful structuring of the
@@ -1112,7 +1136,7 @@ Inductive Pol (C:Set) : Set :=
 The implementation presented here straddles both camps: we verify homomorphism
 in separate lemmas, but the type itself does carry information: it's indexed by
 the number of variables it contains, for instance, and it statically ensures
-it's always in canonical form.
+it's always in normal form.
 
 Performing the same task in a correct-by-construction way is explored
 in\cite{geuvers_automatically_2017} (in Idris\cite{brady_idris_2013}).
@@ -1126,15 +1150,17 @@ together.
 \ExecuteMetaData[CorrectByConstruction.tex]{constr-add}
 \bibliographystyle{IEEEtranS}
 \bibliography{bibliography.bib}
+\newpage
 \appendix
-\begin{figure}
-  \ExecuteMetaData[FinalPolyDefinition.tex]{final-poly-def}
-  \caption{Final Definition of Sparse Polynomials}
-  \label{final-poly-def}
-\end{figure}
-\begin{figure}
+\section{Longer Code Examples}
+\begin{figure}[h]
   \ExecuteMetaData[AbstractionAndFolds.tex]{semantics}
   \caption{Semantics of Sparse Polynomials}
   \label{semantics}
+\end{figure}
+\begin{figure}[h]
+  \ExecuteMetaData[FinalPolyDefinition.tex]{final-poly-def}
+  \caption{Final Definition of Sparse Polynomials}
+  \label{final-poly-def}
 \end{figure}
 \end{document}
