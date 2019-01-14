@@ -90,6 +90,11 @@
 \title{Automatically And Efficiently Illustrating Polynomial Equalities in Agda}
 \begin{document}
 \maketitle
+\begin{figure}
+  \ExecuteMetaData[Introduction.tex]{lemma}
+  \caption{The Solver}
+  \label{the-solver}
+\end{figure}
 \begin{abstract}
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
@@ -185,8 +190,7 @@ solutions\cite{the_development_team_step-by-step_2009}.
     We also demonstrate a use of the Algebra of Programming approach in
     Agda\cite{mu_algebra_2009}.
   \item[A Simple Reflection-Based Interface] We use Agda's reflection machinery
-    to provide the following interface to the solver:
-    \ExecuteMetaData[Introduction.tex]{lemma}
+    to provide the following interface demonstrated in figure~\ref{the-solver}.
     It imposes minimal overhead on the user: only the \(\AgdaDatatype{Ring}\)
     implementation is required, with no need for user implementations of
     quoting. Despite this, it is generic over any type which implements ring. To
@@ -858,9 +862,8 @@ supplied to solve. See figure~\ref{mon-auto-proof} for an example of this kind
 of duplication. We can cut down on the writing we need to do by half by omitting
 the type signature, but for a user, this is the \emph{wrong half}: the syntax
 and structure of the AST is something of an implementation detail, and is not
-something we should require the user to learn. Instead, we provide the following
-interface:
-\ExecuteMetaData[ReflectionSection.tex]{refl-lemma}
+something we should require the user to learn. Instead, we provide a
+reflection-based interface, visible in figure~\ref{the-solver}.
 
 The call to \(\AgdaMacro{solve}\) first infers the goal type, then constructs
 the corresponding AST to hand to the solver. Interestingly, the goal type need
@@ -1155,6 +1158,20 @@ the left-hand-side and right-hand-side of the equation, respectively. It's clear
 that we can form from this a relation with symmetry, transitivity and
 reflexivity: enough to satisfy our solver.
 
+Figuring out a \emph{good} solution is another task, however currently our
+solver (after the application of some heuristics) outputs the following for the
+lemma in figure~\ref{the-solver}:
+\begin{verbatim}
+x + y * 1 + 3
+    ={ *-ident y }
+x + y + 3
+    ={ +-comm y x }
+y + x + 3
+    ={ +-comm (y + x) 3 }
+2 + 1 + y + x
+\end{verbatim}
+Figuring out good heuristics and path compression techniques seems to deserve
+further examination.
 \section{The Correct-By-Construction Approach}
 The Agda and Coq communities exhibit something of a cultural difference when it
 comes to proving things. Coq users seem to prefer writing simpler, almost

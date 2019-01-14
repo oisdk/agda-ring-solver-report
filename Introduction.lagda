@@ -16,7 +16,7 @@ open AlmostCommutativeRing NatRing
 %<*lemma>
 \begin{code}
 lemma : ∀ x y →
-  (x + y) ^ 2 ≈ x ^ 2 + y ^ 2 + 2 * x * y
+  x + y * 1 + 3 ≈ 2 + 1 + y + x
 lemma = solve NatRing
 \end{code}
 %</lemma>
