@@ -32,4 +32,4 @@
 \contentsline {subsection}{\numberline {5.1}Isomorphisms}{20}{subsection.5.1}
 \contentsline {subsection}{\numberline {5.2}Pedagogical Solutions}{20}{subsection.5.2}
 \contentsline {section}{\numberline {6}The Correct-By-Construction Approach}{21}{section.6}
-\contentsline {section}{\numberline {A}Longer Code Examples}{24}{appendix.A}
+\contentsline {section}{\numberline {A}Longer Code Examples}{25}{appendix.A}
