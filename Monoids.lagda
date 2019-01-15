@@ -57,13 +57,13 @@ module MonIdent {c ℓ}
 \begin{code}
   ident w x y z =
     begin
-      ((w ∙ ε) ∙ (x ∙ y)) ∙ z
-    ≈⟨ assoc (w ∙ ε) (x ∙ y) z ⟩
-      (w ∙ ε) ∙ ((x ∙ y) ∙ z)
-    ≈⟨ identityʳ w ⟨ ∙-cong ⟩ assoc x y z ⟩
-      w ∙ (x ∙ (y ∙ z))
-    ≈⟨ sym (assoc w x (y ∙ z)) ⟩
-      (w ∙ x) ∙ (y ∙ z)
+    ((w ∙ ε) ∙ (x ∙ y)) ∙ z
+                             ≈⟨ assoc (w ∙ ε) (x ∙ y) z ⟩
+    (w ∙ ε) ∙ ((x ∙ y) ∙ z)
+                             ≈⟨ identityʳ w ⟨ ∙-cong ⟩ assoc x y z ⟩
+    w ∙ (x ∙ (y ∙ z))
+                             ≈⟨ sym (assoc w x (y ∙ z)) ⟩
+    (w ∙ x) ∙ (y ∙ z)
     ∎
 \end{code}
 %</mon-proof>

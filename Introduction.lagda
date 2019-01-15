@@ -4,7 +4,7 @@ module Introduction where
 open import Polynomial.Simple.AlmostCommutativeRing
 open import Polynomial.Simple.Reflection
 open import Data.Nat as ℕ using (ℕ; suc; zero)
-open import Data.Nat.Properties
+open import Data.Nat.Properties using (*-+-commutativeSemiring)
 open import Level using (0ℓ)
 
 NatRing : AlmostCommutativeRing 0ℓ 0ℓ
@@ -20,3 +20,22 @@ lemma : ∀ x y →
 lemma = solve NatRing
 \end{code}
 %</lemma>
+\begin{code}
+open import Relation.Binary.Reasoning.Setoid setoid
+open import Function
+
+yuck : ∀ x y →
+  x + y * 1 + 3 ≈ 2 + 1 + y + x
+yuck x y =
+  begin
+    x + y * 1 + 3
+  ≈⟨ refl ⟨ +-cong ⟩ *-identityʳ y ⟨ +-cong ⟩ refl {x = 3} ⟩
+    x + y + 3
+  ≈⟨ +-comm x y ⟨ +-cong ⟩ refl ⟩
+    y + x + 3
+  ≈⟨ +-comm (y + x) 3 ⟩
+    3 + (y + x)
+  ≈⟨ sym (+-assoc 3 y x) ⟩
+    2 + 1 + y + x
+  ∎
+\end{code}

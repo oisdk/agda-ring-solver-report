@@ -98,10 +98,10 @@
 \begin{abstract}
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
-  programming language Agda\cite{norell_dependently_2008}. We use Agda's
-  reflection machinery to provide a simple interface to the solver, and
-  demonstrate a novel use of the constructed relations: step-by-step pedagogical
-  solutions.
+  programming language Agda\cite{norell_dependently_2008}. It is asymptotically
+  faster than Agda's existing solver. We use Agda's reflection machinery to
+  provide a simple interface to the solver, and demonstrate a novel use of the
+  constructed relations: step-by-step pedagogical solutions.
 \end{abstract}
 \tableofcontents
 \section{Introduction} \todo{Shorten this up! Maybe remove the broadness}
@@ -132,50 +132,6 @@ that their programs are proofs, but rather the reverse: \emph{their proofs are
 algorithms \emph{in the languages themselves}, and using those algorithms to
 automate the construction of proofs. In doing so we go a step beyond the
 capabilities of most CASs, proving correctness as well as automating it.
-\subsection{Related Work} \todo{Move to the end!}
-In dependently-typed programming languages, the state-of-the-art solver for
-polynomial equalities (over commutative rings) was originally presented
-in\cite{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This
-work improved on the already existing solver\cite{Coq:manual} in both efficiency
-and flexibility. In both the old and improved solvers, a reflexive technique
-(section~\ref{reflexive}) is used to automate the construction of the proof
-obligation (as described in\cite{boutin_using_1997}).
-
-Agda\cite{norell_dependently_2008} is a dependently-typed programming language
-based on Martin-Löf's Intuitionistic Type
-Theory\cite{martin-lof_intuitionistic_1980}. Its standard
-library\cite{danielsson_agda_2018} currently contains a ring solver which is
-similar in flexibility to Coq's \verb+ring+, but doesn't support the
-reflection-based interface, and is less efficient due to its use of a dense
-(rather than sparse) internal data structure.
-
-In\cite{geuvers_automatically_2017}, an implementation of an automated solver
-for the dependently-typed language Idris\cite{brady_idris_2013} is described.
-The solver is implemented with a ``correct-by-construction'' approach, in
-contrast to\cite{gregoire_proving_2005}. The solver is defined over
-\emph{non}commutative rings, meaning that it is more general (can work with more
-types) but less powerful (meaning it can prove fewer identities). It provides a
-reflection-based interface, but internally uses a dense representation.
-
-Reflection and metaprogramming are relatively recent additions to Agda, but form
-an important part of the interfaces to automated proof procedures. Reflection in
-dependent types in general is explored in\cite{christiansen_practical_2015}, and
-specific to Agda in\cite{van_der_walt_reflection_2012}.
-
-Formalization of mathematics in general is an ongoing project.
-\cite{wiedijk_formalizing_2018} tracks how much of ``The 100 Greatest Theorems''
-\cite{kahl_hundred_2004} have so far been formalized (at time of writing, the
-number stands at 93). DoCon\cite{meshveliani_docon-provable_2018} is a notable
-Agda library in this regard: it contains many tools for basic maths, and
-implementations of several CAS algorithms. Its implementation is described
-in\cite{meshveliani_dependent_2013}. \cite{cheng_functional_2018} describes the
-manipulation of polynomials in both Haskell and Agda.
-
-Finally, the study of \emph{pedagogical} CASs which provide step-by-step
-solutions is explored in\cite{lioubartsev_constructing_2016}. One of the most
-well-known such system is Wolfram
-Alpha\cite{wolfram_research_inc._wolframalpha_2019}, which has step-by-step
-solutions\cite{the_development_team_step-by-step_2009}.
 \subsection{Contributions}
 \begin{description}
   \item[An New, Efficient Ring Solver]
@@ -242,13 +198,18 @@ parentheses, and \(\AgdaField{ε}\) is the identity element, so scrub it out too
 After that, both sides are equal, so voilà! 
 
 Unfortunately, our compiler isn't nearly that clever. As alluded to before, we
-need to painstakingly specify every intermediate step, justifying every move:
+need to painstakingly specify every intermediate step, justifying every move
+(figure~\ref{mon-proof}).
 
-\begin{samepage}
-  \begin{linenumbers}
+\begin{figure*}
+  \centering
+  \parbox{0.65\textwidth}{
+    \internallinenumbers
     \ExecuteMetaData[Monoids.tex]{mon-proof}
-  \end{linenumbers}
-\end{samepage}
+  }
+  \caption{Proof of the identity in figure~\ref{mon-ident}}
+  \label{mon-proof}
+\end{figure*}
 
 The syntax is designed to mimic that of a handwritten proof: line 3 is the
 expression on the left-hand side of \(\AgdaField{≈}\) in figure~\ref{mon-ident},
@@ -1256,6 +1217,50 @@ While this approach reduced the amount of code we needed to write, we found it
 made optimizations more difficult, as it combined the execution and proof code
 together.
 \ExecuteMetaData[CorrectByConstruction.tex]{constr-add}
+\subsection{Related Work}
+In dependently-typed programming languages, the state-of-the-art solver for
+polynomial equalities (over commutative rings) was originally presented
+in\cite{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This
+work improved on the already existing solver\cite{Coq:manual} in both efficiency
+and flexibility. In both the old and improved solvers, a reflexive technique
+(section~\ref{reflexive}) is used to automate the construction of the proof
+obligation (as described in\cite{boutin_using_1997}).
+
+Agda\cite{norell_dependently_2008} is a dependently-typed programming language
+based on Martin-Löf's Intuitionistic Type
+Theory\cite{martin-lof_intuitionistic_1980}. Its standard
+library\cite{danielsson_agda_2018} currently contains a ring solver which is
+similar in flexibility to Coq's \verb+ring+, but doesn't support the
+reflection-based interface, and is less efficient due to its use of a dense
+(rather than sparse) internal data structure.
+
+In\cite{geuvers_automatically_2017}, an implementation of an automated solver
+for the dependently-typed language Idris\cite{brady_idris_2013} is described.
+The solver is implemented with a ``correct-by-construction'' approach, in
+contrast to\cite{gregoire_proving_2005}. The solver is defined over
+\emph{non}commutative rings, meaning that it is more general (can work with more
+types) but less powerful (meaning it can prove fewer identities). It provides a
+reflection-based interface, but internally uses a dense representation.
+
+Reflection and metaprogramming are relatively recent additions to Agda, but form
+an important part of the interfaces to automated proof procedures. Reflection in
+dependent types in general is explored in\cite{christiansen_practical_2015}, and
+specific to Agda in\cite{van_der_walt_reflection_2012}.
+
+Formalization of mathematics in general is an ongoing project.
+\cite{wiedijk_formalizing_2018} tracks how much of ``The 100 Greatest Theorems''
+\cite{kahl_hundred_2004} have so far been formalized (at time of writing, the
+number stands at 93). DoCon\cite{meshveliani_docon-provable_2018} is a notable
+Agda library in this regard: it contains many tools for basic maths, and
+implementations of several CAS algorithms. Its implementation is described
+in\cite{meshveliani_dependent_2013}. \cite{cheng_functional_2018} describes the
+manipulation of polynomials in both Haskell and Agda.
+
+Finally, the study of \emph{pedagogical} CASs which provide step-by-step
+solutions is explored in\cite{lioubartsev_constructing_2016}. One of the most
+well-known such system is Wolfram
+Alpha\cite{wolfram_research_inc._wolframalpha_2019}, which has step-by-step
+solutions\cite{the_development_team_step-by-step_2009}.
 \bibliographystyle{IEEEtranS}
 \bibliography{bibliography.bib}
 \newpage
