@@ -95,43 +95,54 @@
   \caption{The Solver}
   \label{the-solver}
 \end{figure}
+\begin{figure*}
+  \centering
+  \ExecuteMetaData[Introduction.tex]{proof}
+  \caption{A Tedious Proof}
+  \label{ring-proof}
+\end{figure*}
 \begin{abstract}
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
   programming language Agda\cite{norell_dependently_2008}. It is asymptotically
   faster than Agda's existing solver. We use Agda's reflection machinery to
   provide a simple interface to the solver, and demonstrate a novel use of the
-  constructed relations: step-by-step pedagogical solutions.
+  constructed relations: step-by-step solutions.
 \end{abstract}
 \tableofcontents
-\section{Introduction} \todo{Shorten this up! Maybe remove the broadness}
-Proof assistants and computer algebra systems (CASs) share many of the same
-goals: fundamentally, they aim to leverage computer automation to assist a
-mathematician, in much the same way that a word processor might help a writer.
-One promising avenue for the development of proof assistants uses dependently
-typed programming languages, like Agda\cite{norell_dependently_2008} and
-Coq\cite{the_coq_development_team_2018_1219885}, to automate \emph{verification}
-of proofs. Based on constructivist mathematics, these languages allow the
-programmer to write proofs as \emph{programs}, which are then verified by the
-compiler.
+\section{Introduction}
+Why don't most mathematicians write their proofs in dependently-typed
+programming languages? Figure~\ref{ring-proof} suggests one reason: tedium!
+If even simple proofs take lines and lines of fussy arithmetic, how will the
+more complex ones fare?
 
-Before they achieve the same widespread usefulness of other CASs, however, these
-languages have a significant hurdle to overcome: tedium. Truly formal proofs of
-even basic mathematical identities are notoriously verbose (Russell and
-Whitehead required 378 pages of preamble before proving \(1+1=2\)
-\cite{whitehead_principia_1910}). While Coq and Agda have vastly improved the
-situation, they still often suffer from a degree of explicitness that makes even
-elementary identities daunting: used in the naïve way, equivalence proofs
-require the programmer to specify every individual step (``here we rely on the
-commutativity of \(+\), followed by the associativity of \(\times\) on its
-right-hand-side'', and so on).
+So we must automate them. This work presents a program to do exactly that,
+written in Agda (section~\ref{a-poly-solver}). Automated solvers of this kind
+are important components of any dependently-typed language's standard library:
+ours is asymptotically more efficient than Agda's currently implementation. 
 
-However, the real promise of dependently-typed languages lies not in the fact
-that their programs are proofs, but rather the reverse: \emph{their proofs are
-  programs}. There is nothing stopping us from implementing standard CAS
-algorithms \emph{in the languages themselves}, and using those algorithms to
-automate the construction of proofs. In doing so we go a step beyond the
-capabilities of most CASs, proving correctness as well as automating it.
+As well as being boring, though, writing these proofs is \emph{difficult}. The
+programmer needs to remember the particular syntax and name for each step (``is
+it \(\AgdaFunction{+-comm}\) or \(\AgdaFunction{+-commutative}\)?''), and error
+messages can be unhelpful.
+
+Our solver strives to be as easy to use as possible (section~\ref{reflection}):
+the high-level interface is a single macro (\(\AgdaMacro{solve}\),
+figure~\ref{the-solver}), we don't require anything of the user other than an
+implementation of one of the supported algebras, and effort is made to generate
+useful error messages.
+
+Finally, when it comes to using computers to assist with mathematics,
+dependently-typed languages aren't the only game in town. Several computer
+algebra systems (CASs) have gained widespread popularity among mathematicians
+and students alike. While these systems don't have the correctness guarantees we
+get with Agda, they do have many other useful features. We take one of these
+features (``pedagogical'', or step-by-step solutions), formalize it, and
+demonstrate how our solver can be used to implement it.
+
+We want to make doing mathematics in Agda easier, friendlier, and more fun. This
+work contributes to that effort in the small (but important) area of polynomial
+equations.
 \subsection{Contributions}
 \begin{description}
   \item[An New, Efficient Ring Solver]
@@ -391,7 +402,7 @@ write the identity they want to prove \emph{and} the AST representing the
 identity. Removing this step is the job of reflection
 (section~\ref{reflection}): in figure~\ref{proof-process} it's represented by
 the path labeled \(\AgdaKeyword{quoteTerm}\).
-\section{A Polynomial Solver}
+\section{A Polynomial Solver} \label{a-poly-solver}
 With the monoid solver as a template, the components required for the ring
 solver are as follows: a normal form, a concrete representation of
 expressions, and a proof of correctness (homomorphism). Before addressing each

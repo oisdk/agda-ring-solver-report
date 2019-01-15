@@ -1,27 +1,27 @@
 \babel@toc {english}{}
 \contentsline {section}{\numberline {1}Introduction}{2}{section.1}
 \contentsline {subsection}{\numberline {1.1}Contributions}{2}{subsection.1.1}
-\contentsline {section}{\numberline {2}The Reflexive Technique}{2}{section.2}
+\contentsline {section}{\numberline {2}The Reflexive Technique}{3}{section.2}
 \contentsline {subsection}{\numberline {2.1}A ``Trivial'' Identity}{3}{subsection.2.1}
-\contentsline {subsection}{\numberline {2.2}ASTs for the Language of Monoids}{3}{subsection.2.2}
-\contentsline {subsection}{\numberline {2.3}Free Objects and Normal Forms}{4}{subsection.2.3}
-\contentsline {subsection}{\numberline {2.4}Homomorphism}{5}{subsection.2.4}
+\contentsline {subsection}{\numberline {2.2}ASTs for the Language of Monoids}{4}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Free Objects and Normal Forms}{5}{subsection.2.3}
+\contentsline {subsection}{\numberline {2.4}Homomorphism}{6}{subsection.2.4}
 \contentsline {subsection}{\numberline {2.5}Usage}{6}{subsection.2.5}
 \contentsline {subsubsection}{\numberline {2.5.1}Reflection}{6}{subsubsection.2.5.1}
-\contentsline {section}{\numberline {3}A Polynomial Solver}{7}{section.3}
+\contentsline {section}{\numberline {3}A Polynomial Solver}{6}{section.3}
 \contentsline {subsection}{\numberline {3.1}Choice of Algebra}{7}{subsection.3.1}
 \contentsline {subsection}{\numberline {3.2}Horner Normal Form}{7}{subsection.3.2}
-\contentsline {subsection}{\numberline {3.3}Eliminating Redundancy}{7}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.3}Eliminating Redundancy}{8}{subsection.3.3}
 \contentsline {subsection}{\numberline {3.4}Multiple Variables}{9}{subsection.3.4}
-\contentsline {subsection}{\numberline {3.5}Efficiency in Indexed Types}{9}{subsection.3.5}
-\contentsline {subsubsection}{\numberline {3.5.1}Call-Pattern Specialization}{9}{subsubsection.3.5.1}
+\contentsline {subsection}{\numberline {3.5}Efficiency in Indexed Types}{10}{subsection.3.5}
+\contentsline {subsubsection}{\numberline {3.5.1}Call-Pattern Specialization}{10}{subsubsection.3.5.1}
 \contentsline {subsubsection}{\numberline {3.5.2}Built-In Functions}{10}{subsubsection.3.5.2}
 \contentsline {subsubsection}{\numberline {3.5.3}Unification}{11}{subsubsection.3.5.3}
-\contentsline {subsubsection}{\numberline {3.5.4}Hanging Indices}{11}{subsubsection.3.5.4}
+\contentsline {subsubsection}{\numberline {3.5.4}Hanging Indices}{12}{subsubsection.3.5.4}
 \contentsline {subsection}{\numberline {3.6}Abstraction and Folds for Simpler Proofs}{14}{subsection.3.6}
 \contentsline {subsection}{\numberline {3.7}Proving Higher-Order Termination With Well-Founded Recursion}{15}{subsection.3.7}
 \contentsline {section}{\numberline {4}Reflection}{16}{section.4}
-\contentsline {subsection}{\numberline {4.1}Building The AST for Proving}{17}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.1}Building The AST for Proving}{18}{subsection.4.1}
 \contentsline {subsection}{\numberline {4.2}Matching on the Reflected Expression}{18}{subsection.4.2}
 \contentsline {subsubsection}{\numberline {4.2.1}Matching the Ring Operators}{18}{subsubsection.4.2.1}
 \contentsline {subsubsection}{\numberline {4.2.2}Matching Variables}{19}{subsubsection.4.2.2}
@@ -29,7 +29,7 @@
 \contentsline {subsection}{\numberline {4.3}Building the Solution}{20}{subsection.4.3}
 \contentsline {section}{\numberline {5}Setoid Applications}{20}{section.5}
 \contentsline {subsection}{\numberline {5.1}Isomorphisms}{20}{subsection.5.1}
-\contentsline {subsection}{\numberline {5.2}Pedagogical Solutions}{20}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.2}Pedagogical Solutions}{21}{subsection.5.2}
 \contentsline {section}{\numberline {6}The Correct-By-Construction Approach}{21}{section.6}
-\contentsline {subsection}{\numberline {6.1}Related Work}{22}{subsection.6.1}
+\contentsline {subsection}{\numberline {6.1}Related Work}{23}{subsection.6.1}
 \contentsline {section}{\numberline {A}Longer Code Examples}{25}{appendix.A}
