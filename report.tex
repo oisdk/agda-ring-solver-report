@@ -138,38 +138,45 @@ algebra systems (CASs) have gained widespread popularity among mathematicians
 and students alike. While these systems don't have the correctness guarantees we
 get with Agda, they do have many other useful features. We take one of these
 features (``pedagogical'', or step-by-step solutions), formalize it, and
-demonstrate how our solver can be used to implement it.
+demonstrate how our solver can be used to implement it
+(section~\ref{pedagogical}).
 
 We want to make doing mathematics in Agda easier, friendlier, and more fun. This
 work contributes to that effort in the small (but important) area of polynomial
 equations.
 \subsection{Contributions}
 \begin{description}
-  \item[An New, Efficient Ring Solver]
-    We provide an implementation of a polynomial solver in the programming
-    language Agda. It improves on the old solver by using a sparse internal
-    representation as in \cite{gregoire_proving_2005}. We also verify the
-    optimizations.
+  \item[An New, Efficient Ring Solver (section~\ref{a-poly-solver})] We provide
+    an implementation of a polynomial solver in the programming
+    language Agda. It improves upon the efficiency of the current solver in
+    Agda's standard library\cite{danielsson_agda_2018} by using the
+    optimizations described in\cite{gregoire_proving_2005}. Like the current
+    solver, it works over a wide range of types and algebras, including rings,
+    ``almost''-rings (rings which don't necessarily support negation), and
+    commutative semirings.
   \item[Techniques For Efficient Verification] We demonstrate several techniques
-    to thread verification and proof logic through algorithms \emph{without}
-    changing complexity class. These techniques are of general use in functional
-    languages with type systems powerful enough to express invariants.
+    to make algorithms correct-by-construction \emph{without} changing their
+    complexity class (section~\ref{efficient-cbc}). These techniques can be used
+    in any functional language with a type system powerful enough to express
+    invariants.
 
-    We also demonstrate a use of the Algebra of Programming approach in
-    Agda\cite{mu_algebra_2009}.
-  \item[A Simple Reflection-Based Interface] We use Agda's reflection machinery
-    to provide the following interface demonstrated in figure~\ref{the-solver}.
-    It imposes minimal overhead on the user: only the \(\AgdaDatatype{Ring}\)
-    implementation is required, with no need for user implementations of
-    quoting. Despite this, it is generic over any type which implements ring. To
-    our knowledge, such an interface does not exist in Agda.
-  \item[A Pedagogical Computer-Algebra System] We show how our solver can
-    generate ``step-by-step'' solutions for the equalities, with no modification
-    of the original code.
+    Where we require extrinsic proofs, we demonstrate how the ``Algebra of
+    Programming'' approach\cite{mu_algebra_2009} can be used to cut down on
+    boilerplate (section~\ref{aopa}).
+  \item[A Simple Interface (section~\ref{reflection})] Using
+    Agda's reflection machinery, we provide the simple interface shown in
+    figure~\ref{the-solver}. It imposes minimal overhead on the user: only the
+    \(\AgdaDatatype{Ring}\) implementation is required, with no need for user
+    implementations of quoting. Despite this, it is generic over any type which
+    implements ring. To our knowledge, such an interface does not exist in Agda.
+  \item[A Pedagogical Solver (section~\ref{pedagogical})] We examine
+    ``pedagogical solutions'', and present a formalism to describe them. We then
+    show how our solver can be used to generate these solutions, and how to
+    present them in a user-friendly way.
 \end{description}
 All of these contributions, while developed together, are entirely modular. For
 instance, both the reflection interface \emph{and} the pedagogical solutions
-work with the old version of the ring solver.
+work with the current version of the ring solver.
 \section{The Reflexive Technique} \label{reflexive}
 Before describing the specifics of a given solver algorithm, it's important to
 understand how that algorithm can be applied in a dependently-typed language.
@@ -546,7 +553,7 @@ variables (\(x\) and \(y\)), we will have an outer polynomial in \(y\), whose
 0 variables is simply a coefficient; a polynomial with $n$ variables is a list
 of polynomials with $n-1$ variables. In types:
 \ExecuteMetaData[SparseMulti.tex]{dense-poly} 
-\subsection{Efficiency in Indexed Types}
+\subsection{Efficiency in Indexed Types} \label{efficient-cbc}
 \subsubsection{Call-Pattern Specialization}
 While both sparse encodings provide a more space-efficient representation, the
 computational efficiency has yet to be realized. Starting with the sparse
@@ -729,7 +736,7 @@ gaps: this suggests the equivalent function is \emph{transitivity}:
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-trans}
 And with that, we have enough to define our comparison function:
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-compare}
-\subsection{Abstraction and Folds for Simpler Proofs}
+\subsection{Abstraction and Folds for Simpler Proofs} \label{aopa}
 At this point, following our many optimizations, the task of proving
 homomorphism for these implementations is more than a little daunting. However,
 we can ease the burden somewhat by leveraging the \(\AgdaFunction{foldr}\)
@@ -1099,7 +1106,7 @@ The first, and most obvious, ``exotic'' setoid is that over a universe of types.
 The relation is an \emph{isomorphism} between these types. In this way, the
 solver can now automatically construct functions to convert between equivalent
 types. This has been explored before in a number of settings.
-\subsection{Pedagogical Solutions} \todo{Expand!}
+\subsection{Pedagogical Solutions} \label{pedagogical} \todo{Expand!}
 \begin{figure*}[t]
   \centering
   \begin{tikzpicture}

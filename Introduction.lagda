@@ -26,19 +26,18 @@ open import Function
 \end{code}
 %<*proof>
 \begin{code}
-proof : ∀ x y →
-  x + y * 1 + 3 ≈ 2 + 1 + y + x
+proof : ∀ x y → x + y * 1 + 3 ≈ 2 + 1 + y + x
 proof x y =
   begin
-  x + y * 1 + 3
-                 ≈⟨ refl ⟨ +-cong ⟩ *-identityʳ y ⟨ +-cong ⟩ refl {x = 3} ⟩
-  x + y + 3
-                 ≈⟨ +-comm x y ⟨ +-cong ⟩ refl ⟩
-  y + x + 3
-                 ≈⟨ +-comm (y + x) 3 ⟩
-  3 + (y + x)
-                 ≈⟨ sym (+-assoc 3 y x) ⟩
-  2 + 1 + y + x
+    x + y * 1 + 3
+                  ≈⟨ refl ⟨ +-cong ⟩ *-identityʳ y ⟨ +-cong ⟩ refl {x = 3} ⟩
+    x + y + 3
+                  ≈⟨ +-comm x y ⟨ +-cong ⟩ refl ⟩
+    y + x + 3
+                  ≈⟨ +-comm (y + x) 3 ⟩
+    3 + (y + x)
+                  ≈⟨ sym (+-assoc 3 y x) ⟩
+    2 + 1 + y + x
   ∎
 \end{code}
 %</proof>
