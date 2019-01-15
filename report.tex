@@ -100,10 +100,11 @@
   proofs between polynomials over commutative rings and semirings in the
   programming language Agda\cite{norell_dependently_2008}. We use Agda's
   reflection machinery to provide a simple interface to the solver, and
-  demonstrate a novel use of the constructed relations.
+  demonstrate a novel use of the constructed relations: step-by-step pedagogical
+  solutions.
 \end{abstract}
 \tableofcontents
-\section{Introduction}
+\section{Introduction} \todo{Shorten this up! Maybe remove the broadness}
 Proof assistants and computer algebra systems (CASs) share many of the same
 goals: fundamentally, they aim to leverage computer automation to assist a
 mathematician, in much the same way that a word processor might help a writer.
@@ -131,7 +132,7 @@ that their programs are proofs, but rather the reverse: \emph{their proofs are
 algorithms \emph{in the languages themselves}, and using those algorithms to
 automate the construction of proofs. In doing so we go a step beyond the
 capabilities of most CASs, proving correctness as well as automating it.
-\subsection{Related Work} 
+\subsection{Related Work} \todo{Move to the end!}
 In dependently-typed programming languages, the state-of-the-art solver for
 polynomial equalities (over commutative rings) was originally presented
 in\cite{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This
