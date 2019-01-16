@@ -1219,8 +1219,8 @@ types. This has been explored before in a number of settings.
 \end{figure*}
 One of the most widely-used and successful computer algebra systems, especially
 among non-programmers, is Wolfram
-Alpha\cite{wolfram_research_inc._wolframalpha_2019}. Perhaps its most used
-feature is ``pedagogical'' (step-by-step) solutions to maths
+Alpha\cite{wolfram_research_inc._wolframalpha_2019}. It can generate
+``pedagogical'' (step-by-step) solutions to maths
 problems\cite{the_development_team_step-by-step_2009}. For instance, given the
 input \(x^2 + 5 x + 6 = 0\), it will give the following output:
 \begin{align*}
@@ -1243,12 +1243,22 @@ way of the theoretical basis for pedagogical solutions.
 vertices in a graph, where the edges are single steps to rewrite an expression
 to an equivalent form (figure~\ref{rewrite-graph}). A* is used to search.
 
-While graph search is a clear fit for the problem, without decent heuristics the
-search space is infeasibly large.
+This approach suffers from a huge search space: every vertex will have an edge
+for almost every one of the ring axioms, and as such a good heuristic is
+essential. Unfortunately, what this should be is not
+clear:\cite{lioubartsev_constructing_2016} uses a measure of the ``simplicity''
+of an expression.
 
-Paths, though, form an equivalence relation: as such, they work just fine as
-relations in our solver. Transitivity is the concatenation of paths, reflexivity
-is the empty path, and symmetry is \emph{reversing} a path.
+So, with an eye to using our solver instead of A*, we can notice that paths in
+undirected graphs form a perfectly reasonable equivalence relation: transitivity
+is the concatenation of paths, reflexivity is the empty path, and symmetry is
+\emph{reversing} a path. Equivalence classes, in this analogy, are connected
+components of the graph.
+
+More practically speaking, we implement these ``paths'' as lists, where the
+elements of the list are elementary ring axioms. When we want to display a
+step-by-step solution, we simply print out each element of the list in turn,
+interspersed with the states of the expression (the vertices in the graph).
 
 If we stopped there, however, the solver would output incredibly verbose
 ``solutions'': far too verbose to be human-readable. Instead, we must apply a
