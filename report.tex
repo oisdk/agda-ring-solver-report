@@ -835,7 +835,97 @@ guaranteed.
 Luckily, in our case, the relation is already lying around, in the injection
 index. So we can just use that!
 \ExecuteMetaData[AbstractionAndFolds.tex]{terminating}
+\subsection{Benchmarks}
+\begin{figure*}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.35\textwidth,
+      legend columns=-1,
+      legend entries={sparse, dense},
+      legend to name=benchplots,
+      title={$(x_1 + x_2 + \ldots + x_n)^d$},
+      xlabel={$d=$},
+      x label style={at={(axis description cs:0.1,0.017)},anchor=south},
+      ]
+      \addplot coordinates{
+        (15,0.056)
+        (20,0.197)
+        (25,0.607)
+        (30,1.376)
+        (35,2.957)
+        (40,5.808)
+      };
+      \addplot coordinates{
+        (15,0.053)
+        (20,0.233)
+        (25,0.964)
+        (30,2.084)
+        (35,7.819)
+        (40,10.791)
+      };
+    \end{axis}
+  \end{tikzpicture}
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.35\textwidth,
+      title={$(1 + x_1^d + x_2^d + \ldots + x_n^d)^d$},
+      xlabel={$d=$},
+      x label style={at={(axis description cs:0.1,0.017)},anchor=south},
+      ]
+      \addplot coordinates{
+        (5,0.021)
+        (10,0.032)
+        (15,0.129)
+        (20,0.535)
+        (25,1.852)
+      };
+      \addplot coordinates{
+        (5,0.022)
+        (10,0.078)
+        (15,0.820)
+        (20,5.958)
+        (25,27.327)
+      };
+    \end{axis}
+  \end{tikzpicture}
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.35\textwidth,
+      title={$(x_1^d + \ldots + x_n^d) + (x_1^d + \ldots + x_n^d)$},
+      xlabel={$d=$},
+      x label style={at={(axis description cs:0.1,0.017)},anchor=south},
+      ]
+      \addplot coordinates{
+        (100,0.021)
+        (200,0.022)
+        (300,0.021)
+        (400,0.022)
+        (500,0.022)
+      };
+      \addplot coordinates{
+        (100,0.035)
+        (200,0.082)
+        (300,0.143)
+        (400,0.256)
+        (500,0.396)
+      };
+    \end{axis}
+  \end{tikzpicture}
+  \ref{benchplots}
+  \caption{Time (in seconds) to normalize and evaluate the given expressions.
+    ($n = 5$ for each).}
+  \label{benchmarks}
+\end{figure*}
+Unfortunately, the sparse representation does not exhibit faster performance at
+type-checking time. None of the optimizations (such as the fast comparison on
+natural numbers, or elision of \(\AgdaDatatype{Acc}\)) are applied, and so we
+don't see a benefit anywhere except with truly pathological cases.
 
+In compiled code, though, we see clear performance gains
+(figure~\ref{benchmarks}). Currently, it does not seem possible to use compiled
+Agda code at type-checking time: until it is, the dense solver can be used with
+the reflection machinery described here.
 \section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
 want to solve twice: once in the type signature, and again in the argument
@@ -1084,87 +1174,6 @@ It will demonstrate where exactly it fails, with the error message:
 
 This is because we pass it \(\AgdaField{refl}\) as the proof that the normal
 forms are equal: if they're not, this is where we'll get an error.
-\subsection{Benchmarks}
-Unfortunately, the sparse representation does not exhibit faster performance at
-type-checking time. None of the optimizations (such as the fast comparison on
-natural numbers, or elision of \(\AgdaDatatype{Acc}\)) are applied, and so we
-don't see a benefit anywhere except with truly pathological cases.
-
-In compiled code, though, we see clear performance gains: the following 
-
-\begin{figure*}
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.37\textwidth,
-      legend columns=-1,
-      legend entries={sparse, dense},
-      legend to name=benchplots,
-      title={$(x_1 + x_2 + \ldots + x_n)^d$},
-      ]
-      \addplot coordinates{
-        (15,0.056)
-        (20,0.197)
-        (25,0.607)
-        (30,1.376)
-        (35,2.957)
-        (40,5.808)
-      };
-      \addplot coordinates{
-        (15,0.053)
-        (20,0.233)
-        (25,0.964)
-        (30,2.084)
-        (35,7.819)
-        (40,10.791)
-      };
-    \end{axis}
-  \end{tikzpicture}
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.37\textwidth,
-      title={$(1 + x_1^d + x_2^d + \ldots + x_n^d)^d$},
-      ]
-      \addplot coordinates{
-        (5,0.021)
-        (10,0.032)
-        (15,0.129)
-        (20,0.535)
-        (25,1.852)
-      };
-      \addplot coordinates{
-        (5,0.022)
-        (10,0.078)
-        (15,0.820)
-        (20,5.958)
-        (25,27.327)
-      };
-    \end{axis}
-  \end{tikzpicture}
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.37\textwidth,
-      title={$(x_1^d + \ldots + x_n^d) + (x_1^d + \ldots + x_n^d)$},
-      ]
-      \addplot coordinates{
-        (100,0.021)
-        (200,0.022)
-        (300,0.021)
-        (400,0.022)
-        (500,0.022)
-      };
-      \addplot coordinates{
-        (100,0.035)
-        (200,0.082)
-        (300,0.143)
-        (400,0.256)
-        (500,0.396)
-      };
-    \end{axis}
-  \end{tikzpicture}
-
-  \ref{benchplots}
-\end{figure*}
 
 \section{Setoid Applications} \label{equivalence}
 As mentioned previously, the solver does \emph{not} require the user to prove
