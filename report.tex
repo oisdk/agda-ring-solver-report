@@ -117,10 +117,10 @@ programming languages? Figure~\ref{ring-proof} suggests one reason: tedium!
 If even simple proofs take lines and lines of fussy arithmetic, how will the
 more complex ones fare?
 
-So we must automate them. This work presents a program to do exactly that,
+So, we must automate them. This work presents a program to do exactly that,
 written in Agda (section~\ref{a-poly-solver}). Automated solvers of this kind
 are important components of any dependently-typed language's standard library:
-ours is asymptotically more efficient than Agda's currently implementation. 
+ours is asymptotically more efficient than Agda's current implementation. 
 
 As well as being boring, though, writing these proofs is \emph{difficult}. The
 programmer needs to remember the particular syntax and name for each step (``is
@@ -1254,6 +1254,7 @@ undirected graphs form a perfectly reasonable equivalence relation: transitivity
 is the concatenation of paths, reflexivity is the empty path, and symmetry is
 \emph{reversing} a path. Equivalence classes, in this analogy, are connected
 components of the graph.
+\ExecuteMetaData[SetoidApplications.tex]{traced}
 
 More practically speaking, we implement these ``paths'' as lists, where the
 elements of the list are elementary ring axioms. When we want to display a
