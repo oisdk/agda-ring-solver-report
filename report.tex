@@ -256,12 +256,13 @@ this is useful.
 The first hurdle for automatically constructing proofs comes from the fact that
 the identity in figure~\ref{mon-ident} is opaque: to the compiler, it just looks
 like a function with four arguments. This means we can't scrutinize or
-pattern-match on its contents. Our first step, then, is to define an AST for
-these expressions which we \emph{can} pattern-match on:
+pattern-match on its contents. Our first step, then, is to define an AST
+(abstract syntax tree) for these expressions which we \emph{can} pattern-match
+on:
 \ExecuteMetaData[Monoids.tex]{mon-ast}
 
-This AST (abstract syntax tree) can express any expression which comprises of
-only monoid operations and variables.
+This AST  can express any expression which comprises of only monoid operations
+and variables.
 \begin{align*}
   \AgdaField{∙} & \Longrightarrow \AgdaInductiveConstructor{⊕} \\
   \AgdaField{ε} & \Longrightarrow \AgdaInductiveConstructor{e} \\
@@ -278,7 +279,7 @@ left-hand-side of the identity in figure~\ref{mon-ident}:
 To get \emph{back} to the original expression, we can write an ``evaluator'':
 \ExecuteMetaData[Monoids.tex]{eval-ast}
 
-This performs no normalization, and as such its refult is \emph{definitionally}
+This performs no normalization, and as such its result is \emph{definitionally}
 equal to the original expression\footnotemark:
 \footnotetext{
   The type of the unnormalized expression has changed slightly: instead of being
@@ -335,8 +336,8 @@ To convert to the normal form, we'll use a related concept: the free object.
 So now we can accomplish ``normalization'' by converting an expression to the
 free object, and then the free object back to an expression. Again, we won't
 always have a free object for the algebra we're interested in, do we will settle
-for something close. Luckily, we do have such an object for monoids: the free
-monoid is more commonly known as the \emph{list}.
+\todo{fix} for something close. Luckily, we do have such an object for monoids:
+the free monoid is more commonly known as the \emph{list}.
 
 \ExecuteMetaData[Monoids.tex]{list-def}
 
@@ -431,7 +432,7 @@ of addition, multiplication, subtraction, and exponentiation (to a power in
 operations we will need to specify the laws or equations that they obey
 (commutativity, associativity, etc.). Here we must strike a balance: the more
 equations specified, the more equalities the solver can prove, but the fewer
-types the solver will be available for.
+types the solver will be available for \todo{clarify}.
 
 The elephant in the room here is \(\mathbb{N}\): perhaps the most used numeric
 type in Agda, it doesn't have an additive inverse. So that our solver will still
@@ -561,8 +562,8 @@ computational efficiency has yet to be realized. Starting with the sparse
 monomial, we'll look at the addition function. In the dense encoding
 (figure~\ref{simple-ops}), we needed to line up corresponding coefficients to
 add together. For this encoding, the ``corresponding'' coefficients are slightly
-harder to find. In order to line things p correctly, we'll need to compare the
-gap indices. This, however, presents our first problem:
+harder to find. In order to line things up correctly\todo{repetition}, we'll
+need to compare the gap indices. This, however, presents our first problem:
 \ExecuteMetaData[EliminatingRedundancy.tex]{nonterm-add}
 It doesn't pass the termination checker! While it does indeed terminate, it
 isn't structurally decreasing in its arguments. To make it structurally
@@ -917,6 +918,16 @@ index. So we can just use that!
     ($n = 5$ for each).}
   \label{benchmarks}
 \end{figure*}
+The benchmarks in figure~\ref{benchmarks} clearly show the efficiency gains of
+the sparse representation over the dense. The sparse representation shines
+especially when individual variables are raised to high powers: in these cases,
+operations on the sparse representation are constant time, whereas on the dense
+they scale with the particular power. Since we imagine this is a common case, we
+believe it represents an important speed increase.
+
+All of the benchmarks are performed on compiled Agda code: for interpreted 
+
+\todo{Switch the order of the reveal!}
 Unfortunately, the sparse representation does not exhibit faster performance at
 type-checking time. None of the optimizations (such as the fast comparison on
 natural numbers, or elision of \(\AgdaDatatype{Acc}\)) are applied, and so we
@@ -1057,7 +1068,7 @@ experience, the answer is no.
   unquoted, relying on inference as much as possible. The metalanguage is
   fragile and finicky with regards to scopes and context: the compiler isn't.
   You're more likely to get an argument wrong if you try and figure it out than
-  the compiler is.
+  the compiler is.\todo{rephrase this sentence}
 \end{principle}
 
 Using this, we can make a function for the AST which will generate a constant
@@ -1111,14 +1122,14 @@ us automatically. Which leads us to another observation:
 \end{principle}
 \subsubsection{Matching Constants}
 This task seems the most daunting: with all of the logic we required before just
-to match expressions, how are we going to match the carrier type? Do we need the
-user to provide that function? Some kind of matching logic (as
-in\cite{jedynak_simple_2018}), which would need to recognize every constructor
-case, and build the corresponding \(\AgdaDatatype{Term}\)?
+to match expressions, how are we going to match the carrier type\todo{rephrase
+  (parenthesize)}? Do we need the user to provide that function? Some kind of
+matching logic (as in\cite{jedynak_simple_2018}), which would need to recognize
+every constructor case, and build the corresponding \(\AgdaDatatype{Term}\)?
 
-Maybe we go another direction: we could search the subexpression to see if it
+Maybe we go in another direction: we could search the subexpression to see if it
 contains any free variables, and decide based on that. \(\mathcal{O}(n^2)\)
-time, anyone?
+time, anyone? 
 
 If the reflection API was different, this task could conceivably be made easier:
 for now, what most people seem to do is automate the process (as
@@ -1254,12 +1265,12 @@ undirected graphs form a perfectly reasonable equivalence relation: transitivity
 is the concatenation of paths, reflexivity is the empty path, and symmetry is
 \emph{reversing} a path. Equivalence classes, in this analogy, are connected
 components of the graph.
-\ExecuteMetaData[SetoidApplications.tex]{traced}
 
 More practically speaking, we implement these ``paths'' as lists, where the
 elements of the list are elementary ring axioms. When we want to display a
 step-by-step solution, we simply print out each element of the list in turn,
 interspersed with the states of the expression (the vertices in the graph).
+\ExecuteMetaData[SetoidApplications.tex]{traced}
 
 If we stopped there, however, the solver would output incredibly verbose
 ``solutions'': far too verbose to be human-readable. Instead, we must apply a
