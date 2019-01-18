@@ -850,20 +850,24 @@ index. So we can just use that!
       x label style={at={(axis description cs:0.1,0.017)},anchor=south},
       ]
       \addplot coordinates{
-        (15,0.056)
-        (20,0.197)
-        (25,0.607)
-        (30,1.376)
-        (35,2.957)
-        (40,5.808)
+        (1,5.042)
+        (2,4.959)
+        (3,5.016)
+        (4,5.294)
+        (5,6.423)
+        (6,9.643)
+        (7,12.038)
+        (8,31.303)
       };
       \addplot coordinates{
-        (15,0.053)
-        (20,0.233)
-        (25,0.964)
-        (30,2.084)
-        (35,7.819)
-        (40,10.791)
+        (1,2.694)
+        (2,2.714)
+        (3,3.531)
+        (4,6.341)
+        (5,6.876)
+        (6,12.532)
+        (7,46.698)
+        (8,204.617)
       };
     \end{axis}
   \end{tikzpicture}
@@ -925,18 +929,14 @@ operations on the sparse representation are constant time, whereas on the dense
 they scale with the particular power. Since we imagine this is a common case, we
 believe it represents an important speed increase.
 
-All of the benchmarks are performed on compiled Agda code: for interpreted 
-
-\todo{Switch the order of the reveal!}
-Unfortunately, the sparse representation does not exhibit faster performance at
-type-checking time. None of the optimizations (such as the fast comparison on
-natural numbers, or elision of \(\AgdaDatatype{Acc}\)) are applied, and so we
-don't see a benefit anywhere except with truly pathological cases.
-
-In compiled code, though, we see clear performance gains
-(figure~\ref{benchmarks}). Currently, it does not seem possible to use compiled
-Agda code at type-checking time: until it is, the dense solver can be used with
-the reflection machinery described here.
+All of the benchmarks are performed on compiled Agda code: for interpreted code
+(that's run at type-checking time), the sparse encoding is only faster for
+pathological cases. Hopefully, sometime in the future Agda's reflection
+mechanisms will be able to make use of compiled code: until then, the
+performance benefits are only useful for application code, like the pedagogical
+solutions mentioned below. Since the reflection component and the pedagogical
+components were designed with modularity in mind, swapping in different
+implementations for the solver backend is trivial.
 \section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
 want to solve twice: once in the type signature, and again in the argument
