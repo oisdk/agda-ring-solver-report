@@ -532,11 +532,23 @@ To check for zero, we require the user supply a decidable predicate on the
 coefficients. This changes the module declaration like so:
 \ExecuteMetaData[EliminatingRedundancy.tex]{opening}
 
-Importantly, we don't require that the user provides a decidable proof of
-\emph{equivalence}, rather just a decidable proof of some predicate which can
-later be translated into an equivalence with zero. Functionally, this means the
-user could supply a predicate which is always false, or a predicate which is
-only \emph{weakly} decidable.
+Usually, \(\AgdaDatatype{Bool}\) has no place in dependently-typed code: it
+doesn't come with evidence, and as such is less useful than a proof of
+decidability on, say, equivalence.
+
+These properties make it the right choice for our use-case, though; especially
+when it comes to performance. Firstly, the fact that we're not demanding
+decidable equivalence means that we don't require the user to \emph{refute} the
+predicate. In other words, we ask them to say (if the predicate returns
+\(\AgdaInductiveConstructor{true}\)) that the thing is definitely zero; we
+don't, however, ask them to say it's definitely \emph{not} zero if the predicate
+returns \(\AgdaInductiveConstructor{false}\). This opens the door to potentially
+more efficient implementations (and a wider array of types, such as those
+without decidable equality).
+
+Secondly, the \(\AgdaDatatype{Bool}\) means that we won't \emph{use} the proof,
+except to say whether it exists or not. This allows us to avoid the expensive
+construction of a proof object.
 
 And now we have a definition for sparse polynomials:
 \ExecuteMetaData[EliminatingRedundancy.tex]{decl}
@@ -771,6 +783,11 @@ Next, the \(\AgdaFunction{go}\) helper function is an obvious candidate for
 
 \ExecuteMetaData[AbstractionAndFolds.tex]{with-foldr}
 
+Remembering that \(\AgdaFunction{\_⊠\_}\) also used a fold, we should now
+construct a way to talk about ``folds'' abstractly, so that we can share some of
+the proof code.
+
+
 Continuing in this vein, we are able to isolate the component of this function
 which is different from the other operations, and therefore confine our proofs
 to that difference. In this particular case, we use the following lemma:
@@ -837,6 +854,27 @@ guaranteed.
 Luckily, in our case, the relation is already lying around, in the injection
 index. So we can just use that!
 \ExecuteMetaData[AbstractionAndFolds.tex]{terminating}
+
+A small aside: why do we pattern match on \(\AgdaInductiveConstructor{acc}\) in
+both cases of \(\AgdaFunction{\_⊟′\_}\)? Surely the first could be replaced by
+an underscore?
+
+It could, but then you'd likely see a performance hit in compiled code. If we
+want Agda to elide the \(\AgdaDatatype{Acc}\) argument altogether, it can help
+to treat it the same in every clause of a function, so it is especially obvious
+that it's not used for computation.
+\subsection{Laziness}
+Agda is a lazy language (like Haskell), so all of the usual caveats with regards
+to performance apply. Unfortunately, Agda's strictness primitives are cumbersome
+to write proofs about: \(\AgdaFunction{seq} \; x \; y\) is not definitionally
+equal to \(y\), despite having the same semantics. We have to use another
+primitive which provides a proof of the equality.
+
+As a result, strictness annotations aren't common in Agda code, and the usual
+practice is to structure functions carefully so that they force the correct
+arguments. For instance, the order of arguments to \(\AgdaFunction{\_*\_}\) (in
+figure~\ref{semantics}) was only chosen after careful experimentation: other
+orders were many thousands of times slower to typecheck.
 \newpage
 \subsection{Benchmarks}
 As expected, the sparse implementation exhibits a dramatic speedup in
@@ -1407,7 +1445,7 @@ While this approach reduced the amount of code we needed to write, we found it
 made optimizations more difficult, as it combined the execution and proof code
 together.
 \ExecuteMetaData[CorrectByConstruction.tex]{constr-add}
-\subsection{Related Work}
+\section{Related Work}
 In dependently-typed programming languages, the state-of-the-art solver for
 polynomial equalities (over commutative rings) was originally presented
 in\cite{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This

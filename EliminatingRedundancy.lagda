@@ -5,16 +5,19 @@ open import Level using (_⊔_)
 open import Data.List as List using (List; _∷_; []; foldr)
 open import Data.Nat as ℕ using (ℕ; suc; zero)
 open import Data.Product using (_×_; _,_; map₁; map₂; proj₁; proj₂)
+open import Data.Bool using (Bool; T; true; false)
+open import Function
+open import Data.Unit using (tt)
 \end{code}
 %<*opening>
 \begin{code}
 open import Algebra
 
 module EliminatingRedundancy
-  {c ℓ}
+  {c}
   (coeffs : RawRing c)
-  (Zero : Pred (RawRing.Carrier coeffs) ℓ)
-  (zero? : Decidable Zero) where
+  (Zero? : RawRing.Carrier coeffs → Bool)
+  where
 
 open RawRing coeffs
 \end{code}
@@ -22,11 +25,11 @@ open RawRing coeffs
 %<*decl>
 \begin{code}
 infixl 6 _≠0
-record Coeff : Set (c ⊔ ℓ) where
+record Coeff : Set c where
   constructor _≠0
   field
     coeff : Carrier
-    .{coeff≠0} : ¬ Zero coeff
+    .{coeff≠0} : ¬ (T (Zero? coeff))
 open Coeff
 
 infixl 6 _Δ_
@@ -37,7 +40,7 @@ record PowInd {c} (C : Set c) : Set c where
     power : ℕ
 open PowInd
 
-Poly : Set (c ⊔ ℓ)
+Poly : Set c
 Poly = List (PowInd Coeff)
 \end{code}
 %</decl>
@@ -48,10 +51,15 @@ _⍓_ : Poly → ℕ → Poly
 [] ⍓ i = []
 (x Δ j ∷ xs) ⍓ i = x Δ (j ℕ.+ i) ∷ xs
 
+is-zero? : ∀ x → Dec (T (Zero? x))
+is-zero? x with Zero? x
+... | false = no (λ z → z)
+... | true = yes tt
+
 infixr 5 _∷↓_
 _∷↓_ : PowInd Carrier → Poly → Poly
-x Δ i ∷↓ xs with zero? x
-... | yes p = xs ⍓ suc i
+x Δ i ∷↓ xs with is-zero? x
+... | yes _ = xs ⍓ suc i
 ... | no ¬p = _≠0 x {¬p} Δ i ∷ xs
 \end{code}
 %</norm-cons>

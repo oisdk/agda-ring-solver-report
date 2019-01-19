@@ -82,6 +82,11 @@ module Main
       go = λ { (x ≠0 Δ i) xs → ⊟ x Δ i ∷↓ xs }
 \end{code}
 %</with-foldr>
+%<*fold-def>
+\begin{code}
+
+\end{code}
+%</fold-def>
 \begin{code}
   module AccDef where
 \end{code}
@@ -116,8 +121,8 @@ module Main
 %<*terminating>
 \begin{code}
     ⊟′ : ∀ {n} → Acc _<′_ n → Poly n → Poly n
-    ⊟′ _        (Κ x  Π i≤n) = Κ (- x) Π i≤n
-    ⊟′ (acc wf) (Σ xs Π i≤n) = foldr go [] xs Π↓ i≤n
+    ⊟′ (acc wf) (Κ x   Π i≤n) = Κ (- x) Π i≤n
+    ⊟′ (acc wf) (Σ xs  Π i≤n) = foldr go [] xs Π↓ i≤n
       where
       go = λ  { (x ≠0 Δ i) xs
               → ⊟′ (wf _ i≤n) x Δ i ∷↓ xs  }
@@ -130,8 +135,8 @@ module Main
 open import Polynomial.Parameters
 
 module Semantics
-  {r₁ r₂ r₃ r₄}
-  (homo : Homomorphism r₁ r₂ r₃ r₄)
+  {r₁ r₂ r₃}
+  (homo : Homomorphism r₁ r₂ r₃)
   where
 
   open import Data.Nat     using (ℕ; suc; zero)
@@ -164,7 +169,7 @@ module Semantics
            → Carrier × Vec Carrier n
            → Carrier
     (x , xs) ⟦∷⟧ (ρ , ρs) =
-      ⟦ x ⟧ ρs + Σ⟦ xs ⟧ (ρ , ρs) * ρ
+      ρ * Σ⟦ xs ⟧ (ρ , ρs) + ⟦ x ⟧ ρs
 
     Σ⟦_⟧  : ∀ {n}
           → Coeffs n
@@ -172,7 +177,7 @@ module Semantics
           → Carrier
     Σ⟦ [] ⟧ _ = 0#
     Σ⟦ x ≠0 Δ i ∷ xs ⟧ (ρ , ρs) =
-      (x , xs) ⟦∷⟧ (ρ , ρs) * ρ ^ i
+      ρ ^ i * (x , xs) ⟦∷⟧ (ρ , ρs)
 
     ⟦_⟧  : ∀ {n}
          → Poly n

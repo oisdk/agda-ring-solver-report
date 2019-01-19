@@ -9,24 +9,25 @@ open import Data.Nat as ℕ using (ℕ; suc; zero)
 open import Level using (_⊔_; Lift; lift)
 open import Data.List as List using (List; _∷_; [])
 open import Data.Empty using (⊥)
-open import Data.Unit using (⊤)
+open import Data.Unit using (⊤; tt)
+open import Data.Bool using (Bool; true; false; T)
 module Flat
-  {c ℓ}
+  {c}
   (coeffs : RawRing c)
-  (Zero : Pred (RawRing.Carrier coeffs) ℓ)
-  (zero? : Decidable Zero) where
+  (Zero? : RawRing.Carrier coeffs → Bool)
+  where
 
   open RawRing coeffs
   mutual
 \end{code}
 %<*dense-poly>
 \begin{code}
-    record Coeff n : Set (c ⊔ ℓ) where
+    record Coeff n : Set c where
       inductive
       constructor _≠0
       field
         coeff : Poly n
-        .{coeff≠0} : ¬Zero coeff
+        .{coeff≠0} : ¬ Zero coeff
 
     record PowInd {c} (C : Set c) : Set c where
       inductive
@@ -35,22 +36,22 @@ module Flat
         coeff : C
         power : ℕ
 
-    Poly : ℕ → Set (c ⊔ ℓ)
-    Poly zero = Lift ℓ Carrier
+    Poly : ℕ → Set c
+    Poly zero = Carrier
     Poly (suc n) = List (PowInd (Coeff n))
 
-    ¬Zero : ∀ {n} → Poly n → Set ℓ
-    ¬Zero {zero} (lift lower) = ¬ Zero lower
-    ¬Zero {suc n} [] = Lift _ ⊥
-    ¬Zero {suc n} (x ∷ xs) = Lift _ ⊤
+    Zero : ∀ {n} → Poly n → Set
+    Zero {zero} x = T (Zero? x)
+    Zero {suc n} [] = ⊤
+    Zero {suc n} (x ∷ xs) = ⊥
 \end{code}
 %</dense-poly>
 \begin{code}
 module Sparse
-  {c ℓ}
+  {c}
   (coeffs : RawRing c)
-  (Zero : Pred (RawRing.Carrier coeffs) ℓ)
-  (zero? : Decidable Zero) where
+  (Zero? : RawRing.Carrier coeffs → Bool)
+  where
   open RawRing coeffs
   open import Data.Nat using (_≤_)
   open import Function
@@ -67,24 +68,24 @@ module Sparse
 
   mutual
     infixl 6 _Π_
-    data Poly : ℕ → Set (c ⊔ ℓ) where
+    data Poly : ℕ → Set c where
       _Π_  : ∀ {j}
            → FlatPoly j
            → ∀ i
            → Poly (suc (i ℕ.+ j))
 
-    data FlatPoly : ℕ → Set (c ⊔ ℓ) where
+    data FlatPoly : ℕ → Set c where
       Κ  : Carrier → FlatPoly zero
       Σ  : ∀ {n}
          → (xs : Coeffs n)
          → .{xn : Norm xs}
          → FlatPoly (suc n)
 
-    Coeffs : ℕ → Set (c ⊔ ℓ)
+    Coeffs : ℕ → Set c
     Coeffs = List ∘ PowInd ∘ NonZero
 
     infixl 6 _≠0
-    record NonZero (i : ℕ) : Set (c ⊔ ℓ) where
+    record NonZero (i : ℕ) : Set c where
       inductive
       constructor _≠0
       field
@@ -93,10 +94,10 @@ module Sparse
 \end{code}
 %</sparse-poly>
 \begin{code}
-    ZeroPoly : ∀ {n} → Poly n → Set ℓ
-    ZeroPoly (Κ x       Π _) = Zero x
-    ZeroPoly (Σ []      Π _) = Lift _ ⊤
-    ZeroPoly (Σ (_ ∷ _) Π _) = Lift _ ⊥
+    ZeroPoly : ∀ {n} → Poly n → Set
+    ZeroPoly (Κ x       Π _) = T (Zero? x)
+    ZeroPoly (Σ []      Π _) = ⊤
+    ZeroPoly (Σ (_ ∷ _) Π _) = ⊥
 
     Norm : ∀ {i} → Coeffs i → Set
     Norm []                  = ⊥
