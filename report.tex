@@ -863,6 +863,7 @@ significantly faster than the sparse. Nonetheless, if a user really wants to use
 the dense solver, the components described in the following two sections are
 entirely modular, and can work with any underlying solver which uses the
 reflexive technique (this includes the dense solver).
+\newpage
 \begin{figure}[H]
   \newcounter{realxtickpos}
   \pgfplotsset{
@@ -1033,13 +1034,19 @@ occurrences of some identifier in an expression:
 \ExecuteMetaData[ReflectionSection.tex]{occ-of}
 
 Some of the core characteristics of working with the reflected AST are clear
-here. Firstly, it's verbose. The \(\AgdaFunction{natTerm}\) function, for
-instance, simply gets the syntactic representation of a natural number.
-Unfortunately, we can't necessarily just call \(\AgdaKeyword{quoteTerm}\): the
-returned AST includes all kinds of information about context and environment
-which can clash with the environment where the macro is instantiated. A large
-amount of reflection and metaprogramming in Agda unfortunately consists of this
-kind of boilerplate (currently, at any rate).
+here. Firstly, it's verbose. We need a function \(\AgdaFunction{natTerm}\), for
+instance (figure~\ref{nat-term}), which simply gets the syntactic representation
+of a natural number. Unfortunately, we can't necessarily just call
+\(\AgdaKeyword{quoteTerm}\): the returned AST includes all kinds of information
+about context and environment which can clash with the environment where the
+macro is instantiated. A large amount of reflection and metaprogramming in Agda
+unfortunately consists of this kind of boilerplate (currently, at any rate).
+
+\begin{figure}
+  \ExecuteMetaData[ReflectionSection.tex]{nat-term}
+  \caption{A Function To ``quote'' \(\AgdaDatatype{ℕ}\)}
+  \label{nat-term}
+\end{figure}
 
 Next, it's far less \emph{typed} than it could be. To be clear, it doesn't break
 type safety: the generated program is still type-checked, but you can generate
@@ -1167,15 +1174,20 @@ us automatically. Which leads us to another observation:
   standard representation to another.
 \end{principle}
 \subsubsection{Matching Constants}
-This task seems the most daunting: with all of the logic we required before just
-to match expressions, how are we going to match the carrier type\todo{rephrase
-  (parenthesize)}? Do we need the user to provide that function? Some kind of
-matching logic (as in\cite{jedynak_simple_2018}), which would need to recognize
-every constructor case, and build the corresponding \(\AgdaDatatype{Term}\)?
+At first, this task seems the most daunting. Previously, we knew what we were
+looking for: one of the ring operators, or a variable with a certain de Bruijn
+index. A constant, though, could be almost anything!
 
-Maybe we go in another direction: we could search the subexpression to see if it
-contains any free variables, and decide based on that. \(\mathcal{O}(n^2)\)
-time, anyone? 
+Say the carrier type looks like \(\AgdaDatatype{ℕ}\): a bunch of nested
+constructors, in other words. One approach might be to match on those
+constructors (in \(\AgdaDatatype{Term}\)), as is done in
+\cite{jedynak_simple_2018}. However, this places a huge burden on the user,
+requiring them to write complex and error-prone code to match on their type.
+
+But it gets worse! There's no reason to believe that \emph{every} constant in
+the expression will be a finite number of fully-applied constructors: what if
+the user refers to a variable? What if the ring type doesn't have any
+constructors at all (like, for instance, a church numeral)?
 
 If the reflection API was different, this task could conceivably be made easier:
 for now, what most people seem to do is automate the process (as

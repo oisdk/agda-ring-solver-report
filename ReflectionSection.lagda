@@ -18,8 +18,10 @@ module ExprDef where
 \begin{code}
 open import Data.Nat.Properties
 open import Polynomial.Simple.AlmostCommutativeRing
+import Relation.Binary.PropositionalEquality as ≡
+open import Data.Maybe using (Maybe; just; nothing)
 NatRing : AlmostCommutativeRing _ _
-NatRing = fromCommutativeSemiring *-+-commutativeSemiring ℕ._≟_
+NatRing = fromCommutativeSemiring *-+-commutativeSemiring λ { zero → just ≡.refl ; (suc x) → nothing}
 open AlmostCommutativeRing NatRing
 open import Polynomial.Simple.Reflection
 open import Data.List
@@ -59,7 +61,7 @@ return-type =
   Term → TC ⊤
 \end{code}
 %</return-type>
-%<*occ-of>
+%<*nat-term>
 \begin{code}
 natTerm : ℕ → Term
 natTerm zero = con (quote ℕ.zero) []
@@ -68,7 +70,11 @@ natTerm (suc i) =
     (quote suc)
     (arg (arg-info visible relevant)
     (natTerm i) ∷ [])
+\end{code}
+%</nat-term>
 
+%<*occ-of>
+\begin{code}
 mutual
   occOf : Name → Term → ℕ
   occOf n (var _ args) = occsOf n args
