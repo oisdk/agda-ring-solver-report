@@ -335,9 +335,9 @@ To convert to the normal form, we'll use a related concept: the free object.
 \end{definition}
 So now we can accomplish ``normalization'' by converting an expression to the
 free object, and then the free object back to an expression. Again, we won't
-always have a free object for the algebra we're interested in, do we will settle
-\todo{fix} for something close. Luckily, we do have such an object for monoids:
-the free monoid is more commonly known as the \emph{list}.
+always have a free object for the algebra we're interested in, so often we will
+settle for something close. Luckily, we do have such an object for monoids: the
+free monoid is more commonly known as the \emph{list}.
 
 \ExecuteMetaData[Monoids.tex]{list-def}
 
@@ -430,9 +430,9 @@ Because we want to solve arithmetic equations, we will need the basic operations
 of addition, multiplication, subtraction, and exponentiation (to a power in
 \(\mathbb{N}\)). This is only half of the story, though: along with those
 operations we will need to specify the laws or equations that they obey
-(commutativity, associativity, etc.). Here we must strike a balance: the more
-equations specified, the more equalities the solver can prove, but the fewer
-types the solver will be available for \todo{clarify}.
+(commutativity, associativity, etc.). Here we must strike a balance: with every
+equation we specify, we gain more opportunities to solve new equations, but we
+narrow the range of types the solver will work with.
 
 The elephant in the room here is \(\mathbb{N}\): perhaps the most used numeric
 type in Agda, it doesn't have an additive inverse. So that our solver will still
@@ -562,8 +562,8 @@ computational efficiency has yet to be realized. Starting with the sparse
 monomial, we'll look at the addition function. In the dense encoding
 (figure~\ref{simple-ops}), we needed to line up corresponding coefficients to
 add together. For this encoding, the ``corresponding'' coefficients are slightly
-harder to find. In order to line things up correctly\todo{repetition}, we'll
-need to compare the gap indices. This, however, presents our first problem:
+harder to find. To do so, we'll need to compare the gap indices. This, however,
+presents our first problem:
 \ExecuteMetaData[EliminatingRedundancy.tex]{nonterm-add}
 It doesn't pass the termination checker! While it does indeed terminate, it
 isn't structurally decreasing in its arguments. To make it structurally
@@ -874,46 +874,54 @@ index. So we can just use that!
   \begin{tikzpicture}
     \begin{axis}[
       width=0.35\textwidth,
-      title={$(1 + x_1^d + x_2^d + \ldots + x_n^d)^d$},
+      title={$x_1^d + x_2^d + \ldots + x_n^d$},
       xlabel={$d=$},
       x label style={at={(axis description cs:0.1,0.017)},anchor=south},
       ]
       \addplot coordinates{
-        (5,0.021)
-        (10,0.032)
-        (15,0.129)
-        (20,0.535)
-        (25,1.852)
+        (1,5.465)
+        (100,5.300)
+        (200,6.725)
+        (300,7.605)
+        (400,9.704)
+        (500,12.167)
       };
       \addplot coordinates{
-        (5,0.022)
-        (10,0.078)
-        (15,0.820)
-        (20,5.958)
-        (25,27.327)
+        (1,3.048)
+        (100,7.399)
+        (200,22.633)
+        (300,48.803)
+        (400,88.455)
+        (500,185.993)
       };
     \end{axis}
   \end{tikzpicture}
   \begin{tikzpicture}
     \begin{axis}[
       width=0.35\textwidth,
-      title={$(x_1^d + \ldots + x_n^d) + (x_1^d + \ldots + x_n^d)$},
+      title={$(1 + x_1^1 + x_2^2 + \ldots + x_n^n)^d$},
       xlabel={$d=$},
       x label style={at={(axis description cs:0.1,0.017)},anchor=south},
       ]
       \addplot coordinates{
-        (100,0.021)
-        (200,0.022)
-        (300,0.021)
-        (400,0.022)
-        (500,0.022)
+        (1,4.727)
+        (2,4.819)
+        (3,4.807)
+        (4,5.112)
+        (5,6.446)
+        (6,8.899)
+        (7,19.813)
+        (8,61.123)
       };
       \addplot coordinates{
-        (100,0.035)
-        (200,0.082)
-        (300,0.143)
-        (400,0.256)
-        (500,0.396)
+        (1,2.731)
+        (2,2.999)
+        (3,3.399)
+        (4,5.216)
+        (5,10.269)
+        (6,30.336)
+        (7,120.358)
+        (8,577.450)
       };
     \end{axis}
   \end{tikzpicture}
@@ -921,6 +929,7 @@ index. So we can just use that!
   \caption{Time (in seconds) to normalize and evaluate the given expressions.
     ($n = 5$ for each).}
   \label{benchmarks}
+
 \end{figure*}
 The benchmarks in figure~\ref{benchmarks} clearly show the efficiency gains of
 the sparse representation over the dense. The sparse representation shines
@@ -1067,8 +1076,9 @@ experience, the answer is no.
   Supply the \emph{minimal} amount of information possible in the AST to be
   unquoted, relying on inference as much as possible. The metalanguage is
   fragile and finicky with regards to scopes and context: the compiler isn't.
-  You're more likely to get an argument wrong if you try and figure it out than
-  the compiler is.\todo{rephrase this sentence}
+
+  You're likely to get an argument wrong if you guess it; the compiler is more
+  robust and better able to infer implicits than you are.
 \end{principle}
 
 Using this, we can make a function for the AST which will generate a constant
