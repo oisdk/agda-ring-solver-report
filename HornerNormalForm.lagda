@@ -29,6 +29,6 @@ _⊠_ (x ∷ xs) =
 %<*eval>
 \begin{code}
 ⟦_⟧ : Poly → Carrier → Carrier
-⟦ x ⟧ ρ = foldr (λ y ys → y + ρ * ys) 0# x
+⟦ x ⟧ ρ = foldr (λ y ys → ρ * ys + y) 0# x
 \end{code}
 %</eval>

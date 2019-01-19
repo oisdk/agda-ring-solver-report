@@ -1,7 +1,10 @@
 \begin{code}
 open import Algebra
+open import Data.Bool using (Bool; true; false; T)
 
-module FinalPolyDefinition {a ℓ} (coeffs : RawRing a) (Zero-C : RawRing.Carrier coeffs → Set ℓ)  where
+module FinalPolyDefinition {a}
+  (coeffs : RawRing a)
+  (Zero? : RawRing.Carrier coeffs → Bool)  where
 
 open RawRing coeffs
 
@@ -26,7 +29,7 @@ record PowInd {c} (C : Set c) : Set c where
 
 mutual
   infixl 6 _Π_
-  record Poly (n : ℕ) : Set (a ⊔ ℓ) where
+  record Poly (n : ℕ) : Set a where
     inductive
     constructor _Π_
     field
@@ -34,28 +37,28 @@ mutual
       flat  : FlatPoly i
       i≤n   : i ≤′ n
 
-  data FlatPoly : ℕ → Set (a ⊔ ℓ) where
+  data FlatPoly : ℕ → Set a where
     Κ  : Carrier → FlatPoly zero
     Σ  : ∀ {n}
        → (xs : Coeffs n)
        → .{xn : Norm xs}
        → FlatPoly (suc n)
 
-  Coeffs : ℕ → Set (a ⊔ ℓ)
+  Coeffs : ℕ → Set a
   Coeffs = List ∘ PowInd ∘ NonZero
 
   infixl 6 _≠0
-  record NonZero (i : ℕ) : Set (a ⊔ ℓ) where
+  record NonZero (i : ℕ) : Set a where
     inductive
     constructor _≠0
     field
       poly : Poly i
       .{poly≠0} : ¬ Zero poly
 
-  Zero : ∀ {n} → Poly n → Set ℓ
-  Zero (Κ x        Π _) = Zero-C x
-  Zero (Σ []       Π _) = Lift _ ⊤
-  Zero (Σ (_ ∷ _)  Π _) = Lift _ ⊥
+  Zero : ∀ {n} → Poly n → Set
+  Zero (Κ x        Π _) = T (Zero? x)
+  Zero (Σ []       Π _) = ⊤
+  Zero (Σ (_ ∷ _)  Π _) = ⊥
 
   Norm : ∀ {i} → Coeffs i → Set
   Norm []                    = ⊥

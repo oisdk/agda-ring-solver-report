@@ -482,14 +482,12 @@ As it stands, the above representation has two problems:
 \begin{description}
   \item[Redundancy] We allow trailing zeroes, so the polynomial $2x$ could be
     represented by any of the following:
-  
     \begin{align*}
       & 0, 2 \\
       & 0, 2, 0 \\
       & 0, 2, 0, 0 \\
       & 0, 2, 0, 0, 0, 0, 0
     \end{align*}
-    
     This redundancy means that we don't truly have a canonical form.
   \item[Inefficiency] Expressions will tend to have large gaps, full only of
     zeroes. Something like $x^5$ will be represented as a list with 6 elements,
@@ -877,19 +875,23 @@ figure~\ref{semantics}) was only chosen after careful experimentation: other
 orders were many thousands of times slower to typecheck.
 \newpage
 \subsection{Benchmarks}
-As expected, the sparse implementation exhibits a dramatic speedup in
-type-checking over the dense implementation. Figure~\ref{bench1} demonstrates
-how the dense solver quickly becomes unusably slow even with moderately-sized
-expressions, taking nearly three and a half minutes to prove:
-\[(x_1 + x_2 + x_3 + x_4 + x_5)^8 = (x_1 + x_2 + x_3 + x_4 + x_5)^8\]
+As expected, the sparse implementation exhibits a significant speedup in
+type-checking over the dense implementation\footnotemark. Figure~\ref{bench1}
+shows time taken to type check a proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\)
+is equal to its expanded form. The sparse representation is clearly faster
+overall, with a factor of 4 speedup for \(d = 8\).
 
-Figure~\ref{bench2} demonstrates more clearly where some of the speedup comes
+Figure~\ref{bench2} demonstrates where some of the speedup might come
 from. The expression \(x^d\) is represented very differently in the two
 implementations: in the sparse encoding, it's a single-element list containing a
 tuple of $1$ and $d$; in the dense encoding, however, it's a list of length $d$,
 with a single $1$ at the end. Since the complexities of arithmetic operations
 are bounded by the length of the list, this explains the difference in cost of
 the addition operations.
+
+Figure~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
+high and low powers and some constants. The sparse representation's advantage is
+even more apparent here, with an \(8.5\)-factor speedup at \(d = 8\).
 
 The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
 expressions, possibly caused by the overhead of the sparse solver's more complex
@@ -900,7 +902,11 @@ Furthermore, we have not been able to find a case where the dense solver is
 significantly faster than the sparse. Nonetheless, if a user really wants to use
 the dense solver, the components described in the following two sections are
 entirely modular, and can work with any underlying solver which uses the
-reflexive technique (this includes the dense solver).
+reflexive technique (including the dense solver).
+
+\footnotetext{These benchmarks were performed on Agda version 2.6-0fa9b13, with
+  the Agda standard library at commit-3bd3334a9552490e396f73f96812105a27e5917b,
+  on a 2016 MacBook Pro, with a 2.9 GHz Intel Core i7 and 16 GB of RAM.}
 \newpage
 \begin{figure}[H]
   \newcounter{realxtickpos}
@@ -929,29 +935,28 @@ reflexive technique (this includes the dense solver).
         legend columns=-1,
         legend entries={sparse, dense},
         legend to name=benchplots,
-        extra y ticks={30},
+        extra y ticks={25},
         title={(\subref{bench1}) $(x_1 + x_2 + \ldots + x_n)^d$},
         ]
-
         \addplot[color=blue, densely dashed] coordinates{
-          (1,5.042)
-          (2,4.959)
-          (3,5.016)
-          (4,5.294)
-          (5,6.423)
-          (6,9.643)
-          (7,12.038)
-          (8,31.303)
+          (1,4.83418)
+          (2,4.98801)
+          (3,5.02555)
+          (4,6.41081)
+          (5,7.11915)
+          (6,9.76436)
+          (7,13.8194)
+          (8,25.9411)
         };
         \addplot[color=red] coordinates{
-          (1,2.694)
-          (2,2.714)
-          (3,3.531)
-          (4,6.341)
-          (5,6.876)
-          (6,12.532)
-          (7,46.698)
-          (8,204.617)
+          (1,2.49053)
+          (2,2.60231)
+          (3,2.81313)
+          (4,3.56081)
+          (5,5.01796)
+          (6,9.72961)
+          (7,27.2808) 
+          (8,107.306)
         };
       \end{axis}
     \end{tikzpicture}
@@ -962,24 +967,24 @@ reflexive technique (this includes the dense solver).
   \begin{subfigure}[h]{\linewidth}
     \begin{tikzpicture}
       \begin{axis}[
-        extra y ticks={12},
+        extra y ticks={5},
         title={(\subref{bench2}) $x_1^d + x_2^d + \ldots + x_n^d$},
         ]
         \addplot[color=blue, densely dashed] coordinates{
-          (1,5.465)
-          (100,5.300)
-          (200,6.725)
-          (300,7.605)
-          (400,9.704)
-          (500,12.167)
+          (  1,4.81414)
+          (100,5.09434)
+          (200,4.68453)
+          (300,4.68257)
+          (400,4.89147)
+          (500,4.76918)
         };
         \addplot[color=red] coordinates{
-          (1,3.048)
-          (100,7.399)
-          (200,22.633)
-          (300,48.803)
-          (400,88.455)
-          (500,185.993)
+          (  1, 2.50799)
+          (100, 3.87669)
+          (200, 7.25199)
+          (300, 12.9566)
+          (400, 19.7438)
+          (500, 29.3335)
         };
       \end{axis}
     \end{tikzpicture}
@@ -994,31 +999,32 @@ reflexive technique (this includes the dense solver).
         title={(\subref{bench3}) $(1 + x_1^1 + x_2^2 + \ldots + x_n^n)^d$},
         ]
         \addplot[color=blue, densely dashed] coordinates{
-          (1,4.727)
-          (2,4.819)
-          (3,4.807)
-          (4,5.112)
-          (5,6.446)
-          (6,8.899)
-          (7,19.813)
-          (8,61.123)
+          (1,4.79245)
+          (2,4.97426)
+          (3,5.26839)
+          (4,6.74824)
+          (5,9.71901)
+          (6,14.7459)
+          (7, 26.495)
+          (8,60.5498)
         };
         \addplot[color=red] coordinates{
-          (1,2.731)
-          (2,2.999)
-          (3,3.399)
-          (4,5.216)
-          (5,10.269)
-          (6,30.336)
-          (7,120.358)
-          (8,577.450)
+          (1,  2.396)
+          (2,2.65767)
+          (3,3.29586)
+          (4,5.76267)
+          (5,11.5897)
+          (6,29.8233)
+          (7,105.639)
+          (8,506.271)
         };
       \end{axis}
     \end{tikzpicture}
     \phantomcaption\label{bench3}
   \end{subfigure}
 
-  \caption{Time (in seconds) to prove reflexive equality ($n = 5$ for each).}
+  \caption{Time (in seconds) to prove each expression is equal to its expanded
+    form ($n = 5$ for each).}
   \label{benchmarks}
 \end{figure}
 \section{Reflection} \label{reflection}

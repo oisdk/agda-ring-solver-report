@@ -12,7 +12,7 @@
 \contentsline {subsection}{\numberline {3.1}Choice of Algebra}{7}{subsection.3.1}
 \contentsline {subsection}{\numberline {3.2}Horner Normal Form}{8}{subsection.3.2}
 \contentsline {subsection}{\numberline {3.3}Eliminating Redundancy}{8}{subsection.3.3}
-\contentsline {subsection}{\numberline {3.4}Multiple Variables}{10}{subsection.3.4}
+\contentsline {subsection}{\numberline {3.4}Multiple Variables}{9}{subsection.3.4}
 \contentsline {subsection}{\numberline {3.5}Efficiency in Indexed Types}{10}{subsection.3.5}
 \contentsline {subsubsection}{\numberline {3.5.1}Call-Pattern Specialization}{10}{subsubsection.3.5.1}
 \contentsline {subsubsection}{\numberline {3.5.2}Built-In Functions}{10}{subsubsection.3.5.2}
