@@ -87,6 +87,7 @@
 \usetikzlibrary{cd}
 \usepackage{forest}
 \usepackage{pgfplots}
+\usepackage{float}
 \author{Donnacha Oisín Kidney}
 \title{Automatically And Efficiently Illustrating Polynomial Equalities in Agda}
 \begin{document}
@@ -836,116 +837,151 @@ guaranteed.
 Luckily, in our case, the relation is already lying around, in the injection
 index. So we can just use that!
 \ExecuteMetaData[AbstractionAndFolds.tex]{terminating}
+\newpage
 \subsection{Benchmarks}
-\begin{figure*}
+As expected, the sparse implementation exhibits a dramatic speedup in
+type-checking over the dense implementation. Figure~\ref{bench1} demonstrates
+how the dense solver quickly becomes unusably slow even with moderately-sized
+expressions, taking nearly three and a half minutes to prove:
+\[(x_1 + x_2 + x_3 + x_4 + x_5)^8 = (x_1 + x_2 + x_3 + x_4 + x_5)^8\]
+
+Figure~\ref{bench2} demonstrates more clearly where some of the speedup comes
+from. The expression \(x^d\) is represented very differently in the two
+implementations: in the sparse encoding, it's a single-element list containing a
+tuple of $1$ and $d$; in the dense encoding, however, it's a list of length $d$,
+with a single $1$ at the end. Since the complexities of arithmetic operations
+are bounded by the length of the list, this explains the difference in cost of
+the addition operations.
+
+The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
+expressions, possibly caused by the overhead of the sparse solver's more complex
+implementation. 3 seconds is quite small in the context of Agda type checking
+(the standard library, for instance, takes several minutes to type check), so we
+feel this slight loss is more than made up for by the several-minute gains.
+Furthermore, we have not been able to find a case where the dense solver is
+significantly faster than the sparse. Nonetheless, if a user really wants to use
+the dense solver, the components described in the following two sections are
+entirely modular, and can work with any underlying solver which uses the
+reflexive technique (this includes the dense solver).
+\begin{figure}[H]
+  \newcounter{realxtickpos}
+  \pgfplotsset{
+      tick label style={font=\scriptsize},
+      extra y tick style={grid=major},
+      title style={at={(0.06,0.8)},anchor=west},
+      xticklabel={%
+        \ifnum \value{realxtickpos}=0%
+          {$d = \pgfmathprintnumber{\tick}$}
+        \else
+          {$\pgfmathprintnumber{\tick}$}
+        \fi
+        \stepcounter{realxtickpos}
+      },
+  }
   \centering
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.35\textwidth,
-      legend columns=-1,
-      legend entries={sparse, dense},
-      legend to name=benchplots,
-      title={$(x_1 + x_2 + \ldots + x_n)^d$},
-      xlabel={$d=$},
-      x label style={at={(axis description cs:0.1,0.017)},anchor=south},
-      ]
-      \addplot coordinates{
-        (1,5.042)
-        (2,4.959)
-        (3,5.016)
-        (4,5.294)
-        (5,6.423)
-        (6,9.643)
-        (7,12.038)
-        (8,31.303)
-      };
-      \addplot coordinates{
-        (1,2.694)
-        (2,2.714)
-        (3,3.531)
-        (4,6.341)
-        (5,6.876)
-        (6,12.532)
-        (7,46.698)
-        (8,204.617)
-      };
-    \end{axis}
-  \end{tikzpicture}
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.35\textwidth,
-      title={$x_1^d + x_2^d + \ldots + x_n^d$},
-      xlabel={$d=$},
-      x label style={at={(axis description cs:0.1,0.017)},anchor=south},
-      ]
-      \addplot coordinates{
-        (1,5.465)
-        (100,5.300)
-        (200,6.725)
-        (300,7.605)
-        (400,9.704)
-        (500,12.167)
-      };
-      \addplot coordinates{
-        (1,3.048)
-        (100,7.399)
-        (200,22.633)
-        (300,48.803)
-        (400,88.455)
-        (500,185.993)
-      };
-    \end{axis}
-  \end{tikzpicture}
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.35\textwidth,
-      title={$(1 + x_1^1 + x_2^2 + \ldots + x_n^n)^d$},
-      xlabel={$d=$},
-      x label style={at={(axis description cs:0.1,0.017)},anchor=south},
-      ]
-      \addplot coordinates{
-        (1,4.727)
-        (2,4.819)
-        (3,4.807)
-        (4,5.112)
-        (5,6.446)
-        (6,8.899)
-        (7,19.813)
-        (8,61.123)
-      };
-      \addplot coordinates{
-        (1,2.731)
-        (2,2.999)
-        (3,3.399)
-        (4,5.216)
-        (5,10.269)
-        (6,30.336)
-        (7,120.358)
-        (8,577.450)
-      };
-    \end{axis}
-  \end{tikzpicture}
+
   \ref{benchplots}
-  \caption{Time (in seconds) to normalize and evaluate the given expressions.
-    ($n = 5$ for each).}
+  \smallskip
+
+  \setcounter{realxtickpos}{0}
+  \begin{subfigure}[h]{\linewidth}
+    \begin{tikzpicture}
+      \begin{axis}[
+        legend columns=-1,
+        legend entries={sparse, dense},
+        legend to name=benchplots,
+        extra y ticks={30},
+        title={(\subref{bench1}) $(x_1 + x_2 + \ldots + x_n)^d$},
+        ]
+
+        \addplot[color=blue, densely dashed] coordinates{
+          (1,5.042)
+          (2,4.959)
+          (3,5.016)
+          (4,5.294)
+          (5,6.423)
+          (6,9.643)
+          (7,12.038)
+          (8,31.303)
+        };
+        \addplot[color=red] coordinates{
+          (1,2.694)
+          (2,2.714)
+          (3,3.531)
+          (4,6.341)
+          (5,6.876)
+          (6,12.532)
+          (7,46.698)
+          (8,204.617)
+        };
+      \end{axis}
+    \end{tikzpicture}
+    \phantomcaption \label{bench1}
+  \end{subfigure}
+
+  \setcounter{realxtickpos}{0}
+  \begin{subfigure}[h]{\linewidth}
+    \begin{tikzpicture}
+      \begin{axis}[
+        extra y ticks={12},
+        title={(\subref{bench2}) $x_1^d + x_2^d + \ldots + x_n^d$},
+        ]
+        \addplot[color=blue, densely dashed] coordinates{
+          (1,5.465)
+          (100,5.300)
+          (200,6.725)
+          (300,7.605)
+          (400,9.704)
+          (500,12.167)
+        };
+        \addplot[color=red] coordinates{
+          (1,3.048)
+          (100,7.399)
+          (200,22.633)
+          (300,48.803)
+          (400,88.455)
+          (500,185.993)
+        };
+      \end{axis}
+    \end{tikzpicture}
+    \phantomcaption\label{bench2}
+  \end{subfigure}
+
+  \setcounter{realxtickpos}{0}
+  \begin{subfigure}[h]{\linewidth}
+    \begin{tikzpicture}
+      \begin{axis}[
+        extra y ticks={60},
+        title={(\subref{bench3}) $(1 + x_1^1 + x_2^2 + \ldots + x_n^n)^d$},
+        ]
+        \addplot[color=blue, densely dashed] coordinates{
+          (1,4.727)
+          (2,4.819)
+          (3,4.807)
+          (4,5.112)
+          (5,6.446)
+          (6,8.899)
+          (7,19.813)
+          (8,61.123)
+        };
+        \addplot[color=red] coordinates{
+          (1,2.731)
+          (2,2.999)
+          (3,3.399)
+          (4,5.216)
+          (5,10.269)
+          (6,30.336)
+          (7,120.358)
+          (8,577.450)
+        };
+      \end{axis}
+    \end{tikzpicture}
+    \phantomcaption\label{bench3}
+  \end{subfigure}
+
+  \caption{Time (in seconds) to prove reflexive equality ($n = 5$ for each).}
   \label{benchmarks}
-
-\end{figure*}
-The benchmarks in figure~\ref{benchmarks} clearly show the efficiency gains of
-the sparse representation over the dense. The sparse representation shines
-especially when individual variables are raised to high powers: in these cases,
-operations on the sparse representation are constant time, whereas on the dense
-they scale with the particular power. Since we imagine this is a common case, we
-believe it represents an important speed increase.
-
-All of the benchmarks are performed on compiled Agda code: for interpreted code
-(that's run at type-checking time), the sparse encoding is only faster for
-pathological cases. Hopefully, sometime in the future Agda's reflection
-mechanisms will be able to make use of compiled code: until then, the
-performance benefits are only useful for application code, like the pedagogical
-solutions mentioned below. Since the reflection component and the pedagogical
-components were designed with modularity in mind, swapping in different
-implementations for the solver backend is trivial.
+\end{figure}
 \section{Reflection} \label{reflection}
 One annoyance of the automated solver is that we have to write the expression we
 want to solve twice: once in the type signature, and again in the argument
