@@ -6,9 +6,11 @@ open import Polynomial.Simple.Reflection
 open import Data.Nat as ℕ using (ℕ; suc; zero)
 open import Data.Nat.Properties using (*-+-commutativeSemiring)
 open import Level using (0ℓ)
+open import Data.Maybe
+import Relation.Binary.PropositionalEquality as ≡
 
 NatRing : AlmostCommutativeRing 0ℓ 0ℓ
-NatRing = fromCommutativeSemiring *-+-commutativeSemiring ℕ._≟_
+NatRing = fromCommutativeSemiring *-+-commutativeSemiring λ { zero → just ≡.refl ; (suc x) → nothing}
 
 open AlmostCommutativeRing NatRing
 
@@ -29,15 +31,10 @@ open import Function
 proof : ∀ x y → x + y * 1 + 3 ≈ 2 + 1 + y + x
 proof x y =
   begin
-    x + y * 1 + 3
-                  ≈⟨ refl ⟨ +-cong ⟩ *-identityʳ y ⟨ +-cong ⟩ refl {x = 3} ⟩
-    x + y + 3
-                  ≈⟨ +-comm x y ⟨ +-cong ⟩ refl ⟩
-    y + x + 3
-                  ≈⟨ +-comm (y + x) 3 ⟩
-    3 + (y + x)
-                  ≈⟨ sym (+-assoc 3 y x) ⟩
-    2 + 1 + y + x
-  ∎
+    x + y * 1 + 3  ≈⟨ refl ⟨ +-cong ⟩ *-identityʳ y ⟨ +-cong ⟩ refl {x = 3} ⟩
+    x + y + 3      ≈⟨ +-comm x y ⟨ +-cong ⟩ refl ⟩
+    y + x + 3      ≈⟨ +-comm (y + x) 3 ⟩
+    3 + (y + x)    ≈⟨ sym (+-assoc 3 y x) ⟩
+    2 + 1 + y + x  ∎
 \end{code}
 %</proof>

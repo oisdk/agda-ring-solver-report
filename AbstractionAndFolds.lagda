@@ -7,19 +7,20 @@ open import Level using (_⊔_; lift; lower)
 open import Data.List as List using (List; _∷_; []; foldr)
 open import Data.Nat as ℕ using (ℕ; suc; zero; _≤′_; ≤′-step; ≤′-refl; _<′_)
 open import Data.Nat.Properties as ℕ-Prop using (≤′-trans)
-open import Data.Product using (_×_; _,_; map₁; map₂; proj₁; proj₂)
+open import Data.Product using (_×_; _,_; map₁; map₂; proj₁; proj₂; curry; uncurry)
 open import Algebra
 open import Function
 open import Data.Unit using (⊤; tt)
+open import Data.Bool using (Bool; true; false)
 
 module Main
-  {c ℓ}
+  {c}
   (coeffs : RawRing c)
-  (Zero-C : Pred (RawRing.Carrier coeffs) ℓ)
-  (zero-c? : Decidable Zero-C) where
+  (Zero? : RawRing.Carrier coeffs → Bool)
+  where
 
   open RawRing coeffs
-  open import FinalPolyDefinition coeffs Zero-C
+  open import FinalPolyDefinition coeffs Zero?
 
   -- Inject a polynomial into a larger polynomoial with more variables
   _Π↑_ : ∀ {n m} → Poly n → (suc n ≤′ m) → Poly m
@@ -39,9 +40,11 @@ module Main
 
   -- Decision procedure for Zero
   zero? : ∀ {n} → (p : Poly n) → Dec (Zero p)
-  zero? (Σ []      Π _) = yes (lift tt)
-  zero? (Σ (_ ∷ _) Π _) = no lower
-  zero? (Κ x       Π _) = zero-c? x
+  zero? (Σ []      Π _) = yes tt
+  zero? (Σ (_ ∷ _) Π _) = no (λ z → z)
+  zero? (Κ x       Π _) with Zero? x
+  zero? (Κ x Π _) | false = no (λ z → z)
+  zero? (Κ x Π _) | true = yes tt
 
   -- Exponentiate the first variable of a polynomial
   infixr 8 _⍓_
@@ -84,9 +87,20 @@ module Main
 %</with-foldr>
 %<*fold-def>
 \begin{code}
-
+  Fold : ℕ → Set c
+  Fold n = Poly n × Coeffs n → Poly n × Coeffs n
 \end{code}
 %</fold-def>
+%<*para>
+\begin{code}
+  para : ∀ {i} → Fold i → Coeffs i → Coeffs i
+  para f =
+    foldr
+    (λ { (x ≠0 Δ i) →
+         uncurry (_∷↓_ ∘ (_Δ i)) ∘ curry f x })
+    []
+\end{code}
+%</para>
 \begin{code}
   module AccDef where
 \end{code}
@@ -215,12 +229,27 @@ module Semantics
       : ∀ {n} ρ ρs
       → ([f] : Poly n → Poly n)
       → (f : Carrier → Carrier)
-      → (∀ x y → f x * y ≈ f (x * y))
+      → (∀ x y → x * f y ≈ f (x * y))
       → (∀ x y → f (x + y) ≈ f x + f y)
       → (∀ y → ⟦ [f] y ⟧ ρs ≈ f (⟦ y ⟧ ρs))
       → (f 0# ≈ 0#)
       → ∀ xs
-      → Σ⟦  poly-map [f] xs ⟧ (ρ , ρs)
+      → Σ⟦ poly-map [f] xs ⟧ (ρ , ρs)
             ≈ f (Σ⟦ xs ⟧ (ρ , ρs))
 \end{code}
 %</poly-mapR>
+%<*poly-foldR>
+\begin{code}
+    poly-foldR
+      : ∀ {n} ρ
+      → ([f] : Fold n)
+      → (f : Carrier → Carrier)
+      → (∀ x y → x * f y ≈ f (x * y))
+      → ( ∀ y {ys} zs
+          → Σ⟦ ys ⟧ ρ ≈ f (Σ⟦ zs ⟧ ρ)
+          → [f] (y , ys) ⟦∷⟧ ρ ≈ f ((y , zs) ⟦∷⟧ ρ))
+      → (f 0# ≈ 0#)
+      → ∀ xs
+      → Σ⟦ para [f] xs ⟧ ρ ≈ f (Σ⟦ xs ⟧ ρ)
+\end{code}
+%</poly-foldR>

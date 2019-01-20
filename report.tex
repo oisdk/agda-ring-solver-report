@@ -210,7 +210,15 @@ out monoids for commutative rings to get the full solver.
   \caption{A Simple Identity Of Monoids}
   \label{mon-ident}
 \end{figure}
-
+\begin{figure*}[t]
+  \centering
+  \parbox{0.65\textwidth}{
+    \internallinenumbers
+    \ExecuteMetaData[Monoids.tex]{mon-proof}
+  }
+  \caption{Proof of the identity in figure~\ref{mon-ident}}
+  \label{mon-proof}
+\end{figure*}
 As a running example for this section, we will use the identity in
 figure~\ref{mon-ident}. To a human, the fact that the identity holds may well be
 obvious: \(\AgdaField{∙}\) is associative, so we can scrub out all the
@@ -220,16 +228,6 @@ After that, both sides are equal, so voilà!
 Unfortunately, our compiler isn't nearly that clever. As alluded to before, we
 need to painstakingly specify every intermediate step, justifying every move
 (figure~\ref{mon-proof}).
-
-\begin{figure*}
-  \centering
-  \parbox{0.65\textwidth}{
-    \internallinenumbers
-    \ExecuteMetaData[Monoids.tex]{mon-proof}
-  }
-  \caption{Proof of the identity in figure~\ref{mon-ident}}
-  \label{mon-proof}
-\end{figure*}
 
 The syntax is designed to mimic that of a handwritten proof: line 3 is the
 expression on the left-hand side of \(\AgdaField{≈}\) in figure~\ref{mon-ident},
@@ -568,6 +566,12 @@ of polynomials with $n-1$ variables. In types:
 \ExecuteMetaData[SparseMulti.tex]{dense-poly} 
 \subsection{Efficiency in Indexed Types} \label{efficient-cbc}
 \subsubsection{Call-Pattern Specialization}
+\begin{figure*}
+  \centering
+  \ExecuteMetaData[EliminatingRedundancy.tex]{term-add}
+  \caption{Termination by Call-Pattern Specialization}
+  \label{term-add}
+\end{figure*}
 While both sparse encodings provide a more space-efficient representation, the
 computational efficiency has yet to be realized. Starting with the sparse
 monomial, we'll look at the addition function. In the dense encoding
@@ -593,14 +597,6 @@ specialization''\cite{jones_call-pattern_2007}.
 \end{principle}
 
 For our case, the principle applied can be seen in figure~\ref{term-add}.
-
-\begin{figure*}
-  \centering
-  \ExecuteMetaData[EliminatingRedundancy.tex]{term-add}
-  \caption{Termination by Call-Pattern Specialization}
-  \label{term-add}
-\end{figure*}
-
 \subsubsection{Built-In Functions}
 \begin{figure}
   \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{ord-type}
@@ -755,13 +751,13 @@ homomorphism for these implementations is more than a little daunting. However,
 we can ease the burden somewhat by leveraging the \(\AgdaFunction{foldr}\)
 function, in a similar way to\cite{mu_algebra_2009}.
 
-The goal is to modularize the proofs by independently proving the correctness of
-each optimization. To do this, we will strive to write the arithmetic operations
-as higher-order functions, which operate over the ``unoptimized'' version of the
-polynomials (the dense versions), and have an intermediate function convert to
-and from the dense encoding. As a case study, we'll work with the negation
-function. Our initial definition (on the type defined in
-figure~\ref{final-poly-def}) is as follows:
+The goal here is to maximize proof reuse. To do that, we'll need to also have a
+degree of \emph{implementation} reuse: if we can have each operation use a
+common set of components, we can verify those components separately, and share
+the verification between each operation.
+
+As a case study, we'll work with the negation function. Our initial definition
+(on the type defined in figure~\ref{final-poly-def}) is as follows:
 
 \ExecuteMetaData[AbstractionAndFolds.tex]{simple}
 
@@ -783,17 +779,20 @@ Next, the \(\AgdaFunction{go}\) helper function is an obvious candidate for
 
 Remembering that \(\AgdaFunction{\_⊠\_}\) also used a fold, we should now
 construct a way to talk about ``folds'' abstractly, so that we can share some of
-the proof code.
+the proof code:
+\ExecuteMetaData[AbstractionAndFolds.tex]{fold-def}
+And we can run a fold (or ``paramorphism''):
+\ExecuteMetaData[AbstractionAndFolds.tex]{para}
 
+SO what is it we're able to say about this fold exactly? Well, we can rely on
+the fact that evaluation (figure~\ref{semantics}) is \emph{also} a fold, and
+pinpoint the fact that we just need to prove our operation distributes over
+\emph{that} fold. That lemma corresponds to the rather gruesome-looking type:
+\ExecuteMetaData[AbstractionAndFolds.tex]{poly-foldR}
 
-Continuing in this vein, we are able to isolate the component of this function
-which is different from the other operations, and therefore confine our proofs
-to that difference. In this particular case, we use the following lemma:
-
+While that function is the workhorse of the proofs, for negation we can actually
+use a simpler variant (implemented in terms of \(\AgdaFunction{poly-foldR}\)):
 \ExecuteMetaData[AbstractionAndFolds.tex]{poly-mapR}
-
-In this way, we demonstrate a concrete and practical use
-of\cite{mu_algebra_2009}. \todo{Expand!}
 \subsection{Proving Higher-Order Termination With Well-Founded Recursion}
 Unfortunately, by using a higher-order function, we've obscured the fact that
 the negation operation obviously terminates.
@@ -853,27 +852,18 @@ Luckily, in our case, the relation is already lying around, in the injection
 index. So we can just use that!
 \ExecuteMetaData[AbstractionAndFolds.tex]{terminating}
 
-A small aside: why do we pattern match on \(\AgdaInductiveConstructor{acc}\) in
-both cases of \(\AgdaFunction{\_⊟′\_}\)? Surely the first could be replaced by
-an underscore?
-
-It could, but then you'd likely see a performance hit in compiled code. If we
-want Agda to elide the \(\AgdaDatatype{Acc}\) argument altogether, it can help
-to treat it the same in every clause of a function, so it is especially obvious
-that it's not used for computation.
+A small aside: the reason we pattern match on \(\AgdaInductiveConstructor{acc}\) in
+both clauses of \(\AgdaFunction{\_⊟′\_}\) is to make it clear that the function
+doesn't branch on it. This makes it more likely that Agda will detect that fact
+and consequently erase the argument.
 \subsection{Laziness}
 Agda is a lazy language (like Haskell), so all of the usual caveats with regards
 to performance apply. Unfortunately, Agda's strictness primitives are cumbersome
-to write proofs about: \(\AgdaFunction{seq} \; x \; y\) is not definitionally
-equal to \(y\), despite having the same semantics. We have to use another
-primitive which provides a proof of the equality.
-
-As a result, strictness annotations aren't common in Agda code, and the usual
-practice is to structure functions carefully so that they force the correct
-arguments. For instance, the order of arguments to \(\AgdaFunction{\_*\_}\) (in
-figure~\ref{semantics}) was only chosen after careful experimentation: other
-orders were many thousands of times slower to typecheck.
-\newpage
+to prove: \(\AgdaFunction{seq} \; x \; y\) is not definitionally equal to \(y\),
+despite having the same semantics. Instead, we structured functions carefully so
+that they force the correct arguments. This was effective, but fragile: a
+different order of arguments to \(\AgdaFunction{*}\) (in figure~\ref{semantics})
+was over 1000 times slower to typecheck.
 \subsection{Benchmarks}
 As expected, the sparse implementation exhibits a significant speedup in
 type-checking over the dense implementation\footnotemark. Figure~\ref{bench1}
@@ -902,12 +892,10 @@ Furthermore, we have not been able to find a case where the dense solver is
 significantly faster than the sparse. Nonetheless, if a user really wants to use
 the dense solver, the components described in the following two sections are
 entirely modular, and can work with any underlying solver which uses the
-reflexive technique (including the dense solver).
-
+reflexive technique.
 \footnotetext{These benchmarks were performed on Agda version 2.6-0fa9b13, with
   the Agda standard library at commit-3bd3334a9552490e396f73f96812105a27e5917b,
   on a 2016 MacBook Pro, with a 2.9 GHz Intel Core i7 and 16 GB of RAM.}
-\newpage
 \begin{figure}[H]
   \newcounter{realxtickpos}
   \pgfplotsset{
