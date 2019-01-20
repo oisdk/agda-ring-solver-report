@@ -40,7 +40,7 @@ nonlemma : ∀ x y →
 \end{code}
 %<*wrong-lemma>
 \begin{code}
-          x + y * 1 + 3 ≈ 2 + 1 + x + x
+          x + y * 1 + 3 ≈ 2 + 1 + y + y
 \end{code}
 %</wrong-lemma>
 \begin{code}

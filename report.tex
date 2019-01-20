@@ -1274,20 +1274,15 @@ The rest of the function is similar to above. Eventually, it will call
 Because we've been careful not to supply any type information we don't need to,
 we actually get decent error messages when the solver fails. For instance, if we
 ask it to solve the following:
-
-\ExecuteMetaData[ReflectionSection.tex]{wrong-lemma}
-
-It will demonstrate where exactly it fails, with the error message:
-
-\[
- (y \; \AgdaFunction{+} \; \AgdaNumber{0} \; \AgdaFunction{*} \; y) \;
- \AgdaFunction{*} \;
- \AgdaNumber{1} \neq x
-\]
-
-This is because we pass it \(\AgdaField{refl}\) as the proof that the normal
-forms are equal: if they're not, this is where we'll get an error.
-
+\begin{center}
+  \ExecuteMetaData[ReflectionSection.tex]{wrong-lemma}
+\end{center}
+It will provide the rather helpful error message:
+\[ x \neq y \; \text{of type} \; \AgdaDatatype{ℕ} \]
+Again, we're leveraging the typechecker itself rather than reimplementing our
+own checking logic. It's not perfect: it's followed by several lines of
+unreadable errors, and other expressions don't yield errors quite as nice.
+We could possibly improve the output in the future.
 \section{Setoid Applications} \label{equivalence}
 As mentioned previously, the solver does \emph{not} require the user to prove
 the ring properties up to propositional equality. Instead, we ask them to prove
@@ -1384,7 +1379,10 @@ number of heuristics to cut down on the solution length:
     a step is divided over two sides of an operator, it is deemed
     ``interesting'' if either side is interesting.
   \item Next, we remove any ``step, reverse-step'' chains. Since we're
-    converting expressions to normal form, both paths may end in a long chain of
+    converting expressions to normal form, the path may be Y-shaped, i.e., both
+    sides of the equation will be rewritten into a common form, and then that 
+
+    both paths may end in a long chain of
     the same proofs: i.e., the expressions may have been proved equivalent long
     before that. When we encounter a step which is the ``reverse'' of the step
     before or after it, we skip both, maintaining the state.
