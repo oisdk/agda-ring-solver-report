@@ -1306,7 +1306,7 @@ The first, and most obvious, ``exotic'' setoid is that over a universe of types.
 The relation is an \emph{isomorphism} between these types. In this way, the
 solver can now automatically construct functions to convert between equivalent
 types. This has been explored before in a number of settings.
-\subsection{Pedagogical Solutions} \label{pedagogical} \todo{Expand!}
+\subsection{Pedagogical Solutions} \label{pedagogical}
 \begin{figure*}[t]
   \centering
   \begin{tikzpicture}
@@ -1372,20 +1372,45 @@ interspersed with the states of the expression (the vertices in the graph).
 If we stopped there, however, the solver would output incredibly verbose
 ``solutions'': far too verbose to be human-readable. Instead, we must apply a
 number of heuristics to cut down on the solution length:
-
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \node (n1) at (-2,7.5) {$2 + 1 + y + x * 1$};
+    \node (n2) at (-2,6) {$2 + 1 + y + x$};
+    \node (n3) at (2,6) {$1 + 2 + y + x$};
+    \node (n4) at (0,4.5) {$3 + y + x$};
+    \node (n5) at (0,3) {$y + 3 + x$};
+    \node (n6) at (0,1.5) {$y + x + 3$};
+    \node (n7) at (0,0) {$x + y + 3$};
+    \draw[-stealth] (n1) to (n2);
+    \draw[-stealth] (n2) to (n4);
+    \draw[-stealth] (n3) to (n4);
+    \draw[-stealth] ([xshift=-0.2cm] n4.south) to ([xshift=-0.2cm] n5.north);
+    \draw[-stealth] ([xshift=-0.2cm] n5.south) to ([xshift=-0.2cm] n6.north);
+    \draw[-stealth] ([xshift=-0.2cm] n6.south) to ([xshift=-0.2cm] n7.north);
+    \draw[-stealth] ([xshift=0.2cm] n5.north) to ([xshift=0.2cm] n4.south);
+    \draw[-stealth] ([xshift=0.2cm] n6.north) to ([xshift=0.2cm] n5.south);
+    \draw[-stealth] ([xshift=0.2cm] n7.north) to ([xshift=0.2cm] n6.south);
+  \end{tikzpicture}
+  \caption{Y-Shaped Graph}
+  \label{y-graph}
+\end{figure}
 \begin{enumerate}
   \item First, we filter out ``uninteresting'' steps. These are steps which are
     obvious to a human, like associativity, or evaluation of closed terms. When
     a step is divided over two sides of an operator, it is deemed
     ``interesting'' if either side is interesting.
   \item Next, we remove any ``step, reverse-step'' chains. Since we're
-    converting expressions to normal form, the path may be Y-shaped, i.e., both
-    sides of the equation will be rewritten into a common form, and then that 
+    converting expressions to normal form, the path may be Y-shaped, as in
+    figure~\ref{y-graph}. This graph uses a simplified normalization algorithm
+    which first evaluates any expressions it can, and then alphabetizes the
+    variables.
 
-    both paths may end in a long chain of
-    the same proofs: i.e., the expressions may have been proved equivalent long
-    before that. When we encounter a step which is the ``reverse'' of the step
-    before or after it, we skip both, maintaining the state.
+    The problem is that both expressions hit a common form early on, at \(3 + y
+    + x\). Nonetheless, the proof will soldier on, down to \(x + y + 3\) and
+    back up again.
+
+    These sections are what we want to detect, and remove.
 \end{enumerate}
 
 Given those, our solver outputs the following for the lemma in
