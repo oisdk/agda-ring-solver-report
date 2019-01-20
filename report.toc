@@ -33,5 +33,5 @@
 \contentsline {subsection}{\numberline {5.1}Isomorphisms}{22}{subsection.5.1}
 \contentsline {subsection}{\numberline {5.2}Pedagogical Solutions}{22}{subsection.5.2}
 \contentsline {section}{\numberline {6}The Correct-By-Construction Approach}{24}{section.6}
-\contentsline {section}{\numberline {7}Related Work}{25}{section.7}
-\contentsline {section}{\numberline {A}Longer Code Examples}{27}{appendix.A}
+\contentsline {section}{\numberline {7}Related Work}{26}{section.7}
+\contentsline {section}{\numberline {A}Longer Code Examples}{28}{appendix.A}

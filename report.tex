@@ -1384,7 +1384,7 @@ number of heuristics to cut down on the solution length:
     \node (n7) at (0,0) {$x + y + 3$};
     \draw[-stealth] (n1) to (n2);
     \draw[-stealth] (n2) to (n4);
-    \draw[-stealth] (n3) to (n4);
+    \draw[-stealth] (n4) to (n3);
     \draw[-stealth] ([xshift=-0.2cm] n4.south) to ([xshift=-0.2cm] n5.north);
     \draw[-stealth] ([xshift=-0.2cm] n5.south) to ([xshift=-0.2cm] n6.north);
     \draw[-stealth] ([xshift=-0.2cm] n6.south) to ([xshift=-0.2cm] n7.north);
@@ -1427,29 +1427,38 @@ y + x + 3
 Figuring out good heuristics and path compression techniques seems to deserve
 further examination.
 \section{The Correct-By-Construction Approach}
-The Agda and Coq communities exhibit something of a cultural difference when it
-comes to proving things. Coq users seem to prefer writing simpler, almost
-non-dependent code and algorithms, to separately prove properties about that
-code in auxiliary lemmas. Agda users, on the other hand, seem to prefer baking
-the properties into the definition of the types themselves, and writing the
-functions in such a way that they prove those properties as they go (the
-``correct-by-construction'' approach).
+In dependently-typed languages, there are two main ways to prove things about
+code: the extrinsic approach, where you separate proofs and computation, or the
+intrinsic (``correct-by-construction'') approach, where the proof of correctness
+is baked into the implementation itself. Broadly speaking, Coq users tend to
+lean towards the extrinsic approach, and Agda users towards the intrinsic. This
+is partially due to the languages themselves (Coq's extraction facilities, for
+instance, allow for much more powerful notion of ``separation'' than Agda), and
+partially due to cultural differences within each community.
 
-There are advantages and disadvantages to each. The Coq approach, for instance,
-allows you to reuse the same functions in different settings, verifying
-different properties about them depending on what's required. In Agda, this is
-more difficult: you usually need a new type for every invariant you maintain
-(lists, and then length-indexed lists, and then sorted lists, etc.). On the
-other hand, the proofs themselves often contain a lot of duplication of the
-logic in the implementation: in the Agda style, you avoid this duplication, by
-doing both at once. Also worth noting is that occasionally attempting to write a
-function that is correct by construction will lead to a much more elegant
-formulation of the original algorithm, or expose symmetries between the proof
-and implementation that would have been difficult to see otherwise.
+There are advantages and disadvantages to each approach. In extrinsically proven
+code, you can reuse the same data types and functions in different settings,
+verifying different properties about them depending on what's required.
+Intrinsically proven code can sometimes require a new type for every new
+invariant you want to prove (lists, then length-indexed lists, then
+length-indexed and sorted lists, etc.).
+\ExecuteMetaData[CorrectByConstruction.tex]{list-def}
+\ExecuteMetaData[CorrectByConstruction.tex]{vec-def}
 
-\cite{gregoire_proving_2005}, as an example, is very much in the Coq style: the
-definition of the polynomial type has no type indices, and makes no requirements
-on its internal structure:
+On the other hand, where intrinsic proofs occasionally cause implementation
+duplication, extrinsic proofs can \emph{proof} duplication. Consider
+concatenation:
+\ExecuteMetaData[CorrectByConstruction.tex]{list-app}
+\ExecuteMetaData[CorrectByConstruction.tex]{vec-app}
+
+The fact that the length of the output is the sum of the lengths of the input is
+\emph{intrinsic} in the definition of the vector, but needs a separate proof for
+the list:
+\ExecuteMetaData[CorrectByConstruction.tex]{list-proof}
+
+Turning our attention now to polynomial solvers, \cite{gregoire_proving_2005} is
+an example that is very much in the extrinsic style. The definition of the
+polynomial type isn't dependent at all:
 \begin{small}
 \begin{verbatim}
 Inductive Pol (C:Set) : Set :=
@@ -1459,21 +1468,51 @@ Inductive Pol (C:Set) : Set :=
 \end{verbatim}
 \end{small}
 
-The implementation presented here straddles both camps: we verify homomorphism
-in separate lemmas, but the type itself does carry information: it's indexed by
-the number of variables it contains, for instance, and it statically ensures
-it's always in normal form.
+On the other end of the scale, \cite{geuvers_automatically_2017} demonstrates a
+correct-by-construction solver in Idris.
 
-Performing the same task in a correct-by-construction way is explored
-in\cite{geuvers_automatically_2017} (in Idris\cite{brady_idris_2013}).
-
-Here we provide a similar implementation, using the following definition:
+What we presented in section~\ref{a-poly-solver} straddles both camps.
+Homomorphism is verified extrinsically, with separate lemmas, but the type of
+polynomials intrinsically ensures certain invariants like the number of
+variables it contains, the absence of zeroes, and so on. A
+correct-by-construction solver was briefly considered, with the following
+definition:
 \ExecuteMetaData[CorrectByConstruction.tex]{constr-def}
+However, we found it didn't suit our needs. First and foremost, it was more
+difficult to squeeze decent performance out of the proof-carrying definition:
+for the extrinsic solver, we were able to quickly iterate and benchmark on the
+normalization code without worrying about the proofs. This turned out to be
+vital to an efficient normalization procedure. In the definition above, on the
+other hand, a slight change in implementation wouldn't typecheck without a
+corresponding change in proof. 
 
-While this approach reduced the amount of code we needed to write, we found it
-made optimizations more difficult, as it combined the execution and proof code
-together.
+A related issue is that it was quite difficult to ensure we didn't pay for the
+proofs where we didn't need to. In Agda, a proof of propositional equality can
+usually be erased: for the extrinsic solver, this means that if the underlying
+equivalence is propositional equality, the homomorphism proofs never need to be
+run. In theory, the same could be true for a carefully implemented intrinsic
+prover: we found it quite difficult to achieve in practice.
+
+Finally, we found that intrinsic proofs did not mesh well with non-propositional
+equivalences. Propositional equality enjoys special treatment, both
+syntactically and semantically, in Agda. As such, writing proofs in its domain
+often look like standard Agda: with pattern matching, function application, and
+so on.
+
+Setoids, on the other hand, can be manipulated in very few ways
+(\(\AgdaFunction{sym}\), \(\AgdaFunction{trans}\), and \(\AgdaFunction{refl}\),
+to be precise). Even in the proof regarding lists above, we had to rely on
+\(\AgdaFunction{cong}\), something not available in general on a setoid. Part of
+what makes the intrinsic version so much shorter above is that the application
+of \(\AgdaFunction{cong}\) is implicit and automatic in propositional equality:
+in a setoid, both versions would have to explicitly apply it in some way.
+
+Anecdotally, we found the difference between propositional and non-propositional
+code to be somewhat like non-monadic and monadic code in Haskell: in both cases,
+function application and composition has to be explicitly lifted, and the opaque
+monadic type prevents the usual syntax for pattern matching.
 \ExecuteMetaData[CorrectByConstruction.tex]{constr-add}
+
 \section{Related Work}
 In dependently-typed programming languages, the state-of-the-art solver for
 polynomial equalities (over commutative rings) was originally presented

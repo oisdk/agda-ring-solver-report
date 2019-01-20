@@ -8,6 +8,75 @@ module CorrectByConstruction
   (coeffs : AlmostCommutativeRing a ℓ)
   where
 
+
+module Vects where
+ open import Data.Nat
+\end{code}
+%<*vec-def>
+\begin{code}
+ data Vec {a} (A : Set a) : ℕ → Set a where
+   []   : Vec A zero
+   _∷_  : ∀ {n}
+        → A
+        → Vec A n
+        → Vec A (suc n)
+\end{code}
+%</vec-def>
+\begin{code}
+ module _ {a} {A : Set a} where
+\end{code}
+%<*vec-app>
+\begin{code}
+  _++_  : ∀ {n m}
+        → Vec A m
+        → Vec A n
+        → Vec A (m + n)
+  [] ++ ys = ys
+  (x ∷ xs) ++ ys = x ∷ (xs ++ ys)
+\end{code}
+%</vec-app>
+\begin{code}
+module Lists where
+ open import Data.Nat
+ open import Relation.Binary.PropositionalEquality
+\end{code}
+%<*list-def>
+\begin{code}
+ data List {a} (A : Set a) : Set a where
+   []   : List A
+   _∷_  : A
+        → List A
+        → List A
+\end{code}
+%</list-def>
+\begin{code}
+ module _ {a} {A : Set a} where
+\end{code}
+%<*list-app>
+\begin{code}
+  _++_ : List A
+       → List A
+       → List A
+  [] ++ ys = ys
+  (x ∷ xs) ++ ys = x ∷ (xs ++ ys)
+\end{code}
+%</list-app>
+%<*list-proof>
+\begin{code}
+  length : List A → ℕ
+  length [] = zero
+  length (x ∷ xs) = suc (length xs)
+
+  length-+
+    : (xs ys : List A)
+    → length xs + length ys ≡ length (xs ++ ys)
+  length-+ [] ys = refl
+  length-+ (x ∷ xs) ys =
+    cong suc (length-+ xs ys)
+\end{code}
+%</list-proof>
+\begin{code}
+
 open import Level
 open import Function
 
