@@ -872,7 +872,7 @@ As expected, the sparse implementation exhibits a significant speedup in
 type-checking over the dense implementation\footnotemark. Figure~\ref{bench1}
 shows time taken to type check a proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\)
 is equal to its expanded form. The sparse representation is clearly faster
-overall, with a factor of 4 speedup for \(d = 8\).
+overall, with a factor of 7.5 speedup for \(d = 8\).
 
 Figure~\ref{bench2} demonstrates where some of the speedup might come
 from. The expression \(x^d\) is represented very differently in the two
@@ -884,7 +884,7 @@ the addition operations.
 
 Figure~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
 high and low powers and some constants. The sparse representation's advantage is
-even more apparent here, with an \(8.5\)-factor speedup at \(d = 8\).
+even more apparent here, with an \(15\)-factor speedup at \(d = 8\).
 
 The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
 expressions, possibly caused by the overhead of the sparse solver's more complex
@@ -926,28 +926,28 @@ reflexive technique.
         legend columns=-1,
         legend entries={sparse, dense},
         legend to name=benchplots,
-        extra y ticks={25},
+        extra y ticks={15},
         title={(\subref{bench1}) $(x_1 + x_2 + \ldots + x_n)^d$},
         ]
         \addplot[color=blue, densely dashed] coordinates{
-          (1,4.83418)
-          (2,4.98801)
-          (3,5.02555)
-          (4,6.41081)
-          (5,7.11915)
-          (6,9.76436)
-          (7,13.8194)
-          (8,25.9411)
+          (1,5.20338)
+          (2,5.25787)
+          (3,5.24173)
+          (4,5.76486)
+          (5,6.95739)
+          (6,8.46202)
+          (7,11.8039)
+          (8,15.4919)
         };
         \addplot[color=red] coordinates{
-          (1,2.49053)
-          (2,2.60231)
-          (3,2.81313)
-          (4,3.56081)
-          (5,5.01796)
-          (6,9.72961)
-          (7,27.2808) 
-          (8,107.306)
+          (1,2.39014)
+          (2,2.48972)
+          (3,3.15072)
+          (4,3.97797)
+          (5,5.82725)
+          (6,10.7788)
+          (7,28.7441) 
+          (8,114.779)
         };
       \end{axis}
     \end{tikzpicture}
@@ -986,28 +986,28 @@ reflexive technique.
   \begin{subfigure}[h]{\linewidth}
     \begin{tikzpicture}
       \begin{axis}[
-        extra y ticks={60},
+        extra y ticks={35},
         title={(\subref{bench3}) $(1 + x_1^1 + x_2^2 + \ldots + x_n^n)^d$},
         ]
         \addplot[color=blue, densely dashed] coordinates{
-          (1,4.79245)
-          (2,4.97426)
-          (3,5.26839)
-          (4,6.74824)
-          (5,9.71901)
-          (6,14.7459)
-          (7, 26.495)
-          (8,60.5498)
+          (1,6.05816)
+          (2,5.42016)
+          (3, 5.6392)
+          (4,6.73864)
+          (5,9.46278)
+          (6, 13.674)
+          (7,22.2017)
+          (8,35.7867)
         };
         \addplot[color=red] coordinates{
-          (1,  2.396)
-          (2,2.65767)
-          (3,3.29586)
-          (4,5.76267)
-          (5,11.5897)
-          (6,29.8233)
-          (7,105.639)
-          (8,506.271)
+          (1,2.43645)
+          (2,2.97253)
+          (3,3.84846)
+          (4,6.44711)
+          (5,12.9021)
+          (6,31.7981)
+          (7,109.453)
+          (8,535.264)
         };
       \end{axis}
     \end{tikzpicture}
