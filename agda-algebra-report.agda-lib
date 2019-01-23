@@ -1,3 +1,3 @@
-name: agda-algebra-report
+name: agda-ring-solver-report
 include: .
-depend: agda-algebra
+depend: agda-ring-solver

@@ -748,6 +748,110 @@ gaps: this suggests the equivalent function is \emph{transitivity}:
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-trans}
 And with that, we have enough to define our comparison function:
 \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-compare}
+\subsection{Performance of Type-Checking}
+So far, our optimizations have focused on the \emph{operations} performed on the
+polynomial. Remember, though, the reflexive proof process has several steps:
+only one of them containing the operations (\(\AgdaFunction{⟦\_⇓⟧}\) in
+figure~\ref{proof-process}).
+
+As it happens, we have now optimized these operations so much that they are no
+longer the bottleneck in the process. Surprisingly, the innocuous-looking
+\(\AgdaInductiveConstructor{refl}\) now takes the bulk of the time! Agda has to
+typecheck that the two normalized expressions are equal, which is an expensive
+operation. It costs proportional to the size of the terms being compared. With
+that in understood, cast your mind back to the implementation of Horner's rule
+on dense polynomials:
+\ExecuteMetaData[HornerNormalForm.tex]{eval}
+
+We ask Agda to compare the result of \emph{this} operation for equality. In
+other words, for the expression \(x^2 + 2\), Agda has to type-check:
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{dense-term-small}
+
+And if you think that looks bad, check out the term constructed by:
+\[3 + 2x^2 + 4x^5 + 2x^7\]
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{dense-term}
+
+It should be clear why this is a concern!
+\subsubsection{Syntactic Equality}
+The first thing we might notice is that the order of arguments to
+\(\AgdaFunction{+}\) and \(\AgdaFunction{*}\) are somewhat unnatural. Why are
+they not flipped?
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{backwards-eval} 
+This puts any known arguments on the left-hand-side. Taking the \(x^2 + 2\)
+example again, because \(x \; \AgdaFunction{*}\) can't be reduced any further
+(without knowing something about \(x\)), the big expression in
+\(\AgdaFunction{obligation}\) is \emph{already} in normal form. If we had simply
+swapped the arguments, we would have gotten the following (much smaller) normal
+form:
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{reduction}
+
+So why don't we? Because reduction is expensive, and there's a way to avoid it:
+Before the ``full'' typechecking algorithm is run, Agda performs a quick check
+for syntactic equality. This is much more efficient than the full type checking
+algorithm, so we should strive to encourage it as much as possible.
+
+In the context of our solver, the power indices are like \emph{not} to be
+syntactically equal. They're calculated in normalization, and so will contain
+function calls and the like. If you look at the structure of the expression in
+\(\AgdaFunction{obligation}\), or even the pyramid above, all of the power
+indices are pushed to the \emph{right}, and all of the variables to the left.
+These variables \emph{will} be syntactically equal, without reduction or
+normalization. If the expression had been the other way around, Agda will give
+up on syntactic equality earlier, and begin reduction. This is disastrous! Not
+only is reduction expensive, it can also change the entire shape of the
+expression (like in \(\AgdaFunction{progress}\)), destroying any chance for a
+syntactic equality check!
+
+Compare this to the pyramid: all the syntacticly equal terms are on the
+\emph{left}, meaning that they will be checked cheaply before any reduction.
+
+This leads us to the somewhat unintuitive conclusion:
+\begin{principle}[To get syntactic equality, \emph{avoid} reduction for as long
+  as possible]
+\end{principle}
+\subsubsection{Sparsity}
+The various sparse encodings do actually help us out here, a little. The pyramid
+above, when evaluated as a sparse polynomial, now becomes:
+\begin{center}
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{sparse-term}
+\end{center}
+Still worse than we'd like, for sure, but we don't now have to pay for the gaps!
+\subsubsection{Avoiding Identities}
+There are yet more ways we can reduce the size of the expression above. First,
+we should notice that many of the operations being performed are identities:
+\(x^0 \times y = y\) for instance, and \(x \times 0 + y = y\). On their own,
+neither of these facts are serious problems: the solver will still work as it
+should. However, consider the following unification problem:
+\[x_1^0 \times y \stackrel{?}{=} x_2^0 \times y\]
+The first thing checked will be \(x_1 \stackrel{?}{=} x_2\): we've introduced an
+opportunity to break syntactic equality, and all of the problems of the previous
+section.
+
+Instead, we will carefully arrange operations to \emph{avoid} the use of
+identities. Exponentiation followed by a multiplication, for instance, can be
+replaced by:
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{pow-ident}
+
+Furthermore, we can decompose the list type into the constituent Kleene star and
+plus: 
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{kleene}
+
+And using this avoid the identity at the end of the list:
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{no-ident}
+
+Removing all of those identities finally gives us the following result:
+\begin{center}
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{small-eval}
+\end{center}
+
+Notice how all of the variables are stacked to the left, to encourage syntactic
+equality. Even if the expression \emph{is} forced, its normal form contains no
+identities:
+\begin{center}
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{small-force}
+\end{center}
+Which means it's more likely capable of finding syntactic equality in a
+subexpression.
 \subsection{Abstraction and Folds for Simpler Proofs} \label{aopa}
 At this point, following our many optimizations, the task of proving
 homomorphism for these implementations is more than a little daunting. However,
@@ -859,14 +963,6 @@ A small aside: the reason we pattern match on \(\AgdaInductiveConstructor{acc}\)
 both clauses of \(\AgdaFunction{\_⊟′\_}\) is to make it clear that the function
 doesn't branch on it. This makes it more likely that Agda will detect that fact
 and consequently erase the argument.
-\subsection{Laziness}
-Agda is a lazy language (like Haskell), so all of the usual caveats with regards
-to performance apply. Unfortunately, Agda's strictness primitives are cumbersome
-to prove: \(\AgdaFunction{seq} \; x \; y\) is not definitionally equal to \(y\),
-despite having the same semantics. Instead, we structured functions carefully so
-that they force the correct arguments. This was effective, but fragile: a
-different order of arguments to \(\AgdaFunction{*}\) (in figure~\ref{semantics})
-was over 1000 times slower to typecheck.
 \subsection{Benchmarks}
 As expected, the sparse implementation exhibits a significant speedup in
 type-checking over the dense implementation\footnotemark. Figure~\ref{bench1}
