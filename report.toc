@@ -20,7 +20,8 @@
 \contentsline {subsubsection}{\numberline {3.5.4}Hanging Indices}{12}{subsubsection.3.5.4}
 \contentsline {subsection}{\numberline {3.6}Performance of Type-Checking}{14}{subsection.3.6}
 \contentsline {subsubsection}{\numberline {3.6.1}Syntactic Equality}{15}{subsubsection.3.6.1}
-\contentsline {subsubsection}{\numberline {3.6.2}Avoiding Identities}{16}{subsubsection.3.6.2}
+\contentsline {subsubsection}{\numberline {3.6.2}Sparse Encoding}{16}{subsubsection.3.6.2}
+\contentsline {subsubsection}{\numberline {3.6.3}Avoiding Identities}{16}{subsubsection.3.6.3}
 \contentsline {subsection}{\numberline {3.7}Abstraction and Folds for Simpler Proofs}{17}{subsection.3.7}
 \contentsline {subsection}{\numberline {3.8}Proving Higher-Order Termination With Well-Founded Recursion}{18}{subsection.3.8}
 \contentsline {subsection}{\numberline {3.9}Benchmarks}{19}{subsection.3.9}

@@ -818,38 +818,42 @@ unifying \(x\) with \(x\) isn't that expensive?
 
 The real problem of failing the check is illustrated by the
 \(\AgdaFunction{progress}\) function. Once syntactic equality fails, Agda will
-go ahead and reduce the terms on either side: this is disastrous! By reducing
-the terms, 
-
-
-Why is this relevant to us? For one reason: syntactic equality is
-asymptotically faster than a full unification.
-
-In the context of our solver, the power indices are like \emph{not} to be
-syntactically equal. They're calculated in normalization, and so will contain
-function calls and the like. If you look at the structure of the expression in
-\(\AgdaFunction{obligation}\), or even the pyramid above, all of the power
-indices are pushed to the \emph{right}, and all of the variables to the left.
-These variables \emph{will} be syntactically equal, without reduction or
-normalization. If the expression had been the other way around, Agda will give
-up on syntactic equality earlier, and begin reduction. This is disastrous! Not
-only is reduction expensive, it can also change the entire shape of the
-expression (like in \(\AgdaFunction{progress}\)), destroying any chance for a
-syntactic equality check!
-
-Compare this to the pyramid: all the syntacticly equal terms are on the
-\emph{left}, meaning that they will be checked cheaply before any reduction.
+go ahead and reduce the terms on either side: this is disastrous! Not because we
+have to pay for running the functions (which is bad in itself), but because it
+will completely change the shape of the expression, destroying any opportunity
+for syntactic equality on the \emph{subterms}! One bad reduction will cause a
+cascade of them, meaning that we may have to reduce the entire expression to
+normal form before it's definitionally equal on both sides.
 
 This leads us to the somewhat unintuitive conclusion:
 \begin{principle}[To get syntactic equality, \emph{avoid} reduction for as long
   as possible]
+  Since we know that the shape of the expressions on both sides of the equality
+  are going to be similar, we want to \emph{maintain} that shape as much as
+  possible. To that end, we go against the usual advice for proof code: we write
+  our functions in such a way that they \emph{don't} reduce (as much as is
+  possible). This is the key optimization which can lead us to massive speedups
+  in code where evaluation is expensive.
 \end{principle}
-The various sparse encodings do actually help us out here, a little. The pyramid
-above, when evaluated as a sparse polynomial, now becomes:
+\subsubsection{Sparse Encoding}
+Even with syntactic equality and everything else, the time it takes to check for
+equality is still bounded by the size of the expression. The various sparse
+encodings do actually help us out here, a little. The pyramid above, when
+evaluated as a sparse polynomial, now becomes:
 \begin{center}
 \ExecuteMetaData[PerformanceOfTypeChecking.tex]{sparse-term}
 \end{center}
 Still worse than we'd like, for sure, but we don't now have to pay for the gaps!
+
+This also ties in (in an important way) to maintaining syntactic equality:
+remember, what we want to avoid is forcing a function on the carrier type. That
+changes the shape of the expressions in an unpredictable way. We \emph{can}
+force an expression on the power indices, though (\(x \AgdaSpace{}
+\AgdaFunction{\textasciicircum{}} \AgdaSpace{} \AgdaNumber{2}\), for instance),
+because both sides will have the same shape after forcing, preserving the
+opportunity for syntactic equality. This is why avoiding gaps can lead to
+serious speedups: it lets us postpone the call to operations on the carrier even
+longer.
 \subsubsection{Avoiding Identities}
 There are yet more ways we can reduce the size of the expression above. First,
 we should notice that many of the operations being performed are identities:
@@ -859,7 +863,7 @@ should. However, consider the following unification problem:
 \[x_1^0 \times y \stackrel{?}{=} x_2^0 \times y\]
 The first thing checked will be \(x_1 \stackrel{?}{=} x_2\): we've introduced an
 opportunity to break syntactic equality, and all of the problems of the previous
-section.
+section are back.
 
 Instead, we will carefully arrange operations to \emph{avoid} the use of
 identities. Exponentiation followed by a multiplication, for instance, can be
