@@ -759,36 +759,71 @@ longer the bottleneck in the process. Surprisingly, the innocuous-looking
 \(\AgdaInductiveConstructor{refl}\) now takes the bulk of the time! Agda has to
 typecheck that the two normalized expressions are equal, which is an expensive
 operation. It costs proportional to the size of the terms being compared. With
-that in understood, cast your mind back to the implementation of Horner's rule
-on dense polynomials:
+that understood, cast your mind back to the implementation of Horner's rule on
+dense polynomials:
 \ExecuteMetaData[HornerNormalForm.tex]{eval}
 
 We ask Agda to compare the result of \emph{this} operation for equality. In
 other words, for the expression \(x^2 + 2\), Agda has to type-check:
 \ExecuteMetaData[PerformanceOfTypeChecking.tex]{dense-term-small}
 
-And if you think that looks bad, check out the term constructed by:
-\[3 + 2x^2 + 4x^5 + 2x^7\]
+And if you think that looks bad, check out the term constructed by \(3 + 2x^2 +
+4x^5 + 2x^7\):
+\begin{center}
 \ExecuteMetaData[PerformanceOfTypeChecking.tex]{dense-term}
-
+\end{center}
 It should be clear why this is a concern!
 \subsubsection{Syntactic Equality}
-The first thing we might notice is that the order of arguments to
-\(\AgdaFunction{+}\) and \(\AgdaFunction{*}\) are somewhat unnatural. Why are
-they not flipped?
-\ExecuteMetaData[PerformanceOfTypeChecking.tex]{backwards-eval} 
-This puts any known arguments on the left-hand-side. Taking the \(x^2 + 2\)
-example again, because \(x \; \AgdaFunction{*}\) can't be reduced any further
-(without knowing something about \(x\)), the big expression in
-\(\AgdaFunction{obligation}\) is \emph{already} in normal form. If we had simply
-swapped the arguments, we would have gotten the following (much smaller) normal
-form:
+Before jumping into a sparse representation or anything like that, we might be
+first tempted to remedy a glaring weirdness in the program above: the order of
+arguments to \(\AgdaFunction{+}\) and \(\AgdaFunction{*}\). Indeed, flipped
+around they seem much more natural:
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{backwards-eval}
+More than that, the resulting expression has a much smaller normal form (compare
+to \(\AgdaFunction{obligation}\)):
 \ExecuteMetaData[PerformanceOfTypeChecking.tex]{reduction}
 
-So why don't we? Because reduction is expensive, and there's a way to avoid it:
+Even outside of the context of type-checking and normalisation, to a Haskeller
+the pyramid structure above screams ``space leak!'' in the same way that
+\verb|sum = foldl (+) 0| does.
+
+Counterintuitively, swapping the arguments will result in a \emph{massive}
+performance hit. To understand why, we need to first look at Agda's typechecking
+algorithm, and in particular an optimization it makes called \emph{syntactic
+  equality}.
+
 Before the ``full'' typechecking algorithm is run, Agda performs a quick check
-for syntactic equality. This is much more efficient than the full type checking
-algorithm, so we should strive to encourage it as much as possible.
+to see if terms are ``syntactically equal'': if they are equal \emph{before} any
+reduction is performed. For example, the following expression is obviously
+equal, without even having to look at the definition of \(\AgdaFunction{+}\):
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{syntactic}
+However the following expression, while \emph{definitionally} equal, fails the
+syntactic check:
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{definitional}
+This means it will have to run \(\AgdaFunction{+}\), and perform the full type
+checking algorithm.
+
+The next thing to understand about syntactic equality is that it proceeds
+left-to-right. So, thanks to the odd argument ordering to \(\AgdaFunction{*}\)
+and \(\AgdaFunction{+}\), all of the variables are going to be tested before the
+coefficients. This is the right order: the coefficients are likely to \emph{not}
+be syntactically equal, as we manipulate them in the operations on the
+polynomial itself. The variables, on the other hand, \emph{must} be
+syntactically equal.
+
+On the surface, the importance of this might not be clear: sure, a syntactic
+equality check is better than full unification, but we're going to have to unify
+the power indices \emph{anyway} (if they're not syntactically equal), and surely
+unifying \(x\) with \(x\) isn't that expensive?
+
+The real problem of failing the check is illustrated by the
+\(\AgdaFunction{progress}\) function. Once syntactic equality fails, Agda will
+go ahead and reduce the terms on either side: this is disastrous! By reducing
+the terms, 
+
+
+Why is this relevant to us? For one reason: syntactic equality is
+asymptotically faster than a full unification.
 
 In the context of our solver, the power indices are like \emph{not} to be
 syntactically equal. They're calculated in normalization, and so will contain
@@ -809,7 +844,6 @@ This leads us to the somewhat unintuitive conclusion:
 \begin{principle}[To get syntactic equality, \emph{avoid} reduction for as long
   as possible]
 \end{principle}
-\subsubsection{Sparsity}
 The various sparse encodings do actually help us out here, a little. The pyramid
 above, when evaluated as a sparse polynomial, now becomes:
 \begin{center}
@@ -980,7 +1014,7 @@ the addition operations.
 
 Figure~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
 high and low powers and some constants. The sparse representation's advantage is
-even more apparent here, with an \(15\)-factor speedup at \(d = 8\).
+even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
 
 The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
 expressions, possibly caused by the overhead of the sparse solver's more complex
@@ -1082,28 +1116,28 @@ reflexive technique.
   \begin{subfigure}[h]{\linewidth}
     \begin{tikzpicture}
       \begin{axis}[
-        extra y ticks={35},
-        title={(\subref{bench3}) $(1 + x_1^1 + x_2^2 + \ldots + x_n^n)^d$},
+        extra y ticks={40},
+        title={(\subref{bench3}) $(x_1^n + x_2^{n-1} + \ldots + x_n^1 + 1)^d$},
         ]
         \addplot[color=blue, densely dashed] coordinates{
-          (1,6.05816)
-          (2,5.42016)
-          (3, 5.6392)
-          (4,6.73864)
-          (5,9.46278)
-          (6, 13.674)
-          (7,22.2017)
-          (8,35.7867)
+          (1,5.999906778335571)
+          (2,6.715672254562378)
+          (3,6.018649101257324)
+          (4,6.955428123474121)
+          (5,9.579402923583984)
+          (6,13.56689715385437)
+          (7,23.99260210990906)
+          (8,40.36761021614075)
         };
         \addplot[color=red] coordinates{
-          (1,2.43645)
-          (2,2.97253)
-          (3,3.84846)
-          (4,6.44711)
-          (5,12.9021)
-          (6,31.7981)
-          (7,109.453)
-          (8,535.264)
+          (1,2.9551851749420166)
+          (2,3.0478131771087646)
+          (3,4.187927961349487)
+          (4,6.412783861160278)
+          (5,16.242217779159546)
+          (6,49.26663112640381)
+          (7,234.22495794296265)
+          (8,1348.8776309490204)
         };
       \end{axis}
     \end{tikzpicture}

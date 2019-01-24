@@ -32,32 +32,32 @@ obligation _ = refl
 \end{code}
 %</dense-term-small>
 \begin{code}
-postulate
- dense-term : ∀ x →
+dense-term : ∀ x →
   x * (x * (x * (x * (x * (x * (x * (x * 0 + 2) + 0) + 4) + 0) + 0) + 2) + 0) + 3 ≡
 \end{code}
 %<*dense-term>
 \begin{code}
   x *
-      (x *
+   (x *
+     (x *
+       (x *
+         (x *
            (x *
-                (x *
-                     (x *
-                          (x *
-                               (x *
-                                    (x *
-                                         0
-                                    + 2)
-                               + 0)
-                          + 4)
-                     + 0)
-                + 0)
-           + 2)
-      + 0)
-  + 3
+             (x *
+               (x *
+                    0
+               + 2) -- 2x⁷
+             + 0)
+           + 4) -- 4x⁵
+         + 0)
+       + 0)
+     + 2) -- 2x²
+   + 0)
+  + 3 -- 3
 \end{code}
 %</dense-term>
 \begin{code}
+dense-term _ = refl
 sparse-term : ∀ x →
   x ^ 0 * (x * (x ^ 1 * (x * (x ^ 2 * (x * (x ^ 1 * (x * 0 + 2)) + 4)) + 2)) + 3) ≡
 \end{code}
@@ -167,5 +167,15 @@ small :
 \begin{code}
 small _ = refl
 \end{code}
-
-x * (x * (x * ((x * x) * (x * (x * 2) + 4)) + 2)) + 3
+%<*syntactic>
+\begin{code}
+syntactic : ∀ x → 2 + x ≡ 2 + x
+syntactic _ = refl
+\end{code}
+%</syntactic>
+%<*definitional>
+\begin{code}
+definitional : ∀ x → 2 + x ≡ suc (suc x)
+definitional _ = refl
+\end{code}
+%</definitional>
