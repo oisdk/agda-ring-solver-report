@@ -21,6 +21,7 @@ module Main
 
   open RawRing coeffs
   open import FinalPolyDefinition coeffs Zero?
+  open import Data.List.Kleene
 
   -- Inject a polynomial into a larger polynomoial with more variables
   _Π↑_ : ∀ {n m} → Poly n → (suc n ≤′ m) → Poly m
@@ -32,31 +33,35 @@ module Main
 
   -- NormalForm.sing Π
   infixr 4 _Π↓_
-  _Π↓_ : ∀ {i n} → Coeffs i → suc i ≤′ n → Poly n
-  []                       Π↓ i≤n = Κ 0# Π z≤′n
-  (x ≠0 Δ zero  ∷ [])      Π↓ i≤n = x Π↑ i≤n
-  (x₁   Δ zero  ∷ x₂ ∷ xs) Π↓ i≤n = Σ (x₁ Δ zero  ∷ x₂ ∷ xs) Π i≤n
-  (x    Δ suc j ∷ xs)      Π↓ i≤n = Σ (x  Δ suc j ∷ xs) Π i≤n
+  _Π↓_ : ∀ {i n} → Coeff i ⋆ → suc i ≤′ n → Poly n
+  []                          Π↓ i≤n = Κ 0# Π z≤′n
+  [ x ≠0 Δ zero  & []      ]  Π↓ i≤n = x Π↑ i≤n
+  [ x    Δ zero  & [ xs ]  ]  Π↓ i≤n = Σ (x Δ zero  & [ xs ]) Π i≤n
+  [ x    Δ suc j & xs      ]  Π↓ i≤n = Σ (x Δ suc j & xs) Π i≤n
 
   -- Decision procedure for Zero
   zero? : ∀ {n} → (p : Poly n) → Dec (Zero p)
-  zero? (Σ []      Π _) = yes tt
-  zero? (Σ (_ ∷ _) Π _) = no (λ z → z)
-  zero? (Κ x       Π _) with Zero? x
+  zero? (Σ _ Π _) = no (λ z → z)
+  zero? (Κ x Π _) with Zero? x
   zero? (Κ x Π _) | false = no (λ z → z)
   zero? (Κ x Π _) | true = yes tt
 
   -- Exponentiate the first variable of a polynomial
-  infixr 8 _⍓_
-  _⍓_ : ∀ {n} → Coeffs n → ℕ → Coeffs n
-  [] ⍓ i = []
-  (x Δ j ∷ xs) ⍓ i = x Δ (j ℕ.+ i) ∷ xs
+
+  infixr 8 _⍓⋆_ _⍓⁺_
+  _⍓⋆_ : ∀ {n} → Coeff n ⋆ → ℕ → Coeff n ⋆
+  _⍓⁺_ : ∀ {n} → Coeff n ⁺ → ℕ → Coeff n ⁺
+
+  [] ⍓⋆ _ = []
+  [ xs ] ⍓⋆ i = [ xs ⍓⁺ i ]
+
+  (x Δ j & xs) ⍓⁺ i = x Δ (j ℕ.+ i) & xs
 
   infixr 5 _∷↓_
-  _∷↓_ : ∀ {n} → PowInd (Poly n) → Coeffs n → Coeffs n
+  _∷↓_ : ∀ {n} → PowInd (Poly n) → Coeff n ⋆ → Coeff n ⋆
   x Δ i ∷↓ xs with zero? x
-  ... | yes p = xs ⍓ suc i
-  ... | no ¬p = _≠0 x {¬p} Δ i ∷ xs
+  ... | yes p = xs ⍓⋆ suc i
+  ... | no ¬p = [ _≠0 x {¬p} Δ i & xs ]
 
 
   module Simple where
@@ -65,11 +70,11 @@ module Main
 \begin{code}
     ⊟_ : ∀ {n} → Poly n → Poly n
     ⊟ (Κ x   Π i≤n) = Κ (- x) Π i≤n
-    ⊟ (Σ xs  Π i≤n) = go xs Π↓ i≤n
+    ⊟ (Σ xs  Π i≤n) = go [ xs ] Π↓ i≤n
       where
-      go : ∀ {n} → Coeffs n → Coeffs n
+      go : ∀ {n} → Coeff n ⋆ → Coeff n ⋆
       go [] = []
-      go (x ≠0 Δ i ∷ xs) = ⊟ x Δ i ∷↓ go xs
+      go [ x ≠0 Δ i & xs ] = ⊟ x Δ i ∷↓ go xs
 \end{code}
 %</simple>
 \begin{code}
@@ -80,7 +85,7 @@ module Main
 \begin{code}
     ⊟_ : ∀ {n} → Poly n → Poly n
     ⊟ (Κ x   Π i≤n) = Κ (- x) Π i≤n
-    ⊟ (Σ xs  Π i≤n) = foldr go [] xs Π↓ i≤n
+    ⊟ (Σ xs  Π i≤n) = foldr⁺ go [] xs Π↓ i≤n
       where
       go = λ { (x ≠0 Δ i) xs → ⊟ x Δ i ∷↓ xs }
 \end{code}
@@ -88,14 +93,15 @@ module Main
 %<*fold-def>
 \begin{code}
   Fold : ℕ → Set c
-  Fold n = Poly n × Coeffs n → Poly n × Coeffs n
+  Fold n  = Poly n × Coeff n ⋆
+          → Poly n × Coeff n ⋆
 \end{code}
 %</fold-def>
 %<*para>
 \begin{code}
-  para : ∀ {i} → Fold i → Coeffs i → Coeffs i
+  para : ∀ {i} → Fold i → Coeff i ⁺ → Coeff i ⋆
   para f =
-    foldr
+    foldr⁺
     (λ { (x ≠0 Δ i) →
          uncurry (_∷↓_ ∘ (_Δ i)) ∘ curry f x })
     []
@@ -136,7 +142,8 @@ module Main
 \begin{code}
     ⊟′ : ∀ {n} → Acc _<′_ n → Poly n → Poly n
     ⊟′ (acc wf) (Κ x   Π i≤n) = Κ (- x) Π i≤n
-    ⊟′ (acc wf) (Σ xs  Π i≤n) = foldr go [] xs Π↓ i≤n
+    ⊟′ (acc wf) (Σ xs  Π i≤n) =
+        foldr⁺ go [] xs Π↓ i≤n
       where
       go = λ  { (x ≠0 Δ i) xs
               → ⊟′ (wf _ i≤n) x Δ i ∷↓ xs  }
@@ -179,18 +186,18 @@ module Semantics
 %<*semantics>
 \begin{code}
     _⟦∷⟧_  : ∀ {n}
-           → Poly n × Coeffs n
+           → Poly n × Coeff n ⋆
            → Carrier × Vec Carrier n
            → Carrier
-    (x , xs) ⟦∷⟧ (ρ , ρs) =
+    (x , []) ⟦∷⟧ (ρ , ρs) = ⟦ x ⟧ ρs
+    (x , [ xs ]) ⟦∷⟧ (ρ , ρs) =
       ρ * Σ⟦ xs ⟧ (ρ , ρs) + ⟦ x ⟧ ρs
 
     Σ⟦_⟧  : ∀ {n}
-          → Coeffs n
+          → Coeff n ⁺
           → Carrier × Vec Carrier n
           → Carrier
-    Σ⟦ [] ⟧ _ = 0#
-    Σ⟦ x ≠0 Δ i ∷ xs ⟧ (ρ , ρs) =
+    Σ⟦ x ≠0 Δ i & xs ⟧ (ρ , ρs) =
       ρ ^ i * (x , xs) ⟦∷⟧ (ρ , ρs)
 
     ⟦_⟧  : ∀ {n}
@@ -201,6 +208,13 @@ module Semantics
     ⟦ Σ xs  Π i≤n ⟧ ρ  = Σ⟦ xs ⟧ (drop-1 i≤n ρ)
 \end{code}
 %</semantics>
+%<*sigma-q>
+\begin{code}
+  Σ?⟦_⟧ : ∀ {n} (xs : Coeff n ⋆) → Carrier × Vec Carrier n → Carrier
+  Σ?⟦ [] ⟧ _ = 0#
+  Σ?⟦ [ x ] ⟧ = Σ⟦ x ⟧
+\end{code}
+%</sigma-q>
 \begin{code}
   open import Polynomial.NormalForm.Construction coeffs
   postulate
@@ -209,17 +223,17 @@ module Semantics
 \begin{code}
     Π↓-hom
       : ∀ {n m}
-      → (xs : Coeffs n)
+      → (xs : Coeff n ⋆)
       → (sn≤m : suc n ≤′ m)
       → ∀ ρ
       → ⟦  xs Π↓ sn≤m ⟧ ρ
-           ≈ Σ⟦ xs ⟧ (drop-1 sn≤m ρ)
+           ≈ Σ?⟦ xs ⟧ (drop-1 sn≤m ρ)
 
     ∷↓-hom
       : ∀ {n}
       → (x : Poly n)
       → ∀ i xs ρ ρs
-      → Σ⟦  x Δ i ∷↓ xs ⟧ (ρ , ρs)
+      → Σ?⟦  x Δ i ∷↓ xs ⟧ (ρ , ρs)
             ≈ ((x , xs) ⟦∷⟧ (ρ , ρs)) * ρ ^ i
 \end{code}
 %</lemmas>
@@ -234,7 +248,7 @@ module Semantics
       → (∀ y → ⟦ [f] y ⟧ ρs ≈ f (⟦ y ⟧ ρs))
       → (f 0# ≈ 0#)
       → ∀ xs
-      → Σ⟦ poly-map [f] xs ⟧ (ρ , ρs)
+      → Σ?⟦ poly-map [f] xs ⟧ (ρ , ρs)
             ≈ f (Σ⟦ xs ⟧ (ρ , ρs))
 \end{code}
 %</poly-mapR>
@@ -246,10 +260,10 @@ module Semantics
       → (f : Carrier → Carrier)
       → (∀ x y → x * f y ≈ f (x * y))
       → ( ∀ y {ys} zs
-          → Σ⟦ ys ⟧ ρ ≈ f (Σ⟦ zs ⟧ ρ)
+          → Σ?⟦ ys ⟧ ρ ≈ f (Σ?⟦ zs ⟧ ρ)
           → [f] (y , ys) ⟦∷⟧ ρ ≈ f ((y , zs) ⟦∷⟧ ρ))
       → (f 0# ≈ 0#)
       → ∀ xs
-      → Σ⟦ para [f] xs ⟧ ρ ≈ f (Σ⟦ xs ⟧ ρ)
+      → Σ?⟦ para [f] xs ⟧ ρ ≈ f (Σ⟦ xs ⟧ ρ)
 \end{code}
 %</poly-foldR>

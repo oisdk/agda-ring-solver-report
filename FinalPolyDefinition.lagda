@@ -12,7 +12,7 @@ open import Relation.Nullary using (¬_)
 open import Level            using (_⊔_; Lift)
 open import Data.Empty       using (⊥)
 open import Data.Unit        using (⊤)
-open import Data.List        using (_∷_; []; List)
+open import Data.List.Kleene
 open import Data.Nat         using (ℕ; suc; zero; _≤′_)
 open import Function         using (_∘_)
 
@@ -40,12 +40,12 @@ mutual
   data FlatPoly : ℕ → Set a where
     Κ  : Carrier → FlatPoly zero
     Σ  : ∀ {n}
-       → (xs : Coeffs n)
+       → (xs : Coeff n ⁺)
        → .{xn : Norm xs}
        → FlatPoly (suc n)
 
-  Coeffs : ℕ → Set a
-  Coeffs = List ∘ PowInd ∘ NonZero
+  Coeff : ℕ → Set a
+  Coeff n = PowInd (NonZero n)
 
   infixl 6 _≠0
   record NonZero (i : ℕ) : Set a where
@@ -56,14 +56,12 @@ mutual
       .{poly≠0} : ¬ Zero poly
 
   Zero : ∀ {n} → Poly n → Set
-  Zero (Κ x        Π _) = T (Zero? x)
-  Zero (Σ []       Π _) = ⊤
-  Zero (Σ (_ ∷ _)  Π _) = ⊥
+  Zero (Κ x Π _) = T (Zero? x)
+  Zero (Σ _ Π _) = ⊥
 
-  Norm : ∀ {i} → Coeffs i → Set
-  Norm []                    = ⊥
-  Norm (_ Δ zero   ∷ [])     = ⊥
-  Norm (_ Δ zero   ∷ _ ∷ _)  = ⊤
-  Norm (_ Δ suc _  ∷ _)      = ⊤
+  Norm : ∀ {i} → Coeff i ⁺ → Set
+  Norm (_ Δ zero   & [])     = ⊥
+  Norm (_ Δ zero   & [ _ ])  = ⊤
+  Norm (_ Δ suc _  & _)      = ⊤
 \end{code}
 %</final-poly-def>
