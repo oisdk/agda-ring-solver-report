@@ -259,17 +259,18 @@
   \label{old-solver}
 \end{figure}
 \section{Introduction}
-Doing mathematics in a dependently-typed programming languages like Agda
-\cite{norell_dependently_2008} has a reputation for being tedious, awkward, and
-difficult. Even simple arithmetic identities, like the one in
-Fig.~\ref{comparison}, require fussy proofs (Fig.~\ref{ring-proof}).
+Doing mathematics in dependently-typed programming languages like Agda has a
+reputation for being tedious, awkward, and difficult. Even simple arithmetic
+identities like the one in Fig.~\ref{comparison} require fussy proofs
+(Fig.~\ref{ring-proof}).
 
 This need not be the case! With some carefully-designed tools, mathematics in
-Agda can be easy, friendly, and fun. This work describes one such tool, to deal
-with equalities over commutative rings and semirings.
-\subsection{Contributions}
-We present a library which automates the solving of equalities over commutative
-rings and semirings in Agda. In writing this library, we had three main goals:
+Agda can be easy, friendly, and fun. This work describes one such tool: an
+Agda library which automates the construction of proofs like the one in
+Fig.~\ref{ring-proof}.
+
+Beyond the usual requirement of correctness, we had three demands which our
+library satisfies:
 \begin{description}
   \item[Friendliness and Ease of Use] Proofs like the one in
     Fig.~\ref{ring-proof} aren't just boring: they're \emph{difficult}.
@@ -298,11 +299,16 @@ rings and semirings in Agda. In writing this library, we had three main goals:
     that the real performance bottleneck lied elsewhere, so overall our strategy
     for optimization was quite different. The end result is that our solver is
     asymptotically faster than Agda's current.
-  \item[Educational]
-
-    
-    
-
+  \item[Education] Even with the previous two goals accomplished, we're still
+    only playing catch-up to other computer algebra systems (CASs). Systems like
+    WolframAlpha \cite{wolfram_research_inc._wolframalpha_2019} not only check
+    for correctness (albeit in an unproven way), but also provide many
+    educational and helpful features, which have made them invaluable to
+    students and researchers alike. We will take just one of those features
+    (``pedagogical'', or step-by-step solutions
+    \cite{the_development_team_step-by-step_2009}), and reimplement it in Agda
+    using our solver. In doing so, we explore some of the theory behind it, and
+    present a formalism to describe these solutions.
 \end{description}
 
 %% Acknowledgments
