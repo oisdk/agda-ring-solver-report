@@ -1,7 +1,27 @@
 \begin{code}
 module ReflectionSection where
 open import Data.Nat as ℕ using (ℕ; suc; zero)
-
+module ExamplePartial where
+ open import Polynomial.Simple.AlmostCommutativeRing
+ open import Polynomial.Simple.AlmostCommutativeRing.Instances
+ open import Polynomial.Simple.Reflection
+ open AlmostCommutativeRing Nat.ring
+ open import Data.List using (_∷_; [])
+ open import Function
+ open import Relation.Binary.Reasoning.Inference setoid
+\end{code}
+%<*partial-auto>
+\begin{code}
+ lemma : ∀ x y → x + y * 1 + 3 ≈ 2 + 1 + y + x
+ lemma x y =
+   begin
+     x + y * 1 + 3    ≈⟨ +-comm (x + y * 1) 3 ⟩
+     3 + (x + y * 1)  ≈⟨ solveOver (x ∷ y ∷ []) Nat.ring ⟩
+     3 + y + x        ≡⟨⟩
+     2 + 1 + y + x    ∎
+\end{code}
+%</partial-auto>
+\begin{code}
 module ExprDef where
   open import Data.Fin
 \end{code}
@@ -121,10 +141,10 @@ occWrong = refl
 %</occ-wrong>
 %<*synonyms>
 \begin{code}
-infixr 5 ⟨_⟩∷_ ⟅_⟆∷_
-pattern ⟨_⟩∷_ x xs =
+infixr 5 _⟨∷⟩_ _⟅∷⟆_
+pattern _⟨∷⟩_ x xs =
   arg (arg-info visible relevant) x ∷ xs
-pattern ⟅_⟆∷_ x xs =
+pattern _⟅∷⟆_ x xs =
   arg (arg-info hidden relevant) x ∷ xs
 \end{code}
 %</synonyms>
@@ -133,78 +153,72 @@ open import Polynomial.Expr
 open import Data.List
 open import Function
 \end{code}
-%<*expr-hidden>
+%<*infer-hidden>
 \begin{code}
-infixr 5 ⟅_⋯⟆∷_
-⟅_⋯⟆∷_ : ℕ
-       → List (Arg Term)
-       → List (Arg Term)
-⟅ i ⋯⟆∷ xs =
-  ⟅ unknown ⟆∷
-  ⟅ unknown ⟆∷
-  ⟅ natTerm i ⟆∷
-  xs
+infixr 5 _⋯⟅∷⟆_
+_⋯⟅∷⟆_  : ℕ
+        → List (Arg Term)
+        → List (Arg Term)
+zero   ⋯⟅∷⟆ xs = xs
+suc i  ⋯⟅∷⟆ xs = unknown ⟅∷⟆ i ⋯⟅∷⟆ xs
 \end{code}
-%</expr-hidden>
+%</infer-hidden>
+%<*numvars>
+\begin{code}
+module _ (numVars : ℕ) where
+\end{code}
+%</numvars>
 %<*expr-const-ast>
 \begin{code}
-constExpr : ℕ → Term → Term
-constExpr i x =
-  quote Κ ⟨ con ⟩ ⟅ i ⋯⟆∷ ⟨ x ⟩∷ []
+ constExpr : Term → Term
+ constExpr x =
+   quote Κ ⟨ con ⟩
+     2 ⋯⟅∷⟆
+     natTerm numVars ⟅∷⟆
+     x ⟨∷⟩
+     []
 \end{code}
 %</expr-const-ast>
 \begin{code}
-mutual
+ mutual
 \end{code}
 %<*op-build>
 \begin{code}
-  getBinOp : ℕ
-           → Name
+  getBinOp : Name
            → List (Arg Term)
            → Term
-  getBinOp i nm (⟨ x ⟩∷ ⟨ y ⟩∷ []) =
+  getBinOp nm (x ⟨∷⟩ y ⟨∷⟩ []) =
     nm ⟨ con ⟩
-      ⟅ i ⋯⟆∷
-      ⟨ toExpr i x ⟩∷
-      ⟨ toExpr i y ⟩∷
+      2 ⋯⟅∷⟆
+      natTerm numVars ⟅∷⟆
+      toExpr x ⟨∷⟩
+      toExpr y ⟨∷⟩
       []
-  getBinOp i nm (x ∷ xs) = getBinOp i nm xs
-  getBinOp _ _ _ = unknown
+  getBinOp nm (x ∷ xs) = getBinOp nm xs
+  getBinOp _ _ = unknown
 
-  getUnOp : ℕ
-          → Name
+  getUnOp : Name
           → List (Arg Term)
           → Term
-  getUnOp i nm (⟨ x ⟩∷ []) =
+  getUnOp nm (x ⟨∷⟩ []) =
     nm ⟨ con ⟩
-      ⟅ i ⋯⟆∷
-      ⟨ toExpr i x ⟩∷
+      2 ⋯⟅∷⟆
+      natTerm numVars ⟅∷⟆
+      toExpr x ⟨∷⟩
       []
-  getUnOp i nm (x ∷ xs) = getUnOp i nm xs
-  getUnOp _ _ _ = unknown
+  getUnOp nm (x ∷ xs) = getUnOp nm xs
+  getUnOp _ _ = unknown
 \end{code}
 %</op-build>
-%<*op-names>
-\begin{code}
-  +′  *′  -′ : Name
-  +′  = quote AlmostCommutativeRing._+_
-  *′  = quote AlmostCommutativeRing._*_
-  -′  = quote AlmostCommutativeRing.-_
-\end{code}
-%</op-names>
 %<*to-expr>
 \begin{code}
-  toExpr : (i : ℕ) → Term → Term
-  toExpr i t@(def f xs) with f ≟-Name +′
-  ... | yes p = getBinOp i (quote _⊕_) xs
-  ... | no _ with f ≟-Name *′
-  ... | yes p = getBinOp i (quote _⊗_) xs
-  ... | no _ with f ≟-Name -′
-  ... | yes p = getUnOp i (quote ⊝_) xs
-  ... | no _ = constExpr i t
-  toExpr i v@(var x args) with suc x ℕ.≤? i
+  toExpr : Term → Term
+  toExpr (def (quote AlmostCommutativeRing._+_)  xs) = getBinOp (quote _⊕_) xs
+  toExpr (def (quote AlmostCommutativeRing._*_)  xs) = getBinOp (quote _⊗_) xs
+  toExpr (def (quote AlmostCommutativeRing.-_)   xs) = getUnOp (quote ⊝_) xs
+  toExpr v@(var x _) with x ℕ.<? numVars
   ... | yes p = v
-  ... | no ¬p = constExpr i v
-  toExpr i t = constExpr i t
+  ... | no ¬p = constExpr v
+  toExpr t = constExpr t
 \end{code}
 %</to-expr>

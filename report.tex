@@ -1217,11 +1217,32 @@ unfortunately consists of this kind of boilerplate (currently, at any rate).
   \label{nat-term}
 \end{figure}
 
-Next, it's far less \emph{typed} than it could be. To be clear, it doesn't break
-type safety: the generated program is still type-checked, but you can generate
-code with a type error in it without any difficulty. On the other end, the
-reflected AST doesn't contain as much type information as it could, which is
-often an annoyance. 
+To cut down on it, we will use some pattern synonyms:
+\ExecuteMetaData[ReflectionSection.tex]{synonyms}
+These match visible and hidden arguments, respectively. Another common pattern
+is applying several hidden arguments for Agda to infer: we can write a function
+to do this for us, as well.
+\ExecuteMetaData[ReflectionSection.tex]{infer-hidden}
+The \(\AgdaInductiveConstructor{unknown}\) value translates into using an
+underscore; it means we're asking Agda to infer the value in its place. This
+might seem suboptimal: we can probably figure out the values of those
+underscores, so shouldn't we try and find them, and supply them instead? In our
+experience, the answer is no.
+
+\begin{principle}[Don't help the compiler]
+  Supply the \emph{minimal} amount of information possible in the AST to be
+  unquoted, relying on inference as much as possible. The metalanguage is
+  fragile and finicky with regards to scopes and context: the compiler isn't.
+
+  You're likely to get an argument wrong if you guess it; the compiler is more
+  robust and better able to infer implicits than you are.
+\end{principle}
+
+The next problem with the reflected AST is that it's far less \emph{typed} than
+it could be. To be clear, it doesn't break type safety: the generated program is
+still type-checked, but you can generate code with a type error in it without
+any difficulty. On the other end, the reflected AST doesn't contain as much type
+information as it could, which is often an annoyance.
 
 Finally, it's fragile. Say we want to solve some expression in
 \(\AgdaDatatype{ℕ}\). Converting this to some \(\AgdaDatatype{Expr}\) type will
@@ -1268,41 +1289,20 @@ the one for lists.
 To that end, we'll need build the \(\AgdaDatatype{Term}\) which will construct
 it for us.
 
-First, to make things easier on ourselves, we'll define some pattern synonyms:
-\ExecuteMetaData[ReflectionSection.tex]{synonyms}
-
-These match visible and hidden arguments, respectively.
-
-Next, we'll need another helper which applies the hidden arguments to the
-constructors for \(\AgdaDatatype{Expr}\). There are \emph{three} of these. The
-first is the universe level, the second is the Carrier type, and the third is
-the number of variables it's indexed by.
-\ExecuteMetaData[ReflectionSection.tex]{expr-hidden}
-The \(\AgdaInductiveConstructor{unknown}\) value translates into using an
-underscore; it means we're asking Agda to infer the value in its place. This
-might seem suboptimal: we can probably figure out the values of those
-underscores, so shouldn't we try and find them, and supply them instead? In our
-experience, the answer is no.
-
-\begin{principle}[Don't help the compiler]
-  Supply the \emph{minimal} amount of information possible in the AST to be
-  unquoted, relying on inference as much as possible. The metalanguage is
-  fragile and finicky with regards to scopes and context: the compiler isn't.
-
-  You're likely to get an argument wrong if you guess it; the compiler is more
-  robust and better able to infer implicits than you are.
-\end{principle}
+All of the next section is parameterized by the number of variables in the
+expression, so we can use an anonymous module:
+\ExecuteMetaData[ReflectionSection.tex]{numvars}
 
 Using this, we can make a function for the AST which will generate a constant
 expression:
 \ExecuteMetaData[ReflectionSection.tex]{expr-const-ast}
+
 \subsection{Matching on the Reflected Expression}
 There are three components we want to match on in the reflected expression: ring
 operators, variables, and constants.
 \subsubsection{Matching the Ring Operators}
 We'll do this via name equality. The three names we're interested in are as
 follows:
-\ExecuteMetaData[ReflectionSection]{op-names}
 When we encounter the AST constructor which corresponds to a name reference
 \(\AgdaInductiveConstructor{def}\), we test for equality on each of these names
 successively. When (if) we get a match, we call one of the following functions,
@@ -1362,20 +1362,21 @@ If the reflection API was different, this task could conceivably be made easier:
 for now, what most people seem to do is automate the process (as
 in\cite{norell_agda-prelude_2018}).
 
-It is only by a very lucky coincidence that we can avoid all of this. Notice
-that all of the other cases are spoken for: in a correctly constructed
-expression, if no other clause matches, then what's left \emph{has} to be a
-constant. So we just wrap it up in the constant constructor!
+It is only by a very lucky coincidence that we can avoid all of this. The trick
+is demonstrated in figure~\ref{to-expr}. Notice that all of the other cases are
+spoken for: in a correctly constructed expression, if no other clause matches,
+then what's left \emph{has} to be a constant. So we just wrap it up in the
+constant constructor!
 
-\resetlinenumber[1]
+\begin{figure*}
+  \centering
+  \ExecuteMetaData[ReflectionSection.tex]{to-expr}
+  \caption{Converting from the Reflection AST to the Expr AST}
+  \label{to-expr}
+\end{figure*}
 
-\begin{linenumbers}
-\ExecuteMetaData[ReflectionSection.tex]{to-expr}
-\end{linenumbers}
-
-You'll notice that in the clauses where we fail to find a match (lines 8, 11,
-and 12), we assume that what we must have is a constant, so we just wrap it up
-as if it were one. 
+You'll notice that when we fail to find a match we assume that what we must have
+is a constant, so we just wrap it up as if it were one.
 
 But what about incorrectly constructed expressions? What if the user makes a
 mistake in what they ask us to solve: surely we can't \emph{assume} correctness?
@@ -1408,6 +1409,17 @@ Again, we're leveraging the typechecker itself rather than reimplementing our
 own checking logic. It's not perfect: it's followed by several lines of
 unreadable errors, and other expressions don't yield errors quite as nice.
 We could possibly improve the output in the future.
+
+\subsection{Interface for Partial Automation}
+We also provide an interface intended for use in combination with larger proofs.
+The example in figure~\ref{partial-auto} is perhaps a little silly (why not just
+use \(\AgdaMacro{solve}\)?), but it demonstrates the general technique.
+\begin{figure*}
+  \centering
+  \ExecuteMetaData[ReflectionSection.tex]{partial-auto}
+  \caption{A Partially Automated Proof}
+  \label{partial-auto}
+\end{figure*}
 \section{Setoid Applications} \label{equivalence}
 As mentioned previously, the solver does \emph{not} require the user to prove
 the ring properties up to propositional equality. Instead, we ask them to prove
@@ -1431,6 +1443,7 @@ The first, and most obvious, ``exotic'' setoid is that over a universe of types.
 The relation is an \emph{isomorphism} between these types. In this way, the
 solver can now automatically construct functions to convert between equivalent
 types. This has been explored before in a number of settings.
+
 \subsection{Pedagogical Solutions} \label{pedagogical}
 \begin{figure*}[t]
   \centering

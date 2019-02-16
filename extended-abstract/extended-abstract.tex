@@ -1,0 +1,129 @@
+\documentclass[draft, twocolumn]{article}
+\usepackage[unicode,draft=false,hidelinks]{hyperref}
+\usepackage{cite}
+\usepackage{catchfilebetweentags}
+\usepackage{amssymb}
+\usepackage{turnstile}
+\usepackage{bbm}
+\usepackage[greek, english]{babel}
+\usepackage{MnSymbol}
+\usepackage{stmaryrd}
+\usepackage{csquotes}
+\newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
+\newcommand\mdoubleplus{\ensuremath{\mathbin{+\mkern-8mu+}}}
+\makeatletter
+\newcommand\incircbin
+{%
+  \mathpalette\@incircbin
+}
+\newcommand\@incircbin[2]
+{%
+  \mathbin%
+  {%
+    \ooalign{\hidewidth$#1#2$\hidewidth\crcr$#1\bigcirc$}%
+  }%
+}
+\newcommand{\oeq}{\ensuremath{\incircbin{=}}}
+\makeatother
+\makeatletter
+\newcommand\insquarebin
+{%
+  \mathpalette\@insquarebin
+}
+\newcommand\@insquarebin[2]
+{%
+  \mathbin%
+  {%
+    \ooalign{\hidewidth$#1#2$\hidewidth\crcr$#1\bigbox$}%
+  }%
+}
+\newcommand{\sqtri}{\ensuremath{\insquarebin{\triangle}}}
+\makeatother
+\usepackage{ucs}
+\DeclareUnicodeCharacter{8759}{\ensuremath{\squaredots}}
+\DeclareUnicodeCharacter{951}{\textgreek{\texteta}}
+\DeclareUnicodeCharacter{737}{\ensuremath{^\text{l}}}
+\DeclareUnicodeCharacter{691}{\ensuremath{^\text{r}}}
+\DeclareUnicodeCharacter{7523}{\ensuremath{_\text{r}}}
+\DeclareUnicodeCharacter{8718}{\ensuremath{\blacksquare}}
+\DeclareUnicodeCharacter{957}{\textgreek{\textnu}}
+\DeclareUnicodeCharacter{961}{\textgreek{\textrho}}
+\DeclareUnicodeCharacter{929}{\textgreek{\textRho}}
+\DeclareUnicodeCharacter{954}{\textgreek{\textkappa}}
+\DeclareUnicodeCharacter{10214}{\ensuremath{\lsem}}
+\DeclareUnicodeCharacter{10215}{\ensuremath{\rsem}}
+\DeclareUnicodeCharacter{8857}{\mdoubleplus}
+\DeclareUnicodeCharacter{8860}{\oeq}
+\DeclareUnicodeCharacter{9043}{\ensuremath{\sqtri}}
+\DeclareUnicodeCharacter{928}{\textgreek{\textPi}}
+\DeclareUnicodeCharacter{922}{\textgreek{\textKappa}}
+\DeclareUnicodeCharacter{931}{\textgreek{\textSigma}}
+\DeclareUnicodeCharacter{916}{\textgreek{\textDelta}}
+\DeclareUnicodeCharacter{8779}{\ensuremath{\backtriplesim}}
+\DeclareUnicodeCharacter{8799}{\ensuremath{\stackrel{?}{=}}}
+\DeclareUnicodeCharacter{10181}{\ensuremath{\lbag}}
+\DeclareUnicodeCharacter{10182}{\ensuremath{\rbag}}
+\DeclareUnicodeCharacter{8760}{\ensuremath{-}}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{autofe}
+\usepackage[references]{agda}
+\usepackage{bbding}
+\setlength{\marginparwidth}{2cm}
+\usepackage[obeyDraft]{todonotes}
+\usepackage{lineno}
+\setlength\linenumbersep{-0.5cm}
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{definition}
+\newtheorem{principle}{Principle}[section]
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{snakes}
+\usetikzlibrary{arrows}
+\usetikzlibrary{cd}
+\usepackage{forest}
+\usepackage{pgfplots}
+\usepackage{float}
+\author{Donnacha Oisín Kidney}
+\title{Automatically And Efficiently Illustrating Polynomial Equalities in
+  Agda---Extended Abstract}
+\begin{document}
+\maketitle
+\begin{abstract}
+  We present a new library which automates the construction of equivalence
+  proofs between polynomials over commutative rings and semirings in the
+  programming language Agda\cite{norell_dependently_2008}. It is asymptotically
+  faster than Agda's existing solver. We use Agda's reflection machinery to
+  provide a simple interface to the solver, and demonstrate a novel use of the
+  constructed relations: step-by-step solutions.
+
+  The library is available at
+  \href{https://oisdk.github.io/agda-ring-solver/README.html}{oisdk.github.io/agda-ring-solver/README.html}.
+\end{abstract}
+\tableofcontents
+\section{Introduction}
+\subsection{Formalized and Mechanized Mathematics}
+Mathematics is often thought of as something which builds upwards: adding new
+work and advances on the foundations of old. However, since the early twentieth
+century, some have turned their attention in the other direction, examining
+those foundations and ensuring they are really as solid as they seem.
+Worryingly, serious flaws were found, Russell's paradox being perhaps the most
+famous.
+
+These flaws prompted what's known as the ``foundational crisis of mathematics'':
+an effort to replace the old foundations with new, sound ones. One sketch of
+these new foundations was proposed in the form of ``Hilbert's program''. 
+
+Hilbert's program
+was one such effort. It was too ambitious, however: Gödel's incompleteness
+theorems showed that several of the goals were in fact \emph{impossible}.
+
+These days, 
+
+\bibliographystyle{IEEEtranS}
+\bibliography{../bibliography.bib}
+\end{document}
