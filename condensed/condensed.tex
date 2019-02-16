@@ -266,11 +266,12 @@ identities like the one in Fig.~\ref{comparison} require fussy proofs
 
 This need not be the case! With some carefully-designed tools, mathematics in
 Agda can be easy, friendly, and fun. This work describes one such tool: an
-Agda library which automates the construction of proofs like the one in
-Fig.~\ref{ring-proof}.
+Agda library which automates the construction of these kinds of proofs, making
+them as easy as Fig.~\ref{the-solver}.
 
-Beyond the usual requirement of correctness, we had three demands which our
-library satisfies:
+As you might expect, our solver comes accompanied by a formal proof of
+correctness. Beyond that, though, we also strove to satisfy the following
+requirements:
 \begin{description}
   \item[Friendliness and Ease of Use] Proofs like the one in
     Fig.~\ref{ring-proof} aren't just boring: they're \emph{difficult}.
@@ -278,37 +279,42 @@ library satisfies:
     it \(\AgdaFunction{+-comm}\) or \(\AgdaFunction{+-commutative}\)?''), and
     often they have to put up with poor error messages.
 
-    Even though Agda's standard library \cite{danielsson_agda_2018} currently
-    has a ring solver, its interface is almost as verbose as the manual proof,
-    and it requires users write the goal twice, once in the signature and again
-    in the specific syntax used by the solver (Fig.~\ref{old-solver}).
+    We believe this kind of difficulty is why Agda's current ring solver
+    \cite{danielsson_agda_2018} enjoys little widespread use. Its interface
+    (Fig.~\ref{old-solver}) is almost as verbose as the manual proof, and it
+    requires programmers to learn another syntax specific to the solver.
 
     Our solver strives to be as easy to use as possible: the high-level
     interface is simple (Fig.~\ref{the-solver}), we don't require anything
     of the user other than an implementation of one of the supported algebras,
     and effort is made to generate useful error messages.
-  \item[Efficiency] Typechecking dependently-typed code is a costly task.
-    Automated solvers, like the one presented here, can seriously add to that
-    cost, occasionally to the extent that some identities are simply infeasible
-    to prove.
+  \item[Performance] Typechecking dependently-typed code is a costly task.
+    Automated solvers like the one presented here can greatly exacerbate this
+    cost: in our experience, it wasn't uncommon for Agda's current ring solver
+    to spend upwards of 10 minutes proving a single expression.
 
-    Polynomials are represented internally in sparse Horner normal form.
-    Manipulation of this internal representation uses many of the same
-    optimizations as in \cite{gregoire_proving_2005}, although their
-    implementation proved to be quite difficult in Agda. Furthermore, we found
-    that the real performance bottleneck lied elsewhere, so overall our strategy
-    for optimization was quite different. The end result is that our solver is
-    asymptotically faster than Agda's current.
-  \item[Education] Even with the previous two goals accomplished, we're still
-    only playing catch-up to other computer algebra systems (CASs). Systems like
-    WolframAlpha \cite{wolfram_research_inc._wolframalpha_2019} not only check
-    for correctness (albeit in an unproven way), but also provide many
-    educational and helpful features, which have made them invaluable to
-    students and researchers alike. We will take just one of those features
-    (``pedagogical'', or step-by-step solutions
-    \cite{the_development_team_step-by-step_2009}), and reimplement it in Agda
-    using our solver. In doing so, we explore some of the theory behind it, and
-    present a formalism to describe these solutions.
+    In practice, this means two things: firstly, formalizations of large
+    sections of mathematics can potentially take hours to typecheck (by which
+    time the programmer has understandably given up on mathematics altogether);
+    secondly, certain identities can take simply too long to prove, effectively
+    making them unprovable.
+
+    There are well-known techniques for optimizing the kind of solver we provide
+    here, most of them described in \cite{gregoire_proving_2005}. Translating
+    these optimizations into Agda was far from straightforward, however, and we
+    found the performance benefits to be quite fragile. We did eventually
+    achieve consistent and significant speedups, though, with very different
+    techniques.
+  \item[Educational Features] While our solver comes with the benefit of formal
+    correctness, it's still playing catch-up to other less-rigorous computer
+    algebra systems in terms of features. These features have driven systems
+    like Wolfram|Alpha \cite{wolfram_research_inc._wolframalpha_2019} to
+    widespread popularity among (for instance) students learning mathematics.
+
+    We will take just one of those features (``pedagogical'', or step-by-step
+    solutions \cite{the_development_team_step-by-step_2009}), and reimplement it
+    in Agda using our solver. In doing so, we will explore some of the theory
+    behind it, and present a formalism to describe these solutions.
 \end{description}
 
 %% Acknowledgments
