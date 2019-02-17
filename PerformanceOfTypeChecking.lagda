@@ -77,21 +77,56 @@ sparse-term : ∀ x →
 \begin{code}
 sparse-term _ = refl
 module Rev where
-  open import Data.List as List using (List; _∷_; []; foldr)
-  Poly : Set
-  Poly = List Carrier
+ open import Data.List as List using (List; _∷_; []; foldr)
+ Poly : Set
+ Poly = List Carrier
+ ⟦_⟧ : Poly → Carrier → Carrier
 \end{code}
 %<*backwards-eval>
 \begin{code}
-  ⟦_⟧ : Poly → Carrier → Carrier
-  ⟦ xs ⟧ ρ = foldr (λ y ys → y + ys * ρ) 0 xs
+ ⟦ xs ⟧ ρ = foldr (λ y ys → y + ys * ρ) 0 xs
 \end{code}
 %</backwards-eval>
+\begin{code}
+ back-progress : ∀ x → ⟦ 2 ∷ 0 ∷ 1 ∷ [] ⟧ x ≡
+\end{code}
+%<*back-progress>
+\begin{code}
+  suc (suc ((x + 0) * x))
+\end{code}
+%</back-progress>
+\begin{code}
+ back-progress _ = refl
+\end{code}
+\begin{code}
+module For where
+ open import Data.List as List using (List; _∷_; []; foldr)
+ Poly : Set
+ Poly = List Carrier
+ ⟦_⟧ : Poly → Carrier → Carrier
+\end{code}
+%<*forwards-eval>
+\begin{code}
+ ⟦ xs ⟧ ρ = foldr (λ y ys → ρ * ys + y) 0 xs
+\end{code}
+%</forwards-eval>
+\begin{code}
+ for-progress : ∀ x → ⟦ 2 ∷ 0 ∷ 1 ∷ [] ⟧ x ≡
+\end{code}
+%<*for-progress>
+\begin{code}
+  x * (x * (x * 0 + 1) + 0) + 2
+\end{code}
+%</for-progress>
+\begin{code}
+ for-progress _ = refl
+\end{code}
+
 %<*reduction>
 \begin{code}
 progress : ∀ x →
-  2 + (0 + (1 + 0 * x) * x) * x ≡
-  suc (suc ((x + 0) * x))
+ 2 + (0 + (1 + 0 * x) * x) * x ≡
+ suc (suc ((x + 0) * x))
 progress _ = refl
 \end{code}
 %</reduction>

@@ -234,28 +234,30 @@
 %% Note: \maketitle command must come after title commands, author
 %% commands, abstract environment, Computing Classification System
 %% environment and commands, and keywords command.
-\maketitle
 
-\begin{figure}[h]
-  \begin{subfigure}[b]{\linewidth}
+\begin{teaserfigure}
+  \centering
+  \begin{subfigure}[b]{\textwidth}
     \centering
     \ExecuteMetaData[../Introduction.tex]{lemma}
     \label{ring-lemma}
   \end{subfigure}
-  \begin{subfigure}[b]{.5\linewidth}
+  \begin{subfigure}[b]{.5\textwidth}
     \ExecuteMetaData[../Introduction.tex]{proof}
     \caption{A Tedious Proof}
     \label{ring-proof}
   \end{subfigure}%
-  \begin{subfigure}[b]{.3\linewidth}
+  \begin{subfigure}[b]{.3\textwidth}
     \centering
     \ExecuteMetaData[../Introduction.tex]{solver}
-    \caption{The Solver}
+    \caption{Our Solver}
     \label{the-solver}
   \end{subfigure}
   \caption{Comparison Between A Manual Proof and The Automated Solver}
   \label{comparison}
-\end{figure}
+\end{teaserfigure}
+
+\maketitle
 
 \begin{figure}
   \ExecuteMetaData[../Introduction.tex]{old-solver}
@@ -297,7 +299,7 @@ requirements:
     cost: in our experience, it wasn't uncommon for Agda's current ring solver
     to spend upwards of 10 minutes proving a single identity.
 
-    In practice, this means two things: firstly, large libraries for formalizing
+    In practice, this means two things: firstly, large libraries for formalising
     mathematics (like \citet{meshveliani_docon-provable_2018}) can potentially
     take hours to typecheck (by which time the programmer has understandably
     begun to reconsider the whole notion of mathematics on a computer);
@@ -307,7 +309,7 @@ requirements:
     The kind of solver we provide here is based on Coq's
     \cite{the_coq_development_team_2018_1219885} \verb+ring+ tactic, described
     in \citet{gregoire_proving_2005}. While we were able to apply the same
-    optimizations that were applied in that paper, we found that the most
+    optimisations that were applied in that paper, we found that the most
     significant performance improvements came from a different, and somewhat
     surprising part of the program. The end result is that our solver is
     asymptotically (and practically) faster than Agda's current solver.
@@ -318,8 +320,8 @@ requirements:
     widespread popularity among (for instance) students learning mathematics.
 
     We will take just one of those features (``pedagogical'', or step-by-step
-    solutions \cite{the_development_team_step-by-step_2009}), and reimplement it
-    in Agda using our solver. In doing so, we will explore some of the theory
+    solutions \cite{the_development_team_step-by-step_2009}), and re-implement
+    it in Agda using our solver. In doing so, we will explore some of the theory
     behind it, and present a formalism that describes the nature of
     ``step-by-step'' solutions.
 \end{description}
@@ -569,6 +571,7 @@ transformation:
   \includegraphics[trim={25 15 22 10}]{graphics/lhs-ast}
 \]
 
+
 It also demonstrates the principles described above. The first four clauses all
 match for the ring operators. Taking exponentiation as an example, it calls off
 to the \(\AgdaFunction{getExp}\) function, which is implemented as follows:
@@ -688,12 +691,82 @@ We were able to construct one, with transitivity replacing addition.
 \begin{multicols}{2}
   \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{leq-compare}
 \end{multicols}
-\subsection{Type-Checking Performance}
-After optimizing the operations on polynomials, we have now \emph{moved} the
-performance bottleneck. In terms of Fig.~\ref{proof-process}, we are no longer
-constrained by normalisation (the two \(\AgdaFunction{⟦\_⇓⟧}\) functions), but
-instead the inocuous-looking \(\AgdaInductiveConstructor{refl}\) is slowing us
-down!
+\subsection{Unification}
+So far, our optimizations have focused on the \emph{operations} performed on the
+polynomial. Remember, though, the reflexive proof process has several steps:
+only one of them containing the operations (\(\AgdaFunction{⟦\_⇓⟧}\) in
+figure~\ref{proof-process}).
+
+As it happens, we have now optimized these operations so much that they are no
+longer the bottleneck in the process. Surprisingly, the innocuous-looking
+\(\AgdaInductiveConstructor{refl}\) now takes the bulk of the time! Typechecking
+this step involves unifying the two normalised expressions, a task which is
+quite expensive, with counterintuitive performance characteristics. So
+counterintuitive, in fact, that early versions of the solver, with all the
+optimizations from \citet{gregoire_proving_2005} applied, was in many cases
+\emph{slower} than the old, unoptimized solver!
+
+In this section, we'll try and explain the problem and how we fixed it, and give
+general guidelines on how to write Agda code which typechecks quickly.
+
+First, the good news. In the general case, unifying two expressions takes time
+proportional to the size of those expressions, so our hard-won optimizations do
+indeed help us.
+
+Unfortunately, though, the ``general case'' isn't really that general: Agda's
+unification algorithm has a very important shortcut which we \emph{must} make
+use of if we want our code to typecheck quickly: \emph{syntactic equality}.
+
+Because Agda is a dependently-typed language, types can contain functions,
+variables, and all sorts of complex expressions. One might expect that the
+unification algorithm should compute these expressions as far as it can, getting
+them to normal form, before it checks for any kind of equality. This would be
+disastrous for performance! Consider the following:
+\[ \AgdaFunction{sum} \; [ \AgdaNumber{1} .. \AgdaNumber{100} ] \stackrel{?}{=}
+  \AgdaFunction{sum} \; [ \AgdaNumber{1} .. \AgdaNumber{100} ] \]
+
+Running both computations here is an unnecessarily expensive task, and one which
+Agda does indeed avoid. Before the full unification algorithm, the typechecker
+does a quick pass to spot any syntactic equalities like the one above: if it
+sees one, it can avoid any more computation on that particular expression.
+
+Crucially, missing syntactic equality on a term doesn't just hurt performance
+once: once syntactic equality fails, the next step is normalisation, which can
+change the shape of the entire subexpression, \emph{destroying} any chance for
+syntactic equality later on. This can result in a cascade of missed syntactic
+equalities, causing a serious performance problem.
+
+With that in mind, our optimisation will consist of two main strategies.
+\subsubsection{Avoiding Progress}
+First, we will consider something which may seem inconsequential: the order of
+arguments to the evaluation functions.
+\begin{multicols}{2}
+  \centering
+  \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{forwards-eval}
+  \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{backwards-eval}
+\end{multicols}
+The definition on the left is the one we've been working with so far. To a
+seasoned functional programmer, however, the version on the right might seem
+much more natural. By one measure, the version on the right is better! When
+applied to \(x^2 + 2\), it gives a much smaller normal form:
+\begin{multicols}{2}
+  \centering
+  \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{for-progress}
+  \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{back-progress}
+\end{multicols}
+Surprisingly, this is exactly what we \emph{don't} want! The left-hand-side
+equation above, though larger, \emph{starts} with all of the variables, which
+must be trivially equal to the same variables in the other expression. Since the
+equality check proceeds left-to-right, this maintains that syntactic equality
+for as long as possible.
+
+On the right hand side, however, we first examine the coefficients. These are
+computed from manipulations of the Horner Normal Form, and so are likely to be
+\emph{not} syntactically equal. Even worse: since the expression \emph{can} be
+normalised, we'll mess up its whole structure, ruining later syntactic checks!
+\subsubsection{Avoiding Identities}
+
+\subsection{Benchmarks}
 \begin{figure}[h]
   \centering
   \newcounter{realxtickpos}
@@ -810,8 +883,155 @@ down!
     form ($n = 5$ for each).}
   \label{benchmarks}
 \end{figure}
-\section{Pedagogical Proofs}
+\section{Pedagogical Solutions}
+One of the most widely-used and successful computer algebra systems, especially
+among non-programmers, is Wolfram|Alpha
+\cite{wolfram_research_inc._wolframalpha_2019}. It can generate ``pedagogical''
+(step-by-step) solutions to maths
+problems \cite{the_development_team_step-by-step_2009}. For instance, given the
+input \(x^2 + 5 x + 6 = 0\), it will give the following output:
+\begin{align*}
+  x^2 + 5x + 6   = 0 \\
+  (x + 2)(x + 3) = 0 \\
+  x + 2 = 0   \; \text{or} \; x + 3 = 0 \\
+  x     = -2  \; \text{or} \; x + 2 = 0 \\
+  x     = -2  \; \text{or} \; x     = -3
+\end{align*}
+
+These tools can be invaluable for students learning basic mathematics.
+Unfortunately, much of the software capable of generating usable solutions is
+proprietary (including Wolfram Alpha), and little information is available as to
+their implementation techniques.\cite{lioubartsev_constructing_2016} is perhaps
+the best current work on the topic, but even so very little work exists in the
+way of the theoretical basis for pedagogical solutions.
+
+\citet{lioubartsev_constructing_2016} reformulates the problem as one of
+\emph{pathfinding}. The left-hand-side and right-hand-side of the equation are
+vertices in a graph, where the edges are single steps to rewrite an expression
+to an equivalent form. A* is used to search.
+
+This approach suffers from a huge search space: every vertex will have an edge
+for almost every one of the ring axioms, and as such a good heuristic is
+essential. Unfortunately, what this should be is not
+clear: \citet{lioubartsev_constructing_2016} uses a measure of the ``simplicity''
+of an expression.
+
+So, with an eye to using our solver instead of A*, we can notice that paths in
+undirected graphs form a perfectly reasonable equivalence relation: transitivity
+is the concatenation of paths, reflexivity is the empty path, and symmetry is
+\emph{reversing} a path. Equivalence classes, in this analogy, are connected
+components of the graph.
+
+More practically speaking, we implement these ``paths'' as lists, where the
+elements of the list are elementary ring axioms. When we want to display a
+step-by-step solution, we simply print out each element of the list in turn,
+interspersed with the states of the expression (the vertices in the graph).
+\begin{multicols}{2}
+  \ExecuteMetaData[../SetoidApplications.tex]{traced}
+\end{multicols}
+
+If we stopped there, however, the solver would output incredibly verbose
+``solutions'': far too verbose to be human-readable. Instead, we must apply a
+number of heuristics to cut down on the solution length:
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \node (n1) at (-2,7.5) {$2 + 1 + y + x * 1$};
+    \node (n2) at (-2,6) {$2 + 1 + y + x$};
+    \node (n3) at (2,6) {$1 + 2 + y + x$};
+    \node (n4) at (0,4.5) {$3 + y + x$};
+    \node (n5) at (0,3) {$y + 3 + x$};
+    \node (n6) at (0,1.5) {$y + x + 3$};
+    \node (n7) at (0,0) {$x + y + 3$};
+    \draw[-stealth] (n1) to (n2);
+    \draw[-stealth] (n2) to (n4);
+    \draw[-stealth] (n4) to (n3);
+    \draw[-stealth] ([xshift=-0.2cm] n4.south) to ([xshift=-0.2cm] n5.north);
+    \draw[-stealth] ([xshift=-0.2cm] n5.south) to ([xshift=-0.2cm] n6.north);
+    \draw[-stealth] ([xshift=-0.2cm] n6.south) to ([xshift=-0.2cm] n7.north);
+    \draw[-stealth] ([xshift=0.2cm] n5.north) to ([xshift=0.2cm] n4.south);
+    \draw[-stealth] ([xshift=0.2cm] n6.north) to ([xshift=0.2cm] n5.south);
+    \draw[-stealth] ([xshift=0.2cm] n7.north) to ([xshift=0.2cm] n6.south);
+  \end{tikzpicture}
+  \caption{Y-Shaped Graph}
+  \label{y-graph}
+\end{figure}
+\begin{enumerate}
+  \item First, we filter out ``uninteresting'' steps. These are steps which are
+    obvious to a human, like associativity, or evaluation of closed terms. When
+    a step is divided over two sides of an operator, it is deemed
+    ``interesting'' if either side is interesting.
+  \item Next, we remove any ``step, reverse-step'' chains. Since we're
+    converting expressions to normal form, the path may be Y-shaped, as in
+    figure~\ref{y-graph}. This graph uses a simplified normalization algorithm
+    which first evaluates any expressions it can, and then alphabetizes the
+    variables.
+
+    The problem is that both expressions hit a common form early on, at \(3 + y
+    + x\). Nonetheless, the proof will soldier on, down to \(x + y + 3\) and
+    back up again.
+
+    These sections are what we want to detect, and remove.
+\end{enumerate}
+
+Given those, our solver outputs the following for the lemma in
+figure~\ref{the-solver}:
+\begin{verbatim}
+x + y * 1 + 3
+    ={ eval }
+x + y + 3
+    ={ +-comm x (y + 3) }
+y + 3 + x
+    ={ +-comm y 3 }
+3 + y + x
+    ={ eval }
+2 + 1 + y + x
+\end{verbatim}
+Figuring out good heuristics and path compression techniques seems to deserve
+further examination.
 \section{Related Work}
+In dependently-typed programming languages, the state-of-the-art solver for
+polynomial equalities (over commutative rings) was originally presented
+in \citet{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This
+work improved on the already existing solver \cite{Coq:manual} in both efficiency
+and flexibility. In both the old and improved solvers, a reflexive technique is
+used to automate the construction of the proof obligation (as described in
+\citet{boutin_using_1997}).
+
+Agda \cite{norell_dependently_2008} is a dependently-typed programming language
+based on Martin-Löf's Intuitionistic Type
+Theory \cite{martin-lof_intuitionistic_1980}. Its standard
+library \cite{danielsson_agda_2018} currently contains a ring solver which is
+similar in flexibility to Coq's \verb+ring+, but doesn't support the
+reflection-based interface, and is less efficient to the one presented here. 
+
+In \citet{geuvers_automatically_2017}, an implementation of an automated solver
+for the dependently-typed language Idris \cite{brady_idris_2013} is described.
+The solver is implemented with a ``correct-by-construction'' approach, in
+contrast to \citet{gregoire_proving_2005}. The solver is defined over
+\emph{non}commutative rings, meaning that it is more general (can work with more
+types) but less powerful (meaning it can prove fewer identities). It provides a
+reflection-based interface, but internally uses a dense representation.
+
+Reflection and metaprogramming are relatively recent additions to Agda, but form
+an important part of the interfaces to automated proof procedures. Reflection in
+dependent types in general is explored in \citet{christiansen_practical_2015},
+and specific to Agda in \citet{van_der_walt_reflection_2012}.
+
+Formalization of mathematics in general is an ongoing project.
+\citet{wiedijk_formalizing_2018} tracks how much of ``The 100 Greatest Theorems''
+\cite{kahl_hundred_2004} have so far been formalized (at time of writing, the
+number stands at 93). DoCon \cite{meshveliani_docon-provable_2018} is a notable
+Agda library in this regard: it contains many tools for basic maths, and
+implementations of several CAS algorithms. Its implementation is described
+in \citet{meshveliani_dependent_2013}. \citet{cheng_functional_2018} describes the
+manipulation of polynomials in both Haskell and Agda.
+
+Finally, the study of \emph{pedagogical} CASs which provide step-by-step
+solutions is explored in \citet{lioubartsev_constructing_2016}. One of the most
+well-known such system is Wolfram Alpha
+\cite{wolfram_research_inc._wolframalpha_2019}, which has step-by-step solutions
+\cite{the_development_team_step-by-step_2009}.
 
 %% Acknowledgments
 \begin{acks}                            %% acks environment is optional
