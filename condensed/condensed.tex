@@ -394,6 +394,14 @@ something like:
 \end{align}
 So why do we instead ask for \ref{ringmul} and \ref{ringadd}? 
 
+Under this formulation, we can admit types like \(\AgdaDatatype{ℕ}\) which don't
+have additive inverses. Instead, these types can simply supply the identity
+function for \(-\), and then \ref{ringmul} and \ref{ringadd} will still hold.
+
+A potential worry is that because we don't require \(x + -x = 0\) axiomatically,
+it won't be provable in our system. Happily, this is not the case: as long as
+\(1 + -1\) reduces to \(0\) in the coefficient set, the solver will verify the
+identity.
 \section{The Interface}
 \section{Performance}
 \section{Pedagogical Proofs}
