@@ -70,4 +70,12 @@ norms : ∀ x y → ⟦ Ι 0 ⊕ Ι 1 ⊗ Κ 1 ⊕ Κ 3 ⇓⟧ (x ∷ y ∷ []) 
 %</norm>
 \begin{code}
 norms _ _ = ≡.refl
+
+open import Data.Maybe
+postulate
 \end{code}
+%<*weak-dec>
+\begin{code}
+ is-zero : ∀ x → Maybe (0# ≈ x)
+\end{code}
+%</weak-dec>

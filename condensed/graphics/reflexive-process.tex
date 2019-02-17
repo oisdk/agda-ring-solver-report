@@ -77,10 +77,10 @@
       \node[fill=white] at ( 2, 0) {\AgdaFunction{correct}};
       \draw[-angle 90, dashed] (re) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quoteTerm}} ([shift={(1,0)}]ra.south);
       \draw[-angle 90, dashed] (le) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quoteTerm}} ([shift={(-1,0)}]la.south);
-      \matrix[draw, below left] at ([yshift=25pt] current bounding box.south east) {
-        \node[label=right:Constructed proof] {\(\AgdaField{≈}\)}; \\
-        \node[label=right:Function evaluation] {\(\mapsto\)}; \\
-        \node[label=right:Reflection] {\(\dashrightarrow\)}; \\
+      \matrix[draw, below left] at ([yshift=35pt] current bounding box.south east) {
+        \node[label=right:\footnotesize Constructed proof] {\(\AgdaField{≈}\)}; \\
+        \node[label=right:\footnotesize Evaluation] {\(\mapsto\)}; \\
+        \node[label=right:\footnotesize Reflection] {\(\dashrightarrow\)}; \\
       };
     \end{tikzpicture}%
 \end{document}
