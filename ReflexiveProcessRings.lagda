@@ -9,15 +9,27 @@ open import Polynomial.Simple.Solver
 open import Data.Vec as Vec using (Vec; _∷_; [])
 open AlmostCommutativeRing Nat.ring hiding (zero)
 open Ops Nat.ring
-open import Data.Fin as Fin using (Fin; suc; zero)
+open import Data.Fin as Fin using (Fin)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
 
+open import Data.Nat.Literals
+open import Agda.Builtin.FromNat
+
+instance
+  numberNat : Number ℕ
+  numberNat = Data.Nat.Literals.number
+    where import Data.Nat.Literals
+
+instance
+  numberFin : ∀ {n} → Number (Fin n)
+  numberFin {n} = Data.Fin.Literals.number n
+    where import Data.Fin.Literals
 
 lhs : ∀ x y → ⟦
 \end{code}
 %<*lhs-ast>
 \begin{code}
- Ι zero ⊕ Ι (suc zero) ⊗ Κ 1 ⊕ Κ 3
+ Ι 0 ⊕ Ι 1 ⊗ Κ 1 ⊕ Κ 3
 \end{code}
 %</lhs-ast>
 \begin{code}
@@ -35,7 +47,7 @@ rhs : ∀ x y → ⟦
 \end{code}
 %<*rhs-ast>
 \begin{code}
- Κ 2 ⊕ Κ 1 ⊕ Ι (suc zero) ⊕ Ι zero
+ Κ 2 ⊕ Κ 1 ⊕ Ι 1 ⊕ Ι 0
 \end{code}
 %</rhs-ast>
 \begin{code}
@@ -49,7 +61,7 @@ rhs : ∀ x y → ⟦
 \begin{code}
 rhs _ _ = ≡.refl
 
-norms : ∀ x y → ⟦ Ι zero ⊕ Ι (suc zero) ⊗ Κ 1 ⊕ Κ 3 ⇓⟧ (x ∷ y ∷ []) ≡
+norms : ∀ x y → ⟦ Ι 0 ⊕ Ι 1 ⊗ Κ 1 ⊕ Κ 3 ⇓⟧ (x ∷ y ∷ []) ≡
 \end{code}
 %<*norm>
 \begin{code}

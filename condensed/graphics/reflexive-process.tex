@@ -53,6 +53,7 @@
 \usetikzlibrary{snakes}
 \usetikzlibrary{arrows}
 \usetikzlibrary{cd}
+
 \begin{document} 
     \begin{tikzpicture}
       % \draw[help lines] (-8,-4) grid (8,3); 
@@ -69,12 +70,17 @@
       \foreach \e/\n in {le/ln,re/rn}
         \foreach \shft in {-0.6pt,0.6pt}
           \draw[AgdaField, transform canvas={xshift=\shft}, snake=coil, segment aspect=0, segment amplitude=0.4pt, segment length=4pt] (\e) -- (\n);
+      \foreach \shft in{-0.6pt,0.6pt}
+        \draw[AgdaField, transform canvas={yshift=\shft}, snake=coil, segment aspect=0, segment amplitude=0.4pt, segment length=4pt] (ln) to ([xshift=2pt] rn.west);
+      \path (ln) -- (rn) node[midway, above, xshift=1pt] {\AgdaInductiveConstructor{refl}};
       \node[fill=white] at (-2, 0) {\AgdaFunction{correct}};
       \node[fill=white] at ( 2, 0) {\AgdaFunction{correct}};
-      \foreach \shft in {-1.6pt, 0pt}
-        \draw[AgdaDatatype, transform canvas={yshift=\shft}] (ln) -- (rn);
-      \draw[AgdaDatatype, transform canvas={yshift=1.6pt}] (ln) -- (rn) node[midway, above] {\AgdaInductiveConstructor{refl}};
       \draw[-angle 90, dashed] (re) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quoteTerm}} ([shift={(1,0)}]ra.south);
       \draw[-angle 90, dashed] (le) to[out=270, in=270] node[near start, fill=white] {\AgdaKeyword{quoteTerm}} ([shift={(-1,0)}]la.south);
+      \matrix[draw, below left] at ([yshift=25pt] current bounding box.south east) {
+        \node[label=right:Constructed proof] {\(\AgdaField{≈}\)}; \\
+        \node[label=right:Function evaluation] {\(\mapsto\)}; \\
+        \node[label=right:Reflection] {\(\dashrightarroww\)}; \\
+      };
     \end{tikzpicture}%
 \end{document}

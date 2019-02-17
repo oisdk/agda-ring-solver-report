@@ -114,6 +114,7 @@
 \DeclareUnicodeCharacter{922}{\textgreek{\textKappa}}
 \DeclareUnicodeCharacter{931}{\textgreek{\textSigma}}
 \DeclareUnicodeCharacter{916}{\textgreek{\textDelta}}
+\DeclareUnicodeCharacter{921}{\textgreek{\textIota}}
 \DeclareUnicodeCharacter{8779}{\ensuremath{\backtriplesim}}
 \DeclareUnicodeCharacter{8799}{\ensuremath{\stackrel{?}{=}}}
 \DeclareUnicodeCharacter{10181}{\ensuremath{\lbag}}
@@ -293,18 +294,20 @@ requirements:
     cost: in our experience, it wasn't uncommon for Agda's current ring solver
     to spend upwards of 10 minutes proving a single expression.
 
-    In practice, this means two things: firstly, formalizations of large
-    sections of mathematics can potentially take hours to typecheck (by which
-    time the programmer has understandably given up on mathematics altogether);
-    secondly, certain identities can take simply too long to typecheck,
-    effectively making them unprovable.
+    In practice, this means two things: firstly, large libraries for formalizing
+    mathematics (like \cite{meshveliani_docon-provable_2018}) can potentially
+    take hours to typecheck (by which time the programmer has understandably
+    begun to reconsider the whole notion of mathematics on a computer);
+    secondly, certain identities can simply take too long to typecheck,
+    effectively making them ``unprovable'' in Agda altogether!
 
-    There are well-known techniques for optimizing the kind of solver we provide
-    here, most of them described in \cite{gregoire_proving_2005}. Translating
-    these optimizations into Agda was far from straightforward, however, and we
-    found the performance benefits to be quite fragile. We did eventually
-    achieve consistent and significant speedups, though, with very different
-    techniques.
+    The kind of solver we provide here is based on Coq's
+    \cite{the_coq_development_team_2018_1219885} \verb+ring+ tactic, described
+    in \cite{gregoire_proving_2005}. While we were able to apply the same
+    optimizations that were applied in that paper, we found that the most
+    significant performance improvements came from a different, and somewhat
+    surprising part of the program. The end result is that our solver is
+    asymptotically (and practically) faster than Agda's current solver.
   \item[Educational Features] While our solver comes with the benefit of formal
     correctness, it's still playing catch-up to other less-rigorous computer
     algebra systems in terms of features. These features have driven systems
@@ -314,20 +317,87 @@ requirements:
     We will take just one of those features (``pedagogical'', or step-by-step
     solutions \cite{the_development_team_step-by-step_2009}), and reimplement it
     in Agda using our solver. In doing so, we will explore some of the theory
-    behind it, and present a formalism to describe these solutions.
+    behind it, and present a formalism that describes the nature of
+    ``step-by-step'' solutions.
 \end{description}
 
-\section{The Reflexive Proof Process}
+\section{Overview of the Proof Technique}
+There are a number of ways we can automate proofs in a dependently-typed
+programming language, including Prolog-like proof search \cite{kokke_auto_2015},
+Cooper's algorithm over Presburger arithmetic \cite{allais_deciding_2011}, etc.
+Here, we will use a reflexive technique \cite{boutin_using_1997} in combination
+with sparse Horner Normal Form. The high-level diagram of the proof strategy is
+presented in Fig.~\ref{proof-process}.
+
 \begin{figure}
-  \resizebox{\textwidth}{!}{
-    \includegraphics[draft=false]{graphics/reflexive-process}
-  }
+  \resizebox{\textwidth}{!}{\includegraphics[draft=false]{graphics/reflexive-process}}
+  \vspace*{-50pt}
   \caption{The Reflexive Proof Process}
   \label{proof-process}
 \end{figure}
+
+The identity we'll be working with is the lemma in Fig.~\ref{comparison}: the
+left and right hand side of the equality are at the bottom of the diagram. Our
+objective is to link those two expressions up through repeated application of
+the ring axioms. We do this by converting both expressions to a normal form
+(seen at the top of the diagram), and then providing a proof that this
+conversion is correct according to the ring axioms (the
+\(\AgdaFunction{correct}\) function in the diagram). Finally, we link up all of
+these proofs, and if the two normal forms are definitionally equal, the entire
+thing will typecheck, and we will have proven the equality.
+\subsection{The \(\AgdaDatatype{Expr}\) AST}
+In Agda, we can't manipulate the expressions we want to prove directly: instead,
+we will construct an AST for each expression, and then do our manipulation on
+that.
+
+The AST type (\(\AgdaDatatype{Expr}\)) has a constructor for each of the ring
+operators, as well as constructors for both variables and constants. The ASTs
+for both expressions we want to prove can be seen on either side of
+Fig.~\ref{proof-process}. Constants are constructed with
+\(\AgdaInductiveConstructor{K}\), and variables are referred to by their de
+Bruijn index (so \(x\) becomes \(\AgdaInductiveConstructor{I} \;
+\AgdaNumber{0}\)).
+
+From here, we can ``evaluate'' the AST in one of two ways: in a non-normalized
+way (\(\AgdaFunction{⟦\_⟧}\)), or in a normalizing way
+(\(\AgdaFunction{⟦\_⇓⟧}\)). This means that the goal of the
+\(\AgdaFunction{correct}\) function is to show equivalence between
+\(\AgdaFunction{⟦\_⟧}\) and \(\AgdaFunction{⟦\_⇓⟧}\).
+
+Finally, we \emph{don't} want to force users to construct the
+\(\AgdaDatatype{Expr}\) AST themselves. This is where reflection comes in: it
+automates this construction (the path labeled \(\AgdaKeyword{quoteTerm}\) in the
+diagram) from the goal type.
+\subsection{Choice of Algebra}
+So far, we have been intentionally vague about the precise algebra we're using.
+As in \cite{gregoire_proving_2005}, we use an algebra called an
+\emph{almost-ring}. It has the regular operations (\(+\), \(*\)
+(multiplication), \(-\), \(0\), and \(1\)), such that the following equations
+hold:
+\begin{align}
+  0 + x       &= x \\
+  x + y       &= y + x \\
+  x + (y + z) &= (x + y) + z \\
+  1 * x       &= x \\
+  x * y       &= y * x \\
+  x * (y * z) &= (x * y) * z \\
+  (x + y) * z &= x * z + y * z \\
+  0 * x       &= 0 \label{semiring} \\
+  -(x * y)    &= - x * y \label{ringmul} \\
+  -(x + y)    &= -x + -y \label{ringadd}
+\end{align}
+The equations up to \ref{semiring} represent a pretty standard definition of a
+(commutative) semiring. To get from there to a ring, we would usually ask for
+something like:
+\begin{align}
+  x + - x = 0
+\end{align}
+So why do we instead ask for \ref{ringmul} and \ref{ringadd}? 
+
 \section{The Interface}
 \section{Performance}
 \section{Pedagogical Proofs}
+\section{Related Work}
 
 %% Acknowledgments
 \begin{acks}                            %% acks environment is optional
