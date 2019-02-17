@@ -5,7 +5,7 @@ module ExamplePartial where
  open import Polynomial.Simple.AlmostCommutativeRing
  open import Polynomial.Simple.AlmostCommutativeRing.Instances
  open import Polynomial.Simple.Reflection
- open AlmostCommutativeRing Nat.ring
+ open AlmostCommutativeRing Nat.ring hiding (zero)
  open import Data.List using (_∷_; [])
  open import Function
  open import Relation.Binary.Reasoning.Inference setoid
@@ -32,6 +32,7 @@ module ExprDef where
     I    : Fin n → Expr A n
     _⊕_  : Expr A n → Expr A n → Expr A n
     _⊗_  : Expr A n → Expr A n → Expr A n
+    _⊛_  : Expr A n → ℕ → Expr A n
     ⊝_   : Expr A n → Expr A n
 \end{code}
 %</expr-def>
@@ -42,7 +43,7 @@ import Relation.Binary.PropositionalEquality as ≡
 open import Data.Maybe using (Maybe; just; nothing)
 NatRing : AlmostCommutativeRing _ _
 NatRing = fromCommutativeSemiring *-+-commutativeSemiring λ { zero → just ≡.refl ; (suc x) → nothing}
-open AlmostCommutativeRing NatRing
+open AlmostCommutativeRing NatRing hiding (zero)
 open import Polynomial.Simple.Reflection
 open import Data.List
 open import Relation.Nullary
@@ -84,7 +85,7 @@ return-type =
 %<*nat-term>
 \begin{code}
 natTerm : ℕ → Term
-natTerm zero = con (quote ℕ.zero) []
+natTerm zero = con (quote zero) []
 natTerm (suc i) =
   con
     (quote suc)
@@ -210,11 +211,20 @@ module _ (numVars : ℕ) where
   getUnOp _ _ = unknown
 \end{code}
 %</op-build>
+%<*getExp>
+\begin{code}
+  getExp : List (Arg Term) → Term
+  getExp (x ⟨∷⟩ y ⟨∷⟩ []) = quote _⊛_ ⟨ con ⟩ 3 ⋯⟅∷⟆ toExpr x ⟨∷⟩ y ⟨∷⟩ []
+  getExp (x ∷ xs) = getExp xs
+  getExp _ = unknown
+\end{code}
+%</getExp>
 %<*to-expr>
 \begin{code}
   toExpr : Term → Term
   toExpr (def (quote AlmostCommutativeRing._+_)  xs) = getBinOp (quote _⊕_) xs
   toExpr (def (quote AlmostCommutativeRing._*_)  xs) = getBinOp (quote _⊗_) xs
+  toExpr (def (quote AlmostCommutativeRing._^_)  xs) = getExp xs
   toExpr (def (quote AlmostCommutativeRing.-_)   xs) = getUnOp (quote ⊝_) xs
   toExpr v@(var x _) with x ℕ.<? numVars
   ... | yes p = v

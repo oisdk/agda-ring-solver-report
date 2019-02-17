@@ -55,6 +55,7 @@
 \usepackage{catchfilebetweentags} %% For importing code snippets
 \usepackage{lineno} %% For line numbers on code snippets
 \usepackage{pgfplots}
+\usepackage{multicol}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Agda special Characters
@@ -386,20 +387,19 @@ hold:
   (x + y) * z &= x * z + y * z \\
   0 * x       &= 0 \label{semiring} \\
   -(x * y)    &= - x * y \label{ringmul} \\
-  -(x + y)    &= -x + -y \label{ringadd}
+  -(x + y)    &= -x + -y \label{ringadd} \\
+  \intertext{
+  The equations up to \ref{semiring} represent a pretty standard definition of
+  a (commutative) semiring. From there, though, things are different. The normal
+  definition of a commutative ring would have (instead of \ref{ringmul} and
+  \ref{ringadd}) the following:
+  } 
+  x + - x     &= 0
 \end{align}
-The equations up to \ref{semiring} represent a pretty standard definition of a
-(commutative) semiring. To get from there to a ring, we would usually ask for
-something like:
-\begin{align}
-  x + - x = 0
-\end{align}
-So why do we instead ask for \ref{ringmul} and \ref{ringadd}? 
-
-The reason is \emph{flexibility}. Under this formulation, we can admit types
-like \(\AgdaDatatype{ℕ}\) which don't have additive inverses. Instead, these
-types can simply supply the identity function for \(-\), and then \ref{ringmul}
-and \ref{ringadd} will still hold.
+The reason for the difference is \emph{flexibility}. Under this formulation, we
+can admit types like \(\AgdaDatatype{ℕ}\) which don't have additive inverses.
+Instead, these types can simply supply the identity function for \(-\), and then
+\ref{ringmul} and \ref{ringadd} will still hold.
 
 A potential worry is that because we don't require \(x + -x = 0\) axiomatically,
 it won't be provable in our system. Happily, this is not the case: as long as
@@ -411,7 +411,11 @@ In the library, the algebra is represented by the
 the ring axioms, defined over a user-supplied equivalence relation. Just as in
 Agda's current solver, we also ask for one extra function: a weakly decidable
 predicate to test if a constant is equal to zero.
-\ExecuteMetaData[../ReflexiveProcessRings.tex]{weak-dec}
+
+\begin{centering}
+  \ExecuteMetaData[../ReflexiveProcessRings.tex]{weak-dec}
+\end{centering}
+
 This function is used to speed up some internal algorithms in the solver, but it
 isn't an essential component. By making it \emph{weakly} decidable, we allow
 users to skip it
@@ -431,17 +435,17 @@ prove the equality.
 single argument: an implementation of the algebra. \(\AgdaMacro{solveOver}\) is
 designed to be used in conjunction with manual proofs, so that a programmer can
 automate a ``boring'' section of a larger more complex proof. It is called like
-so (line 5):
+so:
 
-\begin{linenumbers}
+\begin{centering}
   \ExecuteMetaData[../ReflectionSection.tex]{partial-auto}
-\end{linenumbers}
+\end{centering}
 
 As well as the \(\AgdaDatatype{AlmostCommutativeRing}\) implementation, this
 macro takes a list of free variables to use to compute the solution.
 
-Because this interface is quite simple, it's worth pointing out what we
-\emph{don't} require from the user:
+Because this interface is quite small, it's worth pointing out what's missing,
+or rather, what we \emph{don't} require from the user:
 
 \begin{itemize}
   \item We don't ask the user to construct the \(\AgdaDatatype{Expr}\) AST which
@@ -471,9 +475,226 @@ Finally, despite the simplicity and ease-of-use described above, the solver is
 so on. The whole library, including the reflection-based interface, will work
 with any type with an \(\AgdaDatatype{AlmostCommutativeRing}\) instance.
 
-\section{Performance}
+\subsection{Reflection}
+Agda has good support for reflection, which we will use to build our interface.
+Agda's reflection system consists of three main parts: 
+\begin{description}
+  \item[\(\AgdaDatatype{Term}\)] The representation of Agda's AST, retrievable
+    via \(\AgdaKeyword{quoteTerm}\).
+  \item[\(\AgdaDatatype{Name}\)] The representation of identifiers, retrievable
+    via \(\AgdaKeyword{quote}\).
+  \item[\(\AgdaDatatype{TC}\)] The type-checker monad, which includes scoping
+    and environment information, can raise type errors, unify variables, or
+    provide fresh names. Computations in the \(\AgdaDatatype{TC}\) monad can be
+    run with \(\AgdaKeyword{unquote}\).
+\end{description}
 
-\begin{figure}
+While \(\AgdaKeyword{quote}\), \(\AgdaKeyword{quoteTerm}\), and
+\(\AgdaKeyword{unquote}\) provide all the functionality we need, they're
+somewhat low-level and noisy (syntactically speaking). Agda also provides a
+mechanism (which it calls ``macros'') to package metaprogramming code so it
+looks like a normal function call (as in \(\AgdaMacro{solve}\)).
+
+Reflection is obviously a powerful tool, but it has a reputation for being
+unsafe and error-prone. Agda's reflection system doesn't break type safety, but
+we \emph{are} able to construct \(\AgdaDatatype{Term}\)s which are ill-typed,
+which often result in confusing error-messages on the user's end. Unfortunately,
+constructing ill-typed terms is quite easy to do: every quoted expression comes
+with heaps of contextual information, making the whole thing very fragile.
+Variables, for instance, are referred to by their de Bruijn indices, meaning
+that the same \(\AgdaDatatype{Term}\) can break if it's simply moved under a
+lambda.
+
+All of that considered, we feel we managed to construct a reasonably robust
+reflection-based interface. In doing so, we came up with the following general
+guidelines for metaprogramming in Agda:
+
+\begin{description}
+  \item[Supply the minimal amount of information.] There were several instances
+    where, in constructing a term, we were tempted to supply explicitly some
+    argument that Agda usually infers. Universe levels were a common example.
+    In general, though, this is a bad idea: AST manipulation is fragile and
+    error-prone, so the chances that you'll get some argument wrong are very
+    high. Instead, you should \emph{leverage} the compiler, relying on inference
+    over direct metaprogramming as much as possible.
+  \item[Don't assume structure.] A common pattern we used to try and find
+    arguments to an \(n\)-ary function was to simply extract the last \(n\)
+    visible arguments to the function. While in theory we might be able to
+    statically know all of the implicit and explicit arguments that will be used
+    at the call-site, it's much simpler to ignore them, and try our best to be
+    flexible. Remember, none of this is typed, so if something changes (like,
+    say, a new universe level in \(\AgdaDatatype{AlmostCommutativeRing}\)) in
+    the order of arguments, you'll get type errors where you call
+    \(\AgdaMacro{solve}\), not where it's implemented.
+  \item[Ask for forgiveness, not permission.] We could also here say ``don't
+    roll your own typechecker''. While it may seem good and fastidious to
+    rigorously check the structure of the arguments given to a macro, often we
+    found better results by assuming the argument was correct (where possible),
+    and then carefully structuring the output in such a way to funnel a type
+    error to the place where the input was incorrect. For instance, one section
+    of the solver algorithm expects a proof that the two normal forms of the
+    equations are the same. Here, we simply supply
+    \(\AgdaInductiveConstructor{refl}\), assuming that they are, in fact, the
+    same. When they're \emph{not}, for instance, in the following type:
+
+    \begin{center}
+      \ExecuteMetaData[../ReflectionSection.tex]{wrong-lemma}
+    \end{center}
+
+    A call to \(\AgdaMacro{solve}\) will provide the reasonably helpful error
+    message:
+    \[ x \neq y \; \text{of type} \; \AgdaDatatype{ℕ} \]
+  \item[Try and implement as much of the logic outside of reflection
+    as possible] Finally, after all of that, we advise minimizing the amount of
+    actual metaprogramming code in a program, and confining it to the edges as
+    much as possible. With great power comes with poor error messages,
+    fragility, and a loss of first-class status. Therefore, If something can be
+    done without reflection, \emph{do it}, and use reflection as the glue to get
+    from one standard representation to another.
+\end{description}
+
+At the core of the implementation you will find the following function:
+
+\begin{center}
+  \ExecuteMetaData[../ReflectionSection.tex]{to-expr}
+\end{center}
+
+This function is called on the \(\AgdaDatatype{Term}\) representing one side of
+the target equality. It converts it to the corresponding
+\(\AgdaDatatype{Expr}\). In other words, it performs the following
+transformation:
+\[
+  \includegraphics[trim={25 15 28 10}]{graphics/lhs-expr}
+  \mapsto
+  \includegraphics[trim={25 15 22 10}]{graphics/lhs-ast}
+\]
+
+It also demonstrates the principles described above. The first four clauses all
+match for the ring operators. Taking exponentiation as an example, it calls off
+to the \(\AgdaFunction{getExp}\) function, which is implemented as follows:
+\begin{center}
+  \ExecuteMetaData[../ReflectionSection.tex]{getExp}
+\end{center}
+As described above, this function looks only for the last two visible arguments
+to the exponentiation operator, ignoring all else. When it finds them, it
+applies the corresponding constructor for \(\AgdaDatatype{Expr}\), using the
+\(\AgdaFunction{⋯⟅∷⟆}\) function, which fills in all the hidden arguments we
+want the compiler to infer.
+
+Looking back to \(\AgdaFunction{toExpr}\), we notice that the last line is a
+catch-all, which simply constructs a constant expression. This is the trick
+which lets us avoid any custom quotation machinery from the user. It's also more
+robust than asking for custom quotation machinery: if, for instance, there's a
+function call or something similar hidden in this case, quotation won't work.
+This solution, though, which just packages up the expression as-is, will have no
+trouble.
+\section{Performance}
+Type-checking proof-heavy Agda code is notoriously slow, so the solver had to be
+carefully optimized to avoid being so slow as to be unusable. We'll start by
+first describing the unoptimized solver, and demonstrate how to improve its
+performance iteratively.
+\subsection{Horner Normal Form}
+The representation used in Agda's current ring solver (and the one we'll start
+out with here) is known as Horner Normal Form. A polynomial (more specifically,
+a monomial) in \(x\) is represented as a list of coefficients of increasing
+powers of \(x\). As an example, the following polynomial:
+\begin{align}
+  3 + 2x^2 + 4x^5 + 2x^7 \label{example-poly}
+\end{align}
+Is represented by the following list:
+\[3, 0, 2, 0, 0, 4, 0, 2\]
+Operations on these polynomials are similar to operations in positional number
+systems.
+\begin{center}
+  \ExecuteMetaData[../HornerNormalForm.tex]{impl}
+\end{center}
+And finally, evaluation of the polynomial (given \(x\)) is a classic example of
+the \(\AgdaFunction{foldr}\) function.
+\begin{center}
+  \ExecuteMetaData[../HornerNormalForm.tex]{eval}
+\end{center}
+\subsection{Sparse Encodings}
+Our first avenue for optimization comes from \citet{gregoire_proving_2005}. Our
+list encoding above is quite wasteful: it always stores an entry for each
+coefficient, even if it's zero. Since expressions with long strings of zeroes
+are common (things like \(x^{10}\)), it stands to reason that removing them
+should improve performance.
+
+The solution is to store what's known as a ``power index'' with every
+coefficient. Intuitively, you can think of it as the ``distance to the next
+non-zero coefficient''. Taking \ref{example-poly} again as an example, we would
+now represent it as follows:
+\[ (3,0),(2,1),(4,2),(2,1) \]
+
+In Agda, we can go one step further, by disallowing zeroes in the representation
+altogether. This statically ensures that the polynomial is always in its
+smallest possible form. We don't include that detail here (it is in the
+library), instead we will use this somewhat simplified type:
+\begin{center}
+  \ExecuteMetaData[../HornerNormalForm.tex]{sparse-poly}
+\end{center}
+
+Next, we turn our attention to the task of adding multiple variables. Luckily,
+there's an easy way to do it: nesting. The idea is that a polynomial in \(n\)
+variables is the same as before, except that its coefficients are themselves
+polynomials in \(n-1\) variables. A polynomial in \(0\) variables in just a
+constant. It's perhaps more clearly expressible in types:
+\begin{center}
+  \ExecuteMetaData[../HornerNormalForm.tex]{multi}
+\end{center}
+
+Before jumping into proving this, though, it's worth noting that another
+opportunity for a ``sparse'' encoding has arisen. This time, polynomials which
+don't include every variable contain gaps. In a polynomial of \(n\) variables,
+a constant will always be stored behind \(n\) layers of nesting (we also prove
+that this minimal form is maintained).
+
+The solution is another index: this time an ``injection'' index. This represents
+``how many variables to skip over before you get to the interesting stuff''.
+This particular optimization is considerably more complex than the previous,
+though: the number of variables in a polynomial is a type-relevant piece of
+information, so any \emph{manipulation} of that index will have to justify
+itself to the typechecker.
+\subsection{Hanging Indices}
+The problem is a common one: we have a piece of code that works efficiently,
+and we now want to make it ``more typed'', by adding more information to it,
+\emph{without} changing the complexity class or slowing it down.
+
+We found the following strategy to be useful: first, write the untyped version
+of the code, forgetting about the desired invariants as much as possible. Then,
+to add the extra type information, look for an inductive type which participates
+in the algorithm, and see if you can ``hang'' some new type indices off of it.
+
+In our case, the injection index (distance to the next ``interesting''
+polynomial) was simply stored as an \(\AgdaDatatype{ℕ}\), and the information we
+needed was the number of variables in the inner polynomial, and the number of
+variables in the outer. All of that is stored in the following proof of \(\le\):
+
+\begin{center}
+  \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{leq-3}
+\end{center}
+
+A value of type \(n \; \AgdaDatatype{≤} \; m\) mimics the inductive structure of
+the \(\AgdaDatatype{ℕ}\) we were storing to represent the distance between \(n\)
+and \(m\). We were able to take this analogy to the extreme: where we needed an
+equivalent of \(\AgdaDatatype{Ordering}\):
+
+\begin{center}
+  \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{ord-type}
+\end{center}
+
+We were able to construct one, with transitivity replacing addition.
+
+\begin{multicols}{2}
+  \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{leq-compare}
+\end{multicols}
+\subsection{Type-Checking Performance}
+After optimizing the operations on polynomials, we have now \emph{moved} the
+performance bottleneck. In terms of Fig.~\ref{proof-process}, we are no longer
+constrained by normalisation (the two \(\AgdaFunction{⟦\_⇓⟧}\) functions), but
+instead the inocuous-looking \(\AgdaInductiveConstructor{refl}\) is slowing us
+down!
+\begin{figure}[h]
   \centering
   \newcounter{realxtickpos}
   \pgfplotsset{
