@@ -376,7 +376,9 @@ Finally, we \emph{don't} want to force users to construct the
 automates this construction (the path labeled \(\AgdaKeyword{quoteTerm}\) in the
 diagram) from the goal type.
 \subsection{Almost Rings}
-So far, we have been intentionally vague about the precise algebra we're using.
+While the stated domain of the solver is simply ``commutative rings'', it turns
+out that we can be slightly more flexible than that if we pick our algebra
+carefully.
 As in \citet[section~5]{gregoire_proving_2005}, we use an algebra called an
 \emph{almost-ring}. It has the regular operations (\(+\), \(*\)
 (multiplication), \(-\), \(0\), and \(1\)), such that the following equations
