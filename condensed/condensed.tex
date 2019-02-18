@@ -622,8 +622,8 @@ This solution, though, which just packages up the expression as-is, will have no
 trouble.
 \section{Performance}
 Type-checking proof-heavy Agda code is notoriously slow, so the solver had to be
-carefully optimized to avoid being so slow as to be unusable. We'll start by
-first describing the unoptimized solver, and demonstrate how to improve its
+carefully optimised to avoid being so slow as to be unusable. We'll start by
+first describing the unoptimised solver, and demonstrate how to improve its
 performance iteratively.
 \subsection{Horner Normal Form}
 The representation used in Agda's current ring solver (and the one we'll start
@@ -691,7 +691,7 @@ of 3 variables looks like the following:
 
 The solution is another index: this time an ``injection'' index. This represents
 ``how many variables to skip over before you get to the interesting stuff''.
-This particular optimization is considerably more complex than the previous,
+This particular optimisation is considerably more complex than the previous,
 though: the number of variables in a polynomial is a type-relevant piece of
 information, so any \emph{manipulation} of that index will have to justify
 itself to the typechecker.
@@ -729,25 +729,25 @@ We were able to construct one, with transitivity replacing addition.
   \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{leq-compare}
 \end{multicols}
 \subsection{Unification}
-So far, our optimizations have focused on the \emph{operations} performed on the
+So far, our optimisations have focused on the \emph{operations} performed on the
 polynomial. Remember, though, the reflexive proof process has several steps:
 only one of them containing the operations (\(\AgdaFunction{⟦\_⇓⟧}\) in
 Fig.~\ref{proof-process}).
 
-As it happens, we have now optimized these operations so much that they are no
+As it happens, we have now optimised these operations so much that they are no
 longer the bottleneck in the process. Surprisingly, the innocuous-looking
 \(\AgdaInductiveConstructor{refl}\) now takes the bulk of the time! Typechecking
 this step involves unifying the two normalised expressions, a task which is
 quite expensive, with counterintuitive performance characteristics. So
 counterintuitive, in fact, that early versions of the solver, with all the
-optimizations from \citet{gregoire_proving_2005} applied, was in many cases
-\emph{slower} than the old, unoptimized solver!
+optimisations from \citet{gregoire_proving_2005} applied, was in many cases
+\emph{slower} than the old, unoptimised solver!
 
 In this section, we'll try and explain the problem and how we fixed it, and give
 general guidelines on how to write Agda code which typechecks quickly.
 
 First, the good news. In the general case, unifying two expressions takes time
-proportional to the size of those expressions, so our hard-won optimizations do
+proportional to the size of those expressions, so our hard-won optimisations do
 indeed help us.
 
 Unfortunately, though, the ``general case'' isn't really that general: Agda's
@@ -813,6 +813,21 @@ keep things which are likely to be syntactically equal to the left, and
 arguments (as we do above) resulted in a performance improvement of several
 orders of magnitude.
 \subsubsection{Avoid Constants}
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.4\textwidth}
+    \centering
+    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
+    \caption{Dense encoding, without identity-avoiding optimisation}
+  \end{subfigure}
+  \begin{subfigure}{0.4\textwidth}
+    \centering
+    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{small-force}
+    \caption{Sparse encoding, with identity-avoiding optimisation}
+  \end{subfigure}
+  \caption{Comparison of the normal forms of equation~\ref{example-poly}}
+  \label{normal-forms}
+\end{figure}
 It's a good idea to avoid constant coefficient expressions in the normal form.
 This will reduce the size of your expression, which is helpful in general, but
 more importantly it will make it less likely that the typechecker will be able
@@ -838,22 +853,7 @@ as much as we could. This has a significant effect on the size of the resulting
 normal form, but also ensures that normalisation stops exactly where we want it
 to, preserving the structure of the expressions as much as is possible. This
 makes a significant difference to both size and syntactic
-similarity~\ref{normal-forms}.
-\begin{figure}
-  \centering
-  \begin{subfigure}{0.4\textwidth}
-    \centering
-    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
-    \caption{Dense encoding, without identity-avoiding optimisation}
-  \end{subfigure}
-  \begin{subfigure}{0.4\textwidth}
-    \centering
-    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{small-force}
-    \caption{Sparse encoding, with identity-avoiding optimisation}
-  \end{subfigure}
-  \caption{Comparison of the normal forms of equation~\ref{example-poly}}
-  \label{normal-forms}
-\end{figure}
+similarity as can be seen in Fig.~\ref{normal-forms}.
 \subsection{Verifying the Optimisations}
 Optimising extrinsically-verified code can be a tedious task. Every small change
 to an algorithm (like swapping the order of arguments to \(\AgdaFunction{*}\))
