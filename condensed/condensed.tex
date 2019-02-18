@@ -126,6 +126,8 @@
 \DeclareUnicodeCharacter{10182}{\ensuremath{\rbag}}
 \DeclareUnicodeCharacter{8760}{\ensuremath{-}}
 \usepackage[references]{agda}
+
+\newcommand{\Nat}{\AgdaDatatype{ℕ}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -402,10 +404,10 @@ hold:
   } 
   x + - x     &= 0
 \end{align}
-The reason for the difference is \emph{flexibility}. Under this formulation, we
-can admit types like \(\AgdaDatatype{ℕ}\) which don't have additive inverses.
-Instead, these types can simply supply the identity function for \(-\), and then
-\ref{ringmul} and \ref{ringadd} will still hold.
+However, by choosing these slightly more complex laws, we can admit types like
+\(\Nat\) which don't have additive inverses. Instead, these types can simply
+supply the identity function for \(-\), and then \ref{ringmul} and \ref{ringadd}
+will still hold.
 
 A potential worry is that because we don't require \(x + -x = 0\) axiomatically,
 it won't be provable in our system. Happily, this is not the case: as long as
@@ -477,7 +479,7 @@ or rather, what we \emph{don't} require from the user:
 \end{itemize}
 
 Finally, despite the simplicity and ease-of-use described above, the solver is
-\emph{not} specialized to a small number of types like \(\AgdaDatatype{ℕ}\) and
+\emph{not} specialized to a small number of types like \(\Nat\) and
 so on. The whole library, including the reflection-based interface, will work
 with any type with an \(\AgdaDatatype{AlmostCommutativeRing}\) instance.
 
@@ -673,7 +675,7 @@ to add the extra type information, look for an inductive type which participates
 in the algorithm, and see if you can ``hang'' some new type indices off of it.
 
 In our case, the injection index (distance to the next ``interesting''
-polynomial) was simply stored as an \(\AgdaDatatype{ℕ}\), and the information we
+polynomial) was simply stored as an \(\Nat\), and the information we
 needed was the number of variables in the inner polynomial, and the number of
 variables in the outer. All of that is stored in the following proof of \(\le\):
 
@@ -682,7 +684,7 @@ variables in the outer. All of that is stored in the following proof of \(\le\):
 \end{center}
 
 A value of type \(n \; \AgdaDatatype{≤} \; m\) mimics the inductive structure of
-the \(\AgdaDatatype{ℕ}\) we were storing to represent the distance between \(n\)
+the \(\Nat\) we were storing to represent the distance between \(n\)
 and \(m\). We were able to take this analogy to the extreme: where we needed an
 equivalent of \(\AgdaDatatype{Ordering}\):
 
