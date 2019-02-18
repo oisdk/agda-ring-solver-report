@@ -3,20 +3,19 @@ module SetoidApplications where
 
 open import Level
 open import Relation.Binary
+open import Data.String as String using (String; _++_)
 \end{code}
 
 
 %<*traced>
 \begin{code}
-module Trace {a b}
-             {A : Set a}
-             (_R_ : A → A → Set b)
-             (sym′ : Symmetric _R_) where
+module Trace {a}
+             {A : Set a} where
 
-  data _⋯_ (x : A) : A → Set (a ⊔ b) where
+  data _⋯_ (x : A) : A → Set a where
     [] : x ⋯ x
     _∷_ : ∀ {y z}
-        → x R y
+        → String
         → y ⋯ z
         → x ⋯ z
 
@@ -32,6 +31,7 @@ module Trace {a b}
     where
     go : ∀ {x y z} → y ⋯ z → y ⋯ x → x ⋯ z
     go xs [] = xs
-    go xs (y ∷ ys) = go (sym′ y ∷ xs) ys
+    go xs (y ∷ ys) =
+      go (("sym(" ++ y ++ ")") ∷ xs) ys
 \end{code}
 %</traced>

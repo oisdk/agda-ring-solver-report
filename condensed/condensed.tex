@@ -56,6 +56,8 @@
 \usepackage{lineno} %% For line numbers on code snippets
 \usepackage{pgfplots}
 \usepackage{multicol}
+\usepackage{fancyvrb}
+\usepackage{wrapfig}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Agda special Characters
@@ -933,60 +935,58 @@ interspersed with the states of the expression (the vertices in the graph).
 If we stopped there, however, the solver would output incredibly verbose
 ``solutions'': far too verbose to be human-readable. Instead, we must apply a
 number of heuristics to cut down on the solution length:
-\begin{figure}
+\begin{wrapfigure}{r}{0.5\linewidth}
   \centering
   \begin{tikzpicture}
-    \node (n1) at (-2,7.5) {$2 + 1 + y + x * 1$};
-    \node (n2) at (-2,6) {$2 + 1 + y + x$};
-    \node (n3) at (2,6) {$1 + 2 + y + x$};
-    \node (n4) at (0,4.5) {$3 + y + x$};
-    \node (n5) at (0,3) {$y + 3 + x$};
-    \node (n6) at (0,1.5) {$y + x + 3$};
-    \node (n7) at (0,0) {$x + y + 3$};
-    \draw[-stealth] (n1) to (n2);
-    \draw[-stealth] (n2) to (n4);
+    \node (n0) at (2,9) {$1 + 2 + y + x$};
+    \node (n1) at (-2,6) {$x + y * 1 + 3$};
+    \node (n2) at (2,7.5) {$3 + y + x$};
+    \node (n3) at (2,6) {$y + 3 + x$};
+    \node (n4) at (0,4.5) {$x + y + 3$};
+    \node (n5) at (-1,3) {$3 + x + y$};
+    \node (n6) at (1,3) {$x + 3 + y$};
+    \draw[-stealth] (n1) to (n4);
+    \draw[-stealth] (n3) to (n2);
+    \draw[-stealth] (n2) to (n0);
     \draw[-stealth] (n4) to (n3);
-    \draw[-stealth] ([xshift=-0.2cm] n4.south) to ([xshift=-0.2cm] n5.north);
-    \draw[-stealth] ([xshift=-0.2cm] n5.south) to ([xshift=-0.2cm] n6.north);
-    \draw[-stealth] ([xshift=-0.2cm] n6.south) to ([xshift=-0.2cm] n7.north);
-    \draw[-stealth] ([xshift=0.2cm] n5.north) to ([xshift=0.2cm] n4.south);
-    \draw[-stealth] ([xshift=0.2cm] n6.north) to ([xshift=0.2cm] n5.south);
-    \draw[-stealth] ([xshift=0.2cm] n7.north) to ([xshift=0.2cm] n6.south);
+    \draw[-stealth] (n4) to (n5);
+    \draw[-stealth] (n5) to (n6);
+    \draw[-stealth] (n6) to (n4);
   \end{tikzpicture}
-  \caption{Y-Shaped Graph}
-  \label{y-graph}
-\end{figure}
+  \caption{Hourglass-Shaped Graph}
+  \label{h-graph}
+\end{wrapfigure}
 \begin{enumerate}
   \item First, we filter out ``uninteresting'' steps. These are steps which are
     obvious to a human, like associativity, or evaluation of closed terms. When
     a step is divided over two sides of an operator, it is deemed
     ``interesting'' if either side is interesting.
   \item Next, we remove any ``step, reverse-step'' chains. Since we're
-    converting expressions to normal form, the path may be Y-shaped, as in
-    figure~\ref{y-graph}. This graph uses a simplified normalization algorithm
-    which first evaluates any expressions it can, and then alphabetizes the
-    variables.
+    converting expressions to normal form, the path may be hourglass-shaped.
+    Fig.~\ref{h-graph} is the output from our solver without this heuristic
+    applied.
 
-    The problem is that both expressions hit a common form early on, at \(3 + y
-    + x\). Nonetheless, the proof will soldier on, down to \(x + y + 3\) and
-    back up again.
+    The problem is that both expressions hit a common form early on, at \(x + y
+    + 3\). Nonetheless, the proof will soldier on, giving superfluous steps.
 
     These sections are what we want to detect, and remove.
 \end{enumerate}
 
-Given those, our solver outputs the following for the lemma in
-figure~\ref{the-solver}:
-\begin{verbatim}
+After applying those heuristics, our solver outputs the following for the lemma
+in Fig.~\ref{the-solver}:
+\begin{center}
+\begin{BVerbatim}
 x + y * 1 + 3
     ={ eval }
 x + y + 3
-    ={ +-comm x (y + 3) }
+    ={ +-comm(x,y + 3) }
 y + 3 + x
-    ={ +-comm y 3 }
+    ={ +-comm(y,3) }
 3 + y + x
     ={ eval }
 2 + 1 + y + x
-\end{verbatim}
+\end{BVerbatim}
+\end{center}
 Figuring out good heuristics and path compression techniques seems to deserve
 further examination.
 \section{Related Work}
