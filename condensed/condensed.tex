@@ -105,6 +105,7 @@
 \DeclareUnicodeCharacter{737}{\ensuremath{^\text{l}}}
 \DeclareUnicodeCharacter{691}{\ensuremath{^\text{r}}}
 \DeclareUnicodeCharacter{7523}{\ensuremath{_\text{r}}}
+\DeclareUnicodeCharacter{8343}{\ensuremath{_\text{l}}}
 \DeclareUnicodeCharacter{8718}{\ensuremath{\blacksquare}}
 \DeclareUnicodeCharacter{957}{\textgreek{\textnu}}
 \DeclareUnicodeCharacter{961}{\textgreek{\textrho}}
@@ -200,7 +201,7 @@
 \begin{abstract}
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
-  programming language Agda \cite{norell_dependently_2008}. It is asymptotically
+  programming language Agda \cite{norell_dependently_2008}. It is significantly
   faster than Agda's existing solver. We use reflection to provide a simple
   interface to the solver, and demonstrate a novel use of the constructed
   relations: step-by-step solutions.
@@ -276,12 +277,11 @@ identities like the one in Fig.~\ref{comparison} require fussy proofs
 
 This need not be the case! With some carefully-designed tools, mathematics in
 Agda can be easy, friendly, and fun. This work describes one such tool: an
-Agda library which automates the construction of these kinds of proofs, making
-them as easy as Fig.~\ref{the-solver}.
+Agda library which automates the construction proofs like Fig.~\ref{ring-proof},
+making them as easy as Fig.~\ref{the-solver}.
 
 As you might expect, our solver comes accompanied by a formal proof of
-correctness. Beyond that, though, we also strove to satisfy the following
-requirements:
+correctness. Beyond that, though, we also satisfied the following requirements:
 \begin{description}
   \item[Friendliness and Ease of Use] Proofs like the one in
     Fig.~\ref{ring-proof} aren't just boring: they're \emph{difficult}.
@@ -315,8 +315,9 @@ requirements:
     in \citet{gregoire_proving_2005}. While we were able to apply the same
     optimisations that were applied in that paper, we found that the most
     significant performance improvements came from a different, and somewhat
-    surprising part of the program. The end result is that our solver is
-    asymptotically (and practically) faster than Agda's current solver.
+    surprising part of the program. In terms of both practical use and
+    theoretical bounds, our solver is significantly faster than Agda's current
+    solver.
   \item[Educational Features] While our solver comes with the benefit of formal
     correctness, it's still playing catch-up to other less-rigorous computer
     algebra systems in terms of features. These features have driven systems
@@ -325,9 +326,8 @@ requirements:
 
     We will take just one of those features (``pedagogical'', or step-by-step
     solutions \cite{the_development_team_step-by-step_2009}), and re-implement
-    it in Agda using our solver. In doing so, we will explore some of the theory
-    behind it, and present a formalism that describes the nature of
-    ``step-by-step'' solutions.
+    it in Agda using our solver. In doing so, we will formalise the concept, and
+    explore some of the theory behind it. 
 \end{description}
 
 \section{Overview of the Proof Technique}
@@ -355,27 +355,28 @@ conversion is correct according to the ring axioms (the
 these proofs, and if the two normal forms are definitionally equal, the entire
 thing will typecheck, and we will have proven the equality.
 \subsection{The \(\AgdaDatatype{Expr}\) AST}
-In Agda, we can't manipulate the expressions we want to prove directly: instead,
-we will construct an AST for each expression, and then do our manipulation on
-that.
+Instead of manipulating the expressions directly, we will define an Abstract
+Syntax Tree (AST) to describe expressions which use the ring operators.
+\begin{center}
+  \ExecuteMetaData[../ReflectionSection.tex]{expr-def}
+\end{center}
+Each of the ring operators has a corresponding constructor (\(x + y = x \;
+\AgdaInductiveConstructor{⊕} \; y\), \(x^y = x \; \AgdaInductiveConstructor{⊗}
+\; y\)), constants are constructed with \(\AgdaInductiveConstructor{K}\), and
+variables are referred to by their de Bruijn index (so \(x\) becomes
+\(\AgdaInductiveConstructor{I} \;  \AgdaNumber{0}\)). The ASTs for both
+expressions we want to prove can be seen on either side of
+Fig.~\ref{proof-process}.
 
-The AST type (\(\AgdaDatatype{Expr}\)) has a constructor for each of the ring
-operators, as well as constructors for both variables and constants. The ASTs
-for both expressions we want to prove can be seen on either side of
-Fig.~\ref{proof-process}. Constants are constructed with
-\(\AgdaInductiveConstructor{K}\), and variables are referred to by their de
-Bruijn index (so \(x\) becomes \(\AgdaInductiveConstructor{I} \;
-\AgdaNumber{0}\)).
-
-From here, we can ``evaluate'' the AST in one of two ways: in a non-normalized
-way (\(\AgdaFunction{⟦\_⟧}\)), or in a normalizing way
+From here, we can ``evaluate'' the AST in one of two ways: in a non-normalised
+way (\(\AgdaFunction{⟦\_⟧}\)), or in a normalising way
 (\(\AgdaFunction{⟦\_⇓⟧}\)). This means that the goal of the
 \(\AgdaFunction{correct}\) function is to show equivalence between
 \(\AgdaFunction{⟦\_⟧}\) and \(\AgdaFunction{⟦\_⇓⟧}\).
 
 Finally, we \emph{don't} want to force users to construct the
 \(\AgdaDatatype{Expr}\) AST themselves. This is where reflection comes in: it
-automates this construction (the path labeled \(\AgdaKeyword{quoteTerm}\) in the
+automates this construction (the path labelled \(\AgdaKeyword{quoteTerm}\) in the
 diagram) from the goal type.
 \subsection{Almost Rings}
 While the stated domain of the solver is simply ``commutative rings'', it turns
@@ -632,53 +633,61 @@ powers of \(x\). As an example, the following polynomial:
 \begin{align}
   3 + 2x^2 + 4x^5 + 2x^7 \label{example-poly}
 \end{align}
-Is represented by the following list:
-\[3, 0, 2, 0, 0, 4, 0, 2\]
+Is represented by this list:
+\begin{center}
+  \ExecuteMetaData[../HornerNormalForm.tex]{dense-example}
+\end{center}
 Operations on these polynomials are similar to operations in positional number
 systems.
-\begin{center}
+\begin{multicols}{2}
   \ExecuteMetaData[../HornerNormalForm.tex]{impl}
-\end{center}
+\end{multicols}
 And finally, evaluation of the polynomial (given \(x\)) is a classic example of
 the \(\AgdaFunction{foldr}\) function.
 \begin{center}
   \ExecuteMetaData[../HornerNormalForm.tex]{eval}
 \end{center}
 \subsection{Sparse Encodings}
-Our first avenue for optimization comes from \citet{gregoire_proving_2005}. Our
-list encoding above is quite wasteful: it always stores an entry for each
-coefficient, even if it's zero. Since expressions with long strings of zeroes
-are common (things like \(x^{10}\)), it stands to reason that removing them
-should improve performance.
+Our first avenue for optimisation comes from \citet{gregoire_proving_2005}.
+Notice that the encoding above is quite wasteful: it always stores an entry for
+each coefficient, even if it's zero. In practice, we're likely to often find
+long strings of zeroes (in expressions like \(x^{10}\)), meaning that our
+representation will contain long ``gaps'' between the coefficients we're
+actually interested in (non-zero ones).
 
-The solution is to store what's known as a ``power index'' with every
-coefficient. Intuitively, you can think of it as the ``distance to the next
-non-zero coefficient''. Taking \ref{example-poly} again as an example, we would
-now represent it as follows:
-\[ (3,0),(2,1),(4,2),(2,1) \]
-
-In Agda, we can go one step further, by disallowing zeroes in the representation
-altogether. This statically ensures that the polynomial is always in its
-smallest possible form. We don't include that detail here (it is in the
-library), instead we will use this somewhat simplified type:
+To fix the problem we'll switch to a \emph{sparse} encoding, by storing a
+``power index'' with every coefficient.
 \begin{center}
   \ExecuteMetaData[../HornerNormalForm.tex]{sparse-poly}
 \end{center}
 
+This will represent the size of the gap from the previous non-zero coefficient.
+Taking \ref{example-poly} again as an example, we would now represent it as
+follows: 
+\begin{center}
+  \ExecuteMetaData[../HornerNormalForm.tex]{sparse-example}
+\end{center}
+
 Next, we turn our attention to the task of adding multiple variables. Luckily,
-there's an easy way to do it: nesting. The idea is that a polynomial in \(n\)
-variables is the same as before, except that its coefficients are themselves
-polynomials in \(n-1\) variables. A polynomial in \(0\) variables in just a
-constant. It's perhaps more clearly expressible in types:
+there's an easy way to do it: nesting. Multivariate polynomials will be
+represented as ``polynomials of polynomials'', where each level of nesting
+corresponds to one variable. It's perhaps more clearly expressible in types:
 \begin{center}
   \ExecuteMetaData[../HornerNormalForm.tex]{multi}
 \end{center}
+Inductively speaking, a ``polynomial'' in 0 variables is simply a constant,
+whereas a polynomial in \(n\) variables is a list of coefficients, which are
+themselves polynomials in \(n-1\) variables.
 
-Before jumping into proving this, though, it's worth noting that another
-opportunity for a ``sparse'' encoding has arisen. This time, polynomials which
-don't include every variable contain gaps. In a polynomial of \(n\) variables,
-a constant will always be stored behind \(n\) layers of nesting (we also prove
-that this minimal form is maintained).
+Before running off to use this representation, though, we should notice that we
+have created another kind of ``gap'' which we should avoid with a sparse
+encoding. For a polynomial with \(n\) variables, we will always have \(n\)
+levels of nesting, even if the polynomial doesn't actually refer to all \(n\)
+variables. In the extreme case, representing the constant \(6\) in a polynomial
+of 3 variables looks like the following:
+\begin{center}
+  \ExecuteMetaData[../HornerNormalForm.tex]{multi-nest}
+\end{center}
 
 The solution is another index: this time an ``injection'' index. This represents
 ``how many variables to skip over before you get to the interesting stuff''.
@@ -689,7 +698,7 @@ itself to the typechecker.
 \subsection{Hanging Indices}
 The problem is a common one: we have a piece of code that works efficiently,
 and we now want to make it ``more typed'', by adding more information to it,
-\emph{without} changing the complexity class or slowing it down.
+\emph{without} changing the complexity class.
 
 We found the following strategy to be useful: first, write the untyped version
 of the code, forgetting about the desired invariants as much as possible. Then,
@@ -758,14 +767,10 @@ Agda does indeed avoid. Before the full unification algorithm, the typechecker
 does a quick pass to spot any syntactic equalities like the one above: if it
 sees one, it can avoid any more computation on that particular expression.
 
-Crucially, missing syntactic equality on a term doesn't just hurt performance
-once: once syntactic equality fails, the next step is normalisation, which can
-change the shape of the entire subexpression, \emph{destroying} any chance for
-syntactic equality later on. This can result in a cascade of missed syntactic
-equalities, causing a serious performance problem.
-
-With that in mind, our optimisation will consist of two main strategies.
-\subsubsection{Avoiding Progress}
+Taking advantage of that shortcut is key to achieving decent performance. With
+that in mind, there are two main strategies we'll use to encourage syntactic
+equality:
+\subsubsection{Avoid Progress at all Costs}
 First, we will consider something which may seem inconsequential: the order of
 arguments to the evaluation functions.
 \begin{multicols}{2}
@@ -773,27 +778,117 @@ arguments to the evaluation functions.
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{forwards-eval}
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{backwards-eval}
 \end{multicols}
-The definition on the left is the one we've been working with so far. To a
-seasoned functional programmer, however, the version on the right might seem
-much more natural. By one measure, the version on the right is better! When
-applied to \(x^2 + 2\), it gives a much smaller normal form:
+\(\AgdaFunction{⟦\_⟧ₗ}\) is the definition we've been working with so far. Some
+readers might find \(\AgdaFunction{⟦\_⟧ᵣ}\) more natural, however. The reason is
+that it's more productive: in lazy languages, the usual convention is that
+functions which take multiple arguments should scrutinise those arguments from
+left to right. The \(\AgdaFunction{*}\) and \(\AgdaFunction{+}\) functions (on
+\(\Nat\), at any rate) follow that convention, meaning that
+\(\AgdaFunction{⟦\_⟧ᵣ}\) is able to make more progress without a concrete \(x\).
+Taking the polynomial \(x^2 + 2\) as an example:
 \begin{multicols}{2}
   \centering
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{for-progress}
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{back-progress}
 \end{multicols}
-Surprisingly, this is exactly what we \emph{don't} want! The left-hand-side
-equation above, though larger, \emph{starts} with all of the variables, which
-must be trivially equal to the same variables in the other expression. Since the
-equality check proceeds left-to-right, this maintains that syntactic equality
-for as long as possible.
+In \(\AgdaFunction{⟦\_⟧ₗ}\), progress is immediately blocked when we try to
+scrutinise \(x\). In \(\AgdaFunction{⟦\_⟧ᵣ}\), since all of the constants are
+kept to the left, they're scrutinised first, allowing us to perform much more
+normalisation before being blocked.
 
-On the right hand side, however, we first examine the coefficients. These are
-computed from manipulations of the Horner Normal Form, and so are likely to be
-\emph{not} syntactically equal. Even worse: since the expression \emph{can} be
-normalised, we'll mess up its whole structure, ruining later syntactic checks!
-\subsubsection{Avoiding Identities}
+Surprisingly, this is exactly what you \emph{don't} want! Since both sides of
+the equation will be coming out of the same normalisation function, they should
+have similar structures, allowing for syntactic equality. The coefficients,
+though, will be computed during manipulations on the Horner normal form, and so
+may contain unevaluated expressions, which require normalisation. If we used
+\(\AgdaFunction{⟦\_⟧ᵣ}\) as our definition, then, the typechecker will likely
+hit an inequality very early on, and give up on syntactic equality. Even worse,
+because it's able to make progress, it will likely do so, completely changing
+the structure of the expression and ruining any chance for later syntactic
+equalities!
 
+The (counterintuitive) lesson learned is as follows: to speed up unification,
+keep things which are likely to be syntactically equal to the left, and
+\emph{don't} structure your functions to encourage progress. Simply swapping the
+arguments (as we do above) resulted in a performance improvement of several
+orders of magnitude.
+\subsubsection{Avoid Constants}
+It's a good idea to avoid constant coefficient expressions in the normal form.
+This will reduce the size of your expression, which is helpful in general, but
+more importantly it will make it less likely that the typechecker will be able
+to run some normalisation on one of the ring operators.
+
+Our sparse representation helps significantly in this case: by removing
+\(\AgdaNumber{0}\) from the generated expression, we significantly improve the
+chances of maintaining structural similarity between the two normal forms.
+
+Another place we can cut down on constants is in identity elements in the base
+case for recursive functions. Take exponentiation, for example:
+\begin{center}
+  \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{pow-bad}
+\end{center}
+We can avoid that \(\AgdaNumber{1}\) in the majority of cases by rewriting the
+function to have an extra base case:
+\begin{multicols}{2}
+  \centering
+  \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{pow-ident}
+\end{multicols}
+In the library, we employ this idea extensively, avoiding unnecessary identities
+as much as we could. This has a significant effect on the size of the resulting
+normal form, but also ensures that normalisation stops exactly where we want it
+to, preserving the structure of the expressions as much as is possible. This
+makes a significant difference to both size and syntactic
+similarity~\ref{normal-forms}.
+\begin{figure}
+  \centering
+  \begin{subfigure}{0.4\textwidth}
+    \centering
+    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
+    \caption{Dense encoding, without identity-avoiding optimisation}
+  \end{subfigure}
+  \begin{subfigure}{0.4\textwidth}
+    \centering
+    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{small-force}
+    \caption{Sparse encoding, with identity-avoiding optimisation}
+  \end{subfigure}
+  \caption{Comparison of the normal forms of equation~\ref{example-poly}}
+  \label{normal-forms}
+\end{figure}
+\subsection{Verifying the Optimisations}
+Optimising extrinsically-verified code can be a tedious task. Every small change
+to an algorithm (like swapping the order of arguments to \(\AgdaFunction{*}\))
+has the potential to invalidate your verification, occasionally forcing you to
+totally rewrite all of the proofs.
+
+For our case, we were required to prove a ring homomorphism between Horner
+normal form and the carrier type. These proofs are long (about 1000 lines) and
+complex, and every new optimisation would require a whole new round of proof
+code, with very little reuse.
+
+To remedy this problem, we took inspiration from \citet{mu_algebra_2009}, and
+relied heavily on abstraction and folds to improve the reuse in proof code. In
+particular, we defined many operations as \emph{metamorphisms}
+\cite{gibbons_metamorphisms_2007}. So, instead of defining (say) negation over
+the polynomial type itself, we will define a metamorphism, which has the
+following type:
+\begin{center}
+  \ExecuteMetaData[../AbstractionAndFolds.tex]{fold-def}
+\end{center}
+And then we can run a metamorphism over a polynomial with some higher-order
+function.
+
+From here, we can define the \emph{semantics} of a metamorphism. As an example,
+here are the semantics of \(\AgdaFunction{mapR}\), a simple morphism which
+behaves something like \(\AgdaFunction{map}\) on lists:
+
+\begin{center}
+  \ExecuteMetaData[../AbstractionAndFolds.tex]{poly-mapR}
+\end{center}
+
+Now, each operation only has to be proven up to the semantics defined above.
+Crucially, optimisations like the sparse encoding \emph{respect} these
+semantics, so we only have to change our proof in one place: the definition of
+\(\AgdaFunction{poly-mapR}\).
 \subsection{Benchmarks}
 \begin{figure}
   \newcounter{realxtickpos}
@@ -821,26 +916,8 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
         extra y ticks={15},
         title={(\subref{bench1}) $(x_1 + x_2 + \ldots + x_n)^d$},
         ]
-        \addplot[color=blue, densely dashed] coordinates{
-          (1,5.20338)
-          (2,5.25787)
-          (3,5.24173)
-          (4,5.76486)
-          (5,6.95739)
-          (6,8.46202)
-          (7,11.8039)
-          (8,15.4919)
-        };
-        \addplot[color=red] coordinates{
-          (1,2.39014)
-          (2,2.48972)
-          (3,3.15072)
-          (4,3.97797)
-          (5,5.82725)
-          (6,10.7788)
-          (7,28.7441) 
-          (8,114.779)
-        };
+        \addplot[color=blue, densely dashed] table {../benchmark-data/sparse1.dat};
+        \addplot[color=red] table {../benchmark-data/dense1.dat};
       \end{axis}
     \end{tikzpicture}
     \phantomcaption \label{bench1}
@@ -852,22 +929,8 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
         extra y ticks={5},
         title={(\subref{bench2}) $x_1^d + x_2^d + \ldots + x_n^d$},
         ]
-        \addplot[color=blue, densely dashed] coordinates{
-          (  1,4.81414)
-          (100,5.09434)
-          (200,4.68453)
-          (300,4.68257)
-          (400,4.89147)
-          (500,4.76918)
-        };
-        \addplot[color=red] coordinates{
-          (  1, 2.50799)
-          (100, 3.87669)
-          (200, 7.25199)
-          (300, 12.9566)
-          (400, 19.7438)
-          (500, 29.3335)
-        };
+        \addplot[color=blue, densely dashed] table {../benchmark-data/sparse2.dat};
+        \addplot[color=red] table {../benchmark-data/dense2.dat};
       \end{axis}
     \end{tikzpicture}
     \phantomcaption\label{bench2}
@@ -879,26 +942,8 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
         extra y ticks={40},
         title={(\subref{bench3}) $(x_1^n + x_2^{n-1} + \ldots + x_n^1 + 1)^d$},
         ]
-        \addplot[color=blue, densely dashed] coordinates{
-          (1,5.999906778335571)
-          (2,6.715672254562378)
-          (3,6.018649101257324)
-          (4,6.955428123474121)
-          (5,9.579402923583984)
-          (6,13.56689715385437)
-          (7,23.99260210990906)
-          (8,40.36761021614075)
-        };
-        \addplot[color=red] coordinates{
-          (1,2.9551851749420166)
-          (2,3.0478131771087646)
-          (3,4.187927961349487)
-          (4,6.412783861160278)
-          (5,16.242217779159546)
-          (6,49.26663112640381)
-          (7,234.22495794296265)
-          (8,1348.8776309490204)
-        };
+        \addplot[color=blue, densely dashed] table {../benchmark-data/sparse3.dat};
+        \addplot[color=red] table {../benchmark-data/dense3.dat};
       \end{axis}
     \end{tikzpicture}
     \phantomcaption\label{bench3}
@@ -942,9 +987,8 @@ implementation. 3 seconds is quite small in the context of Agda type checking
 feel this slight loss is more than made up for by the several-minute gains.
 Furthermore, we have not been able to find a case where the dense solver is
 significantly faster than the sparse. Nonetheless, if a user really wants to use
-the dense solver, the components described in the following two sections are
-entirely modular, and can work with any underlying solver which uses the
-reflexive technique.
+the dense solver, the other components described here are entirely modular, and
+can work with any underlying solver which uses the reflexive technique.
 \section{Pedagogical Solutions}
 One of the most widely-used and successful computer algebra systems, especially
 among non-programmers, is Wolfram|Alpha

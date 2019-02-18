@@ -78,7 +78,7 @@ module Main
 \end{code}
 %</simple>
 \begin{code}
-  module Foldr where
+  module Metar where
     {-# TERMINATING #-}
 \end{code}
 %<*with-foldr>
@@ -92,14 +92,13 @@ module Main
 %</with-foldr>
 %<*fold-def>
 \begin{code}
-  Fold : ℕ → Set c
-  Fold n  = Poly n × Coeff n ⋆
-          → Poly n × Coeff n ⋆
+  Meta : ℕ → Set c
+  Meta n = Poly n × Coeff n ⋆ → Poly n × Coeff n ⋆
 \end{code}
 %</fold-def>
 %<*para>
 \begin{code}
-  para : ∀ {i} → Fold i → Coeff i ⁺ → Coeff i ⋆
+  para : ∀ {i} → Meta i → Coeff i ⁺ → Coeff i ⋆
   para f =
     foldr⁺
     (λ { (x ≠0 Δ i) →
@@ -119,6 +118,7 @@ module Main
       acc
         : (∀ y → y < x → Acc _<_ y)
         → Acc _<_ x
+
 \end{code}
 %</acc-def>
 %<*acc-impl>
@@ -216,7 +216,7 @@ module Semantics
 \end{code}
 %</sigma-q>
 \begin{code}
-  open import Polynomial.NormalForm.Construction coeffs
+  open import Polynomial.NormalForm.Construction coeffs renaming (Fold to Meta)
   postulate
 \end{code}
 %<*lemmas>
@@ -256,7 +256,7 @@ module Semantics
 \begin{code}
     poly-foldR
       : ∀ {n} ρ
-      → ([f] : Fold n)
+      → ([f] : Meta n)
       → (f : Carrier → Carrier)
       → (∀ x y → x * f y ≈ f (x * y))
       → ( ∀ y {ys} zs

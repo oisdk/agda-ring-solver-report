@@ -7,15 +7,26 @@ module HornerNormalForm
 \end{code}
 %</opening>
 \begin{code}
-module Dense where
- open import Data.List
- open RawRing coeff
+open import Data.Nat as ℕ using (ℕ; suc; zero)
+
+record FromNat {a} (A : Set a) : Set a where
+  field fromNat : ℕ → A
+open FromNat ⦃ ... ⦄ public
+
+{-# BUILTIN FROMNAT fromNat #-}
+
+instance
+  natLit : FromNat ℕ
+  natLit = record { fromNat = λ x → x }
+
+open import Data.List
+open RawRing coeff
+module Dense ⦃ _ : FromNat Carrier ⦄ where
+ Poly : Set c
+ Poly = List Carrier
 \end{code}
 %<*impl>
 \begin{code}
- Poly : Set c
- Poly = List Carrier
-
  _⊞_ : Poly → Poly → Poly
  [] ⊞ ys = ys
  (x ∷ xs) ⊞ [] = x ∷ xs
@@ -27,6 +38,15 @@ module Dense where
    foldr (λ y ys → x * y ∷ map (_* y) xs ⊞ ys) []
 \end{code}
 %</impl>
+\begin{code}
+ d : Poly
+ d =
+\end{code}
+%<*dense-example>
+\begin{code}
+  3 ∷ 0 ∷ 2 ∷ 0 ∷ 0 ∷ 4 ∷ 0 ∷ 2 ∷ []
+\end{code}
+%</dense-example>
 %<*eval>
 \begin{code}
  ⟦_⟧ : Poly → Carrier → Carrier
@@ -35,16 +55,13 @@ module Dense where
 %</eval>
 \begin{code}
 open import Data.Product
-open import Data.List
-open RawRing coeff
-open import Data.Nat as ℕ using (ℕ; suc; zero)
 
 infixr 8 _^_
 _^_ : Carrier → ℕ → Carrier
 x ^ zero = 1#
 x ^ suc i = x * (x ^ i)
 
-module S where
+module S ⦃ _ : FromNat Carrier ⦄ where
 \end{code}
 %<*sparse-poly>
 \begin{code}
@@ -53,7 +70,16 @@ module S where
 \end{code}
 %</sparse-poly>
 \begin{code}
-module M where
+ d : Poly
+ d =
+\end{code}
+%<*sparse-example>
+\begin{code}
+  (3 , 0) ∷ (2 , 1) ∷ (4 , 2) ∷ (2 , 1) ∷ []
+\end{code}
+%</sparse-example>
+\begin{code}
+module M ⦃ _ : FromNat Carrier ⦄ where
 \end{code}
 %<*multi>
 \begin{code}
@@ -62,3 +88,12 @@ module M where
  Poly (suc n) = List (Poly n × ℕ)
 \end{code}
 %</multi>
+\begin{code}
+ one′ : Poly 3
+ one′ =
+\end{code}
+%<*multi-nest>
+\begin{code}
+  ((((((6 , 0) ∷ []) , 0) ∷ []) , 0) ∷ [])
+\end{code}
+%</multi-nest>

@@ -7,22 +7,31 @@ open import Data.Product
 
 Carrier : Set
 Carrier = ℕ
+module P where
 \end{code}
+%<*pow-bad>
+\begin{code}
+ _^_ : Carrier → ℕ → Carrier
+ x ^ zero   = 1
+ x ^ suc i  = x * (x ^ i)
+\end{code}
+%</pow-bad>
 %<*pow-ident>
 \begin{code}
 _^_+1 : Carrier → ℕ → Carrier
-ρ ^ zero  +1  = ρ
-ρ ^ suc i +1  = (ρ ^ i +1) * ρ
+x ^ zero   +1 = x
+x ^ suc i  +1 = (x ^ i +1) * x
 
+_^_ : Carrier → ℕ → Carrier
+x ^ zero   = 1
+x ^ suc i  = x ^ i +1
+\end{code}
+%</pow-ident>
+\begin{code}
 _*⟨_⟩^_ : Carrier → Carrier → ℕ → Carrier
 ρ *⟨ xs ⟩^ zero  = xs
 ρ *⟨ xs ⟩^ suc i = (ρ ^ i +1) * xs
-
-_^_ : Carrier → ℕ → Carrier
-x ^ zero = 1
-x ^ suc i = x ^ i +1
 \end{code}
-%</pow-ident>
 %<*dense-term-small>
 \begin{code}
 obligation : ∀ x →
@@ -46,14 +55,14 @@ dense-term : ∀ x →
              (x *
                (x *
                     0
-               + 2) -- 2x⁷
+               + 2)
              + 0)
-           + 4) -- 4x⁵
+           + 4)
          + 0)
        + 0)
-     + 2) -- 2x²
+     + 2)
    + 0)
-  + 3 -- 3
+  + 3
 \end{code}
 %</dense-term>
 \begin{code}
@@ -78,48 +87,53 @@ sparse-term : ∀ x →
 sparse-term _ = refl
 module Rev where
  open import Data.List as List using (List; _∷_; []; foldr)
+ open ≡-Reasoning
+
  Poly : Set
  Poly = List Carrier
- ⟦_⟧ : Poly → Carrier → Carrier
+ ⟦_⟧ᵣ : Poly → Carrier → Carrier
 \end{code}
 %<*backwards-eval>
 \begin{code}
- ⟦ xs ⟧ ρ = foldr (λ y ys → y + ys * ρ) 0 xs
+ ⟦ xs ⟧ᵣ ρ = foldr (λ y ys → y + ys * ρ) 0 xs
 \end{code}
 %</backwards-eval>
 \begin{code}
- back-progress : ∀ x → ⟦ 2 ∷ 0 ∷ 1 ∷ [] ⟧ x ≡
+ back-progress : ∀ x → ⟦ 2 ∷ 0 ∷ 1 ∷ [] ⟧ᵣ x ≡ suc (suc ((x + 0) * x))
+ back-progress x = begin
 \end{code}
 %<*back-progress>
 \begin{code}
-  suc (suc ((x + 0) * x))
+  ⟦ 2 ∷ 0 ∷ 1 ∷ [] ⟧ᵣ x          ≡⟨⟩
+  2 + (0 + (1 + 0 * x) * x) * x  ≡⟨⟩
+  suc (suc ((x + 0) * x))        ∎
 \end{code}
 %</back-progress>
 \begin{code}
- back-progress _ = refl
-\end{code}
-\begin{code}
 module For where
  open import Data.List as List using (List; _∷_; []; foldr)
+ open ≡-Reasoning
  Poly : Set
  Poly = List Carrier
- ⟦_⟧ : Poly → Carrier → Carrier
+ ⟦_⟧ₗ : Poly → Carrier → Carrier
 \end{code}
 %<*forwards-eval>
 \begin{code}
- ⟦ xs ⟧ ρ = foldr (λ y ys → ρ * ys + y) 0 xs
+ ⟦ xs ⟧ₗ ρ = foldr (λ y ys → ρ * ys + y) 0 xs
 \end{code}
 %</forwards-eval>
 \begin{code}
- for-progress : ∀ x → ⟦ 2 ∷ 0 ∷ 1 ∷ [] ⟧ x ≡
+ for-progress : ∀ x → ⟦ 2 ∷ 0 ∷ 1 ∷ [] ⟧ₗ x ≡ x * (x * (x * 0 + 1) + 0) + 2
+ for-progress x = begin
 \end{code}
 %<*for-progress>
 \begin{code}
-  x * (x * (x * 0 + 1) + 0) + 2
+  ⟦ 2 ∷ 0 ∷ 1 ∷ [] ⟧ₗ x          ≡⟨⟩
+  x * (x * (x * 0 + 1) + 0) + 2  ≡⟨⟩
+  x * (x * (x * 0 + 1) + 0) + 2  ∎
 \end{code}
 %</for-progress>
 \begin{code}
- for-progress _ = refl
 \end{code}
 
 %<*reduction>
@@ -183,20 +197,17 @@ small′ : ∀ x →
 small′ _ = refl
 \end{code}
 \begin{code}
-small :
+small : ∀ x → ⟦ 3 , 0 ∷ 2 , 1 ∷ 4 , 2 ∷ 2 , 1 ∷ [] ⟧ x ≡
 \end{code}
 %<*small-force>
 \begin{code}
- ∀ x →
- ⟦ 3 , 0 ∷ 2 , 1 ∷ 4 , 2 ∷ 2 , 1 ∷ [] ⟧ x
-                 ≡
-           x *
-             (x * (x *
-               ((x * x) * (x *
-                 (x * 2)
-               + 4))
-             + 2))
-           + 3
+ x *
+   (x * (x *
+     ((x * x) * (x *
+       (x * 2)
+     + 4))
+   + 2))
+ + 3
 \end{code}
 %</small-force>
 \begin{code}
