@@ -723,7 +723,7 @@ We were able to construct one, with transitivity replacing addition.
 So far, our optimizations have focused on the \emph{operations} performed on the
 polynomial. Remember, though, the reflexive proof process has several steps:
 only one of them containing the operations (\(\AgdaFunction{⟦\_⇓⟧}\) in
-figure~\ref{proof-process}).
+Fig.~\ref{proof-process}).
 
 As it happens, we have now optimized these operations so much that they are no
 longer the bottleneck in the process. Surprisingly, the innocuous-looking
@@ -795,34 +795,6 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
 \subsubsection{Avoiding Identities}
 
 \subsection{Benchmarks}
-As expected, the sparse implementation exhibits a significant speedup in
-type-checking over the dense implementation. Figure~\ref{bench1}
-shows time taken to type check a proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\)
-is equal to its expanded form. The sparse representation is clearly faster
-overall, with a factor of 7.5 speedup for \(d = 8\).
-
-Figure~\ref{bench2} demonstrates where some of the speedup might come
-from. The expression \(x^d\) is represented very differently in the two
-implementations: in the sparse encoding, it's a single-element list containing a
-tuple of $1$ and $d$; in the dense encoding, however, it's a list of length $d$,
-with a single $1$ at the end. Since the complexities of arithmetic operations
-are bounded by the length of the list, this explains the difference in cost of
-the addition operations.
-
-Figure~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
-high and low powers and some constants. The sparse representation's advantage is
-even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
-
-The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
-expressions, possibly caused by the overhead of the sparse solver's more complex
-implementation. 3 seconds is quite small in the context of Agda type checking
-(the standard library, for instance, takes several minutes to type check), so we
-feel this slight loss is more than made up for by the several-minute gains.
-Furthermore, we have not been able to find a case where the dense solver is
-significantly faster than the sparse. Nonetheless, if a user really wants to use
-the dense solver, the components described in the following two sections are
-entirely modular, and can work with any underlying solver which uses the
-reflexive technique.
 \begin{figure}
   \newcounter{realxtickpos}
   \pgfplotsset{
@@ -932,17 +904,47 @@ reflexive technique.
     \phantomcaption\label{bench3}
   \end{subfigure}
   \ref{benchplots}
-  \caption{Time (in seconds) to prove each expression is equal to its expanded
-    form ($n = 5$ for each).}
+  \parbox{0.9\textwidth}{
+    \begin{flushleft}
+      \caption{Time (in seconds) to prove each expression is equal to its expanded
+        form ($n = 5$ for each).}
+      \smallskip
+      \footnotesize
+      Benchmarks performed on Agda version 2.6-0fa9b13, with the Agda standard
+      library at commit-3bd3334a9552490e396f73f96812105a27e5917b, on a 2016
+      MacBook Pro, with a 2.9 GHz Intel Core i7 and 16 GB of RAM.
+    \end{flushleft}
+  }
   \label{benchmarks}
-  \smallskip
-  \begin{flushleft}
-  \footnotesize
-  Benchmarks performed on Agda version 2.6-0fa9b13, with the Agda standard
-  library at commit-3bd3334a9552490e396f73f96812105a27e5917b, on a 2016 MacBook
-  Pro, with a 2.9 GHz Intel Core i7 and 16 GB of RAM.
-  \end{flushleft}
 \end{figure}
+As expected, the sparse implementation exhibits a significant speedup in
+type-checking over the dense implementation. Fig.~\ref{bench1}
+shows time taken to type check a proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\)
+is equal to its expanded form. The sparse representation is clearly faster
+overall, with a factor of 7.5 speedup for \(d = 8\).
+
+Fig.~\ref{bench2} demonstrates where some of the speedup might come
+from. The expression \(x^d\) is represented very differently in the two
+implementations: in the sparse encoding, it's a single-element list containing a
+tuple of $1$ and $d$; in the dense encoding, however, it's a list of length $d$,
+with a single $1$ at the end. Since the complexities of arithmetic operations
+are bounded by the length of the list, this explains the difference in cost of
+the addition operations.
+
+Fig.~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
+high and low powers and some constants. The sparse representation's advantage is
+even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
+
+The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
+expressions, possibly caused by the overhead of the sparse solver's more complex
+implementation. 3 seconds is quite small in the context of Agda type checking
+(the standard library, for instance, takes several minutes to type check), so we
+feel this slight loss is more than made up for by the several-minute gains.
+Furthermore, we have not been able to find a case where the dense solver is
+significantly faster than the sparse. Nonetheless, if a user really wants to use
+the dense solver, the components described in the following two sections are
+entirely modular, and can work with any underlying solver which uses the
+reflexive technique.
 \section{Pedagogical Solutions}
 One of the most widely-used and successful computer algebra systems, especially
 among non-programmers, is Wolfram|Alpha
