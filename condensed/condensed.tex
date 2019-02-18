@@ -271,14 +271,13 @@
 \end{figure}
 \section{Introduction}
 Doing mathematics in dependently-typed programming languages like Agda has a
-reputation for being tedious, awkward, and difficult. Even simple arithmetic
-identities like the one in Fig.~\ref{comparison} require fussy proofs
-(Fig.~\ref{ring-proof}).
+reputation for being tedious. Even simple arithmetic identities like the one in
+Fig.~\ref{comparison} require fussy proofs (Fig.~\ref{ring-proof}).
 
 This need not be the case! With some carefully-designed tools, mathematics in
 Agda can be easy, friendly, and fun. This work describes one such tool: an
-Agda library which automates the construction proofs like Fig.~\ref{ring-proof},
-making them as easy as Fig.~\ref{the-solver}.
+Agda library which automates the construction of proofs like
+Fig.~\ref{ring-proof}, making them as easy as Fig.~\ref{the-solver}.
 
 As you might expect, our solver comes accompanied by a formal proof of
 correctness. Beyond that, though, we also satisfied the following requirements:
@@ -329,8 +328,15 @@ correctness. Beyond that, though, we also satisfied the following requirements:
     it in Agda using our solver. In doing so, we will formalise the concept, and
     explore some of the theory behind it. 
 \end{description}
-
+\newpage
 \section{Overview of the Proof Technique}
+\begin{figure}[b]
+  \resizebox{\textwidth}{!}{\includegraphics[draft=false]{graphics/reflexive-process}}
+  \vspace*{-50pt}
+  \caption{The Reflexive Proof Process}
+  \label{proof-process}
+\end{figure}
+
 There are a number of ways we can automate proofs in a dependently-typed
 programming language, including Prolog-like proof search \cite{kokke_auto_2015},
 Cooper's algorithm over Presburger arithmetic \cite{allais_deciding_2011}, etc.
@@ -338,25 +344,18 @@ Here, we will use a reflexive technique \cite{boutin_using_1997} in combination
 with sparse Horner Normal Form. The high-level diagram of the proof strategy is
 presented in Fig.~\ref{proof-process}.
 
-\begin{figure}
-  \resizebox{\textwidth}{!}{\includegraphics[draft=false]{graphics/reflexive-process}}
-  \vspace*{-50pt}
-  \caption{The Reflexive Proof Process}
-  \label{proof-process}
-\end{figure}
-
 The identity we'll be working with is the lemma in Fig.~\ref{comparison}: the
-left and right hand side of the equality are at the bottom of the diagram. Our
+left and right hand side of the equivalence are at the bottom of the diagram. Our
 objective is to link those two expressions up through repeated application of
 the ring axioms. We do this by converting both expressions to a normal form
 (seen at the top of the diagram), and then providing a proof that this
 conversion is correct according to the ring axioms (the
 \(\AgdaFunction{correct}\) function in the diagram). Finally, we link up all of
 these proofs, and if the two normal forms are definitionally equal, the entire
-thing will typecheck, and we will have proven the equality.
+thing will typecheck, and we will have proven the equivalence.
 \subsection{The \(\AgdaDatatype{Expr}\) AST}
-Instead of manipulating the expressions directly, we will define an Abstract
-Syntax Tree (AST) to describe expressions which use the ring operators.
+To get started, we'll first define an Abstract Syntax Tree (AST) to describe
+expressions which use the ring operators.
 \begin{center}
   \ExecuteMetaData[../ReflectionSection.tex]{expr-def}
 \end{center}
@@ -373,11 +372,6 @@ way (\(\AgdaFunction{⟦\_⟧}\)), or in a normalising way
 (\(\AgdaFunction{⟦\_⇓⟧}\)). This means that the goal of the
 \(\AgdaFunction{correct}\) function is to show equivalence between
 \(\AgdaFunction{⟦\_⟧}\) and \(\AgdaFunction{⟦\_⇓⟧}\).
-
-Finally, we \emph{don't} want to force users to construct the
-\(\AgdaDatatype{Expr}\) AST themselves. This is where reflection comes in: it
-automates this construction (the path labelled \(\AgdaKeyword{quoteTerm}\) in the
-diagram) from the goal type.
 \subsection{Almost Rings}
 While the stated domain of the solver is simply ``commutative rings'', it turns
 out that we can be slightly more flexible than that if we pick our algebra
@@ -420,25 +414,23 @@ In the library, the algebra is represented by the
 the ring axioms, defined over a user-supplied equivalence relation. Just as in
 Agda's current solver, we also ask for one extra function: a weakly decidable
 predicate to test if a constant is equal to zero.
-
-\begin{centering}
+\begin{center}
   \ExecuteMetaData[../ReflexiveProcessRings.tex]{weak-dec}
-\end{centering}
-
+\end{center}
 This function is used to speed up some internal algorithms in the solver, but it
 isn't an essential component. By making it \emph{weakly} decidable, we allow
 users to skip it
 (\(\AgdaFunction{is-zero}~=~\AgdaFunction{const}~\AgdaInductiveConstructor{nothing}\))
-if their type doesn't support decidable equality, or provide it (and get the
+if their type doesn't support decidable equivalence, or provide it (and get the
 speedup) if it does.
 \section{The Interface}
-A decent interface is crucial if we want the solver to be broadly useful. We
-strove to make our interface as simple and \emph{small} as possible. Aside from
-the \(\AgdaDatatype{AlmostCommutativeRing}\) type described above, the
-user-facing portion of our library consists of just two macros:
-\(\AgdaMacro{solve}\) and \(\AgdaMacro{solveOver}\). Each of these infer the
-goal from their context, and automatically construct the required machinery to
-prove the equality.
+A decent interface is crucial if we want the solver to be broadly useful. As
+well as ease of use, we had the explicit goal of making the interface as
+\emph{small} as possible: aside from the
+\(\AgdaDatatype{AlmostCommutativeRing}\) type described above, the user-facing
+portion of our library consists of just two macros: \(\AgdaMacro{solve}\) and
+\(\AgdaMacro{solveOver}\). Each of these infer the goal from their context, and
+automatically construct the required machinery to prove the equivalence.
 
 \(\AgdaMacro{solve}\) is demonstrated in Fig.~\ref{the-solver}. It takes a
 single argument: an implementation of the algebra. \(\AgdaMacro{solveOver}\) is
@@ -571,7 +563,7 @@ which are used in the core of the reflection mechanism. First,
 \end{center}
 
 This function is called on the \(\AgdaDatatype{Term}\) representing one side of
-the target equality. It converts it to the corresponding
+the target equivalence. It converts it to the corresponding
 \(\AgdaDatatype{Expr}\). In other words, it performs the following
 transformation:
 \[
@@ -752,12 +744,12 @@ indeed help us.
 
 Unfortunately, though, the ``general case'' isn't really that general: Agda's
 unification algorithm has a very important shortcut which we \emph{must} make
-use of if we want our code to typecheck quickly: \emph{syntactic equality}.
+use of if we want our code to typecheck quickly: \emph{syntactic equivalence}.
 
 Because Agda is a dependently-typed language, types can contain functions,
 variables, and all sorts of complex expressions. One might expect that the
 unification algorithm should compute these expressions as far as it can, getting
-them to normal form, before it checks for any kind of equality. This would be
+them to normal form, before it checks for any kind of equivalence. This would be
 disastrous for performance! Consider the following:
 \[ \AgdaFunction{sum} \; [ \AgdaNumber{1} .. \AgdaNumber{100} ] \stackrel{?}{=}
   \AgdaFunction{sum} \; [ \AgdaNumber{1} .. \AgdaNumber{100} ] \]
@@ -769,7 +761,7 @@ sees one, it can avoid any more computation on that particular expression.
 
 Taking advantage of that shortcut is key to achieving decent performance. With
 that in mind, there are two main strategies we'll use to encourage syntactic
-equality:
+equivalence:
 \subsubsection{Avoid Progress at all Costs}
 First, we will consider something which may seem inconsequential: the order of
 arguments to the evaluation functions.
@@ -798,11 +790,11 @@ normalisation before being blocked.
 
 Surprisingly, this is exactly what you \emph{don't} want! Since both sides of
 the equation will be coming out of the same normalisation function, they should
-have similar structures, allowing for syntactic equality. The coefficients,
+have similar structures, allowing for syntactic equivalence. The coefficients,
 though, will be computed during manipulations on the Horner normal form, and so
 may contain unevaluated expressions, which require normalisation. If we used
 \(\AgdaFunction{⟦\_⟧ᵣ}\) as our definition, then, the typechecker will likely
-hit an inequality very early on, and give up on syntactic equality. Even worse,
+hit an inequivalence very early on, and give up on syntactic equivalence. Even worse,
 because it's able to make progress, it will likely do so, completely changing
 the structure of the expression and ruining any chance for later syntactic
 equalities!
