@@ -531,8 +531,8 @@ guidelines for metaprogramming in Agda:
     statically know all of the implicit and explicit arguments that will be used
     at the call-site, it's much simpler to ignore them, and try our best to be
     flexible. Remember, none of this is typed, so if something changes (like,
-    say, a new universe level in \(\AgdaDatatype{AlmostCommutativeRing}\)) in
-    the order of arguments, you'll get type errors where you call
+    say, a new universe level in \(\AgdaDatatype{AlmostCommutativeRing}\)),
+    you'll get type errors where you call
     \(\AgdaMacro{solve}\), not where it's implemented.
   \item[Ask for forgiveness, not permission.] We could also here say ``don't
     roll your own typechecker''. While it may seem good and fastidious to
@@ -553,7 +553,7 @@ guidelines for metaprogramming in Agda:
     message:
     \[ x \neq y \; \text{of type} \; \AgdaDatatype{ℕ} \]
   \item[Try and implement as much of the logic outside of reflection
-    as possible] Finally, after all of that, we advise minimizing the amount of
+    as possible] Finally, after all of that, we advise minimising the amount of
     actual metaprogramming code in a program, and confining it to the edges as
     much as possible. With great power comes poor error messages, fragility, and
     a loss of first-class status. Therefore, If something can be done without
@@ -561,7 +561,9 @@ guidelines for metaprogramming in Agda:
     standard representation to another.
 \end{description}
 
-At the core of the implementation you will find the following function:
+To demonstrate some of these principles, we'll look at a couple of functions
+which are used in the core of the reflection mechanism. First,
+\(\AgdaFunction{toExpr}\):
 
 \begin{center}
   \ExecuteMetaData[../ReflectionSection.tex]{to-expr}
@@ -572,23 +574,43 @@ the target equality. It converts it to the corresponding
 \(\AgdaDatatype{Expr}\). In other words, it performs the following
 transformation:
 \[
-  \includegraphics[trim={25 15 28 10}]{graphics/lhs-expr}
-  \mapsto
-  \includegraphics[trim={25 15 22 10}]{graphics/lhs-ast}
+  \includegraphics[trim={25 14 28 10}]{graphics/lhs-expr}
+  \dashrightarrow
+  \includegraphics[trim={25 14 22 10}]{graphics/lhs-ast}
 \]
 
+It calls off to a number of helper functions (\(\AgdaFunction{getBinOp}\),
+\(\AgdaFunction{getExp}\), \(\AgdaFunction{getUnOp}\)) which extract the
+relevant arguments from an applied operator. We'll look at the one for
+exponentiation, whose definition is as follows:
 
-It also demonstrates the principles described above. The first four clauses all
-match for the ring operators. Taking exponentiation as an example, it calls off
-to the \(\AgdaFunction{getExp}\) function, which is implemented as follows:
 \begin{center}
   \ExecuteMetaData[../ReflectionSection.tex]{getExp}
 \end{center}
-As described above, this function looks only for the last two visible arguments
-to the exponentiation operator, ignoring all else. When it finds them, it
-applies the corresponding constructor for \(\AgdaDatatype{Expr}\), using the
-\(\AgdaFunction{⋯⟅∷⟆}\) function, which fills in all the hidden arguments we
-want the compiler to infer.
+
+Now, we can see how the guidelines from above are applied.
+
+First, \(\AgdaFunction{getExp}\) is flexible with regards to structure: it
+extracts the last two visible arguments (rather than the \(n^\text{th}\)) in the
+argument list (\(\AgdaInductiveConstructor{⟨∷⟩}\) is a pattern synonym which
+matches visible arguments), which means that it will still work even if
+\(\AgdaDatatype{AlmostCommutativeRing}\) gets another hidden parameter.
+
+Once it matches them, it applies the corresponding constructor for
+the \(\AgdaDatatype{Expr}\) type (\(\AgdaKeyword{quote} \;
+\AgdaInductiveConstructor{\_⊛\_} \; \AgdaFunction{⟨} \;
+\AgdaInductiveConstructor{con} \; \AgdaFunction{⟩}\)), calling
+\(\AgdaFunction{toExpr}\) recursively on the first argument. We expect \(y\) to
+be a \(\Nat\) here, but we don't check that ourselves:
+\(\AgdaInductiveConstructor{\_⊛\_}\) expects a \(\Nat\) for its second argument
+anyway, so if there's a problem we'll get \emph{exactly} the type error we want.
+
+In between those two parts, we have \(\AgdaNumber{3} \; \AgdaFunction{⋯⟅∷⟆}\).
+This applies three hidden arguments as ``unknown'', i.e. asks Agda to infer
+them. We could guess them ourselves: the first is the universe level of the
+carrier type, the second is the carrier type, and the third is the number of
+variables in the expression; but, as explained before, it's better to trust the
+compiler to guess them than us.
 
 Looking back to \(\AgdaFunction{toExpr}\), we notice that the last line is a
 catch-all, which simply constructs a constant expression. This is the trick
@@ -773,8 +795,35 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
 \subsubsection{Avoiding Identities}
 
 \subsection{Benchmarks}
-\begin{figure}[h]
-  \centering
+As expected, the sparse implementation exhibits a significant speedup in
+type-checking over the dense implementation. Figure~\ref{bench1}
+shows time taken to type check a proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\)
+is equal to its expanded form. The sparse representation is clearly faster
+overall, with a factor of 7.5 speedup for \(d = 8\).
+
+Figure~\ref{bench2} demonstrates where some of the speedup might come
+from. The expression \(x^d\) is represented very differently in the two
+implementations: in the sparse encoding, it's a single-element list containing a
+tuple of $1$ and $d$; in the dense encoding, however, it's a list of length $d$,
+with a single $1$ at the end. Since the complexities of arithmetic operations
+are bounded by the length of the list, this explains the difference in cost of
+the addition operations.
+
+Figure~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
+high and low powers and some constants. The sparse representation's advantage is
+even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
+
+The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
+expressions, possibly caused by the overhead of the sparse solver's more complex
+implementation. 3 seconds is quite small in the context of Agda type checking
+(the standard library, for instance, takes several minutes to type check), so we
+feel this slight loss is more than made up for by the several-minute gains.
+Furthermore, we have not been able to find a case where the dense solver is
+significantly faster than the sparse. Nonetheless, if a user really wants to use
+the dense solver, the components described in the following two sections are
+entirely modular, and can work with any underlying solver which uses the
+reflexive technique.
+\begin{figure}
   \newcounter{realxtickpos}
   \pgfplotsset{
       tick label style={font=\scriptsize},
@@ -788,14 +837,14 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
         \fi
         \stepcounter{realxtickpos}
       },
-      width=1.2\linewidth,
+      width=1.2\textwidth,
   }
   \setcounter{realxtickpos}{0}
-  \begin{subfigure}[t]{0.3\linewidth}
+  \begin{subfigure}[t]{0.3\textwidth}
     \begin{tikzpicture}
       \begin{axis}[
         legend columns=-1,
-        legend entries={sparse, dense},
+        legend entries={new, old},
         legend to name=benchplots,
         extra y ticks={15},
         title={(\subref{bench1}) $(x_1 + x_2 + \ldots + x_n)^d$},
@@ -825,7 +874,7 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
     \phantomcaption \label{bench1}
   \end{subfigure}
   \setcounter{realxtickpos}{0}
-  \begin{subfigure}[t]{0.3\linewidth}
+  \begin{subfigure}[t]{0.3\textwidth}
     \begin{tikzpicture}
       \begin{axis}[
         extra y ticks={5},
@@ -852,7 +901,7 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
     \phantomcaption\label{bench2}
   \end{subfigure}
   \setcounter{realxtickpos}{0}
-  \begin{subfigure}[t]{0.3\linewidth}
+  \begin{subfigure}[t]{0.3\textwidth}
     \begin{tikzpicture}
       \begin{axis}[
         extra y ticks={40},
@@ -882,12 +931,17 @@ normalised, we'll mess up its whole structure, ruining later syntactic checks!
     \end{tikzpicture}
     \phantomcaption\label{bench3}
   \end{subfigure}
-
   \ref{benchplots}
-
   \caption{Time (in seconds) to prove each expression is equal to its expanded
     form ($n = 5$ for each).}
   \label{benchmarks}
+  \smallskip
+  \begin{flushleft}
+  \footnotesize
+  Benchmarks performed on Agda version 2.6-0fa9b13, with the Agda standard
+  library at commit-3bd3334a9552490e396f73f96812105a27e5917b, on a 2016 MacBook
+  Pro, with a 2.9 GHz Intel Core i7 and 16 GB of RAM.
+  \end{flushleft}
 \end{figure}
 \section{Pedagogical Solutions}
 One of the most widely-used and successful computer algebra systems, especially
@@ -939,7 +993,7 @@ interspersed with the states of the expression (the vertices in the graph).
 If we stopped there, however, the solver would output incredibly verbose
 ``solutions'': far too verbose to be human-readable. Instead, we must apply a
 number of heuristics to cut down on the solution length:
-\begin{wrapfigure}{r}{0.5\linewidth}
+\begin{wrapfigure}{r}{0.5\textwidth}
   \centering
   \begin{tikzpicture}
     \node (n0) at (2,9) {$1 + 2 + y + x$};
