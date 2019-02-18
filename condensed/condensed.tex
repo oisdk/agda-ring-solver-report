@@ -470,7 +470,7 @@ or rather, what we \emph{don't} require from the user:
     \emph{automatic} change to the proof constructed.
   \item We don't ask the user to write any kind of ``reflection logic'' for
     their type. In other words, we don't require a function which (for instance)
-    recognizes and parses the user's type in the reflected AST, or a function
+    recognises and parses the user's type in the reflected AST, or a function
     which does the opposite, converting a concrete value into the AST that (when
     unquoted) would produce an expression equivalent to the quoted value.
 
@@ -480,7 +480,7 @@ or rather, what we \emph{don't} require from the user:
 \end{itemize}
 
 Finally, despite the simplicity and ease-of-use described above, the solver is
-\emph{not} specialized to a small number of types like \(\Nat\) and
+\emph{not} specialised to a small number of types like \(\Nat\) and
 so on. The whole library, including the reflection-based interface, will work
 with any type with an \(\AgdaDatatype{AlmostCommutativeRing}\) instance.
 
@@ -1012,7 +1012,7 @@ the best current work on the topic, but even so very little work exists in the
 way of the theoretical basis for pedagogical solutions.
 
 \citet{lioubartsev_constructing_2016} reformulates the problem as one of
-\emph{pathfinding}. The left-hand-side and right-hand-side of the equation are
+\emph{path-finding}. The left-hand-side and right-hand-side of the equation are
 vertices in a graph, where the edges are single steps to rewrite an expression
 to an equivalent form. A* is used to search.
 
@@ -1122,9 +1122,9 @@ an important part of the interfaces to automated proof procedures. Reflection in
 dependent types in general is explored in \citet{christiansen_practical_2015},
 and specific to Agda in \citet{van_der_walt_reflection_2012}.
 
-Formalization of mathematics in general is an ongoing project.
+Formalisation of mathematics in general is an ongoing project.
 \citet{wiedijk_formalizing_2018} tracks how much of ``The 100 Greatest Theorems''
-\cite{kahl_hundred_2004} have so far been formalized (at time of writing, the
+\cite{kahl_hundred_2004} have so far been formalised (at time of writing, the
 number stands at 93). DoCon \cite{meshveliani_docon-provable_2018} is a notable
 Agda library in this regard: it contains many tools for basic maths, and
 implementations of several CAS algorithms. Its implementation is described
