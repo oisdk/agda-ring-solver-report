@@ -129,8 +129,11 @@
 \usepackage[references]{agda}
 
 \newcommand{\Nat}{\AgdaDatatype{ℕ}}
+\newcommand{\Int}{\AgdaDatatype{ℤ}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\theoremstyle{remark}
+\newtheorem{principle}{Principle}
 
 \begin{document}
 
@@ -328,7 +331,6 @@ correctness. Beyond that, though, we also satisfied the following requirements:
     it in Agda using our solver. In doing so, we will formalise the concept, and
     explore some of the theory behind it. 
 \end{description}
-\newpage
 \section{Overview of the Proof Technique}
 \begin{figure}[b]
   \resizebox{\textwidth}{!}{\includegraphics[draft=false]{graphics/reflexive-process}}
@@ -428,8 +430,8 @@ A decent interface is crucial if we want the solver to be broadly useful. As
 well as ease of use, we had the explicit goal of making the interface as
 \emph{small} as possible: aside from the
 \(\AgdaDatatype{AlmostCommutativeRing}\) type described above, the user-facing
-portion of our library consists of just two macros: \(\AgdaMacro{solve}\) and
-\(\AgdaMacro{solveOver}\). Each of these infer the goal from their context, and
+portion of our library consists of just two macros (\(\AgdaMacro{solve}\) and
+\(\AgdaMacro{solveOver}\)). Each of these infer the goal from their context, and
 automatically construct the required machinery to prove the equivalence.
 
 \(\AgdaMacro{solve}\) is demonstrated in Fig.~\ref{the-solver}. It takes a
@@ -472,13 +474,15 @@ or rather, what we \emph{don't} require from the user:
 \end{itemize}
 
 Finally, despite the simplicity and ease-of-use described above, the solver is
-\emph{not} specialised to a small number of types like \(\Nat\) and
-so on. The whole library, including the reflection-based interface, will work
-with any type with an \(\AgdaDatatype{AlmostCommutativeRing}\) instance.
-
+\emph{not} specialised to a small number of types like \(\Nat\), \(\Int\) and so
+on. The whole library, including the reflection-based interface, will work with
+any type with an \(\AgdaDatatype{AlmostCommutativeRing}\) instance.
 \subsection{Reflection}
-Agda has good support for reflection, which we will use to build our interface.
-Agda's reflection system consists of three main parts: 
+Agda has powerful metaprogramming facilities, which allow programs to manipulate
+their own code. Here, we'll use reflection to implement the interface to our
+solver.
+
+Agda's reflection API is mostly encapsulated by the following three types:
 \begin{description}
   \item[\(\AgdaDatatype{Term}\)] The representation of Agda's AST, retrievable
     via \(\AgdaKeyword{quoteTerm}\).
@@ -493,75 +497,25 @@ Agda's reflection system consists of three main parts:
 While \(\AgdaKeyword{quote}\), \(\AgdaKeyword{quoteTerm}\), and
 \(\AgdaKeyword{unquote}\) provide all the functionality we need, they're
 somewhat low-level and noisy (syntactically speaking). Agda also provides a
-mechanism (which it calls ``macros'') to package metaprogramming code so it
-looks like a normal function call (as in \(\AgdaMacro{solve}\)).
+mechanism (which it calls macros) to package metaprogramming code so it looks
+like a normal function call (as in \(\AgdaMacro{solve}\)).
 
 Reflection is obviously a powerful tool, but it has a reputation for being
 unsafe and error-prone. Agda's reflection system doesn't break type safety, but
 we \emph{are} able to construct \(\AgdaDatatype{Term}\)s which are ill-typed,
 which often result in confusing error-messages on the user's end. Unfortunately,
-constructing ill-typed terms is quite easy to do: every quoted expression comes
-with heaps of contextual information, making the whole thing very fragile.
-Variables, for instance, are referred to by their de Bruijn indices, meaning
-that the same \(\AgdaDatatype{Term}\) can break if it's simply moved under a
-lambda.
+constructing ill-typed terms is quite easy to do: the \(\AgdaDatatype{Term}\)
+type itself doesn't contain a whole lot of type information, and it's quite
+fragile and sensitive to context. Variables, for instance, are referred to by
+their de Bruijn indices, meaning that the same \(\AgdaDatatype{Term}\) can break
+if it's simply moved under a lambda.
 
-All of that considered, we feel we managed to construct a reasonably robust
-reflection-based interface. In doing so, we came up with the following general
-guidelines for metaprogramming in Agda:
-
-\begin{description}
-  \item[Supply the minimal amount of information.] There were several instances
-    where, in constructing a term, we were tempted to supply explicitly some
-    argument that Agda usually infers. Universe levels were a common example.
-    In general, though, this is a bad idea: AST manipulation is fragile and
-    error-prone, so the chances that you'll get some argument wrong are very
-    high. Instead, you should \emph{leverage} the compiler, relying on inference
-    over direct metaprogramming as much as possible.
-  \item[Don't assume structure.] A common pattern we used to try and find
-    arguments to an \(n\)-ary function was to simply extract the last \(n\)
-    visible arguments to the function. While in theory we might be able to
-    statically know all of the implicit and explicit arguments that will be used
-    at the call-site, it's much simpler to ignore them, and try our best to be
-    flexible. Remember, none of this is typed, so if something changes (like,
-    say, a new universe level in \(\AgdaDatatype{AlmostCommutativeRing}\)),
-    you'll get type errors where you call
-    \(\AgdaMacro{solve}\), not where it's implemented.
-  \item[Ask for forgiveness, not permission.] We could also here say ``don't
-    roll your own typechecker''. While it may seem good and fastidious to
-    rigorously check the structure of the arguments given to a macro, often we
-    found better results by assuming the argument was correct (where possible),
-    and then carefully structuring the output in such a way to funnel a type
-    error to the place where the input was incorrect. For instance, one section
-    of the solver algorithm expects a proof that the two normal forms of the
-    equations are the same. Here, we simply supply
-    \(\AgdaInductiveConstructor{refl}\), assuming that they are, in fact, the
-    same. When they're \emph{not}, for instance, in the following type:
-
-    \begin{center}
-      \ExecuteMetaData[../ReflectionSection.tex]{wrong-lemma}
-    \end{center}
-
-    A call to \(\AgdaMacro{solve}\) will provide the reasonably helpful error
-    message:
-    \[ x \neq y \; \text{of type} \; \AgdaDatatype{ℕ} \]
-  \item[Try and implement as much of the logic outside of reflection
-    as possible] Finally, after all of that, we advise minimising the amount of
-    actual metaprogramming code in a program, and confining it to the edges as
-    much as possible. With great power comes poor error messages, fragility, and
-    a loss of first-class status. Therefore, If something can be done without
-    reflection, \emph{do it}, and use reflection as the glue to get from one
-    standard representation to another.
-\end{description}
-
-To demonstrate some of these principles, we'll look at a couple of functions
-which are used in the core of the reflection mechanism. First,
-\(\AgdaFunction{toExpr}\):
-
+Building a robust interface using reflection required a great deal of care. To
+demonstrate some of the techniques we used, we'll look at two functions from the
+core of the interface. First, \(\AgdaFunction{toExpr}\):
 \begin{center}
   \ExecuteMetaData[../ReflectionSection.tex]{to-expr}
 \end{center}
-
 This function is called on the \(\AgdaDatatype{Term}\) representing one side of
 the target equivalence. It converts it to the corresponding
 \(\AgdaDatatype{Expr}\). In other words, it performs the following
@@ -572,46 +526,81 @@ transformation:
   \includegraphics[trim={25 14 22 10}]{graphics/lhs-ast}
 \]
 
-It calls off to a number of helper functions (\(\AgdaFunction{getBinOp}\),
-\(\AgdaFunction{getExp}\), \(\AgdaFunction{getUnOp}\)) which extract the
-relevant arguments from an applied operator. We'll look at the one for
-exponentiation, whose definition is as follows:
+When it encounters one of the ring operators, it calls the corresponding helper
+function (\(\AgdaFunction{getBinOp}\), \(\AgdaFunction{getExp}\), or
+\(\AgdaFunction{getUnOp}\)) which finds the important subterms from the
+operator's argument list.
 
+If it \emph{doesn't} manage to match an operator or a variable, it assumes that
+what it has must be a constant, and wraps it up in the
+\(\AgdaInductiveConstructor{K}\) constructor. This is the key trick which allows
+us to avoid ever asking the user to quote their own type. While it may seem
+unsafe at first glance, we actually found it to be more robust than the
+alternative:
+\begin{principle}[Don't reimplement the typechecker] While it may seem good and
+  fastidious to rigorously check the structure and types of arguments given to a
+  macro, we found in general it was a \emph{bad} idea to do validity-checking in
+  metaprogramming code. Instead, we preferred to proceed as if there were no
+  errors (if possible), but arrange the output so that the user would still see
+  a type error where the input was incorrect.
+
+  Taking this case as an example, if the user indeed manages to supply something
+  other than the correct type, Agda will catch the error, as an incorrect
+  argument to \(\AgdaInductiveConstructor{K}\).
+
+  If, on the other hand, we had asked the user to quote their own type, we
+  would have trouble handling (for instance) closed applications of functions,
+  references to names outside the lambda, etc. This approach, on the other hand,
+  has no such difficulty.
+\end{principle}
+
+Next, we'll look at one of the helper functions: \(\AgdaFunction{getExp}\),
+which deals with exponentiation.
 \begin{center}
   \ExecuteMetaData[../ReflectionSection.tex]{getExp}
 \end{center}
 
-Now, we can see how the guidelines from above are applied.
+It extracts the last two arguments to the exponentiation operator, and wraps
+them up with the \(\AgdaInductiveConstructor{⊛}\). Something worth noticing is
+that it doesn't care how long the list actually is, it only looks for the last
+two arguments. Again, we found that this looseness was actually a benefit:
 
-First, \(\AgdaFunction{getExp}\) is flexible with regards to structure: it
-extracts the last two visible arguments (rather than the \(n^\text{th}\)) in the
-argument list (\(\AgdaInductiveConstructor{⟨∷⟩}\) is a pattern synonym which
-matches visible arguments), which means that it will still work even if
-\(\AgdaDatatype{AlmostCommutativeRing}\) gets another hidden parameter.
+\begin{principle}[Don't assume structure] In this example, as well as elsewhere,
+  to find arguments to an \(n\)-ary function we to simply extract the last \(n\)
+  visible arguments to the function. While in theory we might be able to
+  statically know all of the implicit and explicit arguments that will be used
+  at the call-site, it's much simpler to ignore them, and try our best to be
+  flexible. Remember, none of this is typed, so if something changes (like, say,
+  a new universe level in \(\AgdaDatatype{AlmostCommutativeRing}\)), you'll get
+  type errors where you call \(\AgdaMacro{solve}\), not where it's implemented.
+\end{principle}
 
-Once it matches them, it applies the corresponding constructor for
-the \(\AgdaDatatype{Expr}\) type (\(\AgdaKeyword{quote} \;
-\AgdaInductiveConstructor{\_⊛\_} \; \AgdaFunction{⟨} \;
-\AgdaInductiveConstructor{con} \; \AgdaFunction{⟩}\)), calling
-\(\AgdaFunction{toExpr}\) recursively on the first argument. We expect \(y\) to
-be a \(\Nat\) here, but we don't check that ourselves:
-\(\AgdaInductiveConstructor{\_⊛\_}\) expects a \(\Nat\) for its second argument
-anyway, so if there's a problem we'll get \emph{exactly} the type error we want.
-
-In between those two parts, we have \(\AgdaNumber{3} \; \AgdaFunction{⋯⟅∷⟆}\).
+The next thing to point out is \(\AgdaNumber{3} \; \AgdaFunction{⋯⟅∷⟆}\).
 This applies three hidden arguments as ``unknown'', i.e. asks Agda to infer
 them. We could guess them ourselves: the first is the universe level of the
 carrier type, the second is the carrier type, and the third is the number of
-variables in the expression; but, as explained before, it's better to trust the
-compiler to guess them than us.
+variables in the expression; however, we advise being as \emph{in}specific as
+possible, relying on the compiler to guess where you can:
 
-Looking back to \(\AgdaFunction{toExpr}\), we notice that the last line is a
-catch-all, which simply constructs a constant expression. This is the trick
-which lets us avoid any custom quotation machinery from the user. It's also more
-robust than asking for custom quotation machinery: if, for instance, there's a
-function call or something similar hidden in this case, quotation won't work.
-This solution, though, which just packages up the expression as-is, will have no
-trouble.
+\begin{principle}[Supply the minimal amount of information] There were several
+  instances where, in constructing a term, we were tempted to supply explicitly
+  some argument that Agda usually infers. Universe levels were a common example.
+  In general, though, this is a bad idea: AST manipulation is fragile and
+  error-prone, so the chances that you'll get some argument wrong are very high.
+  Instead, you should \emph{leverage} the compiler, relying on inference over
+  direct metaprogramming as much as possible.
+\end{principle}
+
+The final point to make is that the entire interface implementation is itself
+quite small (fewer than 100 lines). This isn't because our code was terse:
+rather, we intentionally minimised the amount of metaprogramming we did:
+
+\begin{principle}[Try and implement as much of the logic outside of reflection
+  as possible] With great power comes poor error messages, fragility, and a loss
+  of first-class status. Therefore, If something can be done without reflection,
+  \emph{do it}, and use reflection as the glue to get from one standard
+  representation to another.
+\end{principle}
 \section{Performance}
 Type-checking proof-heavy Agda code is notoriously slow, so the solver had to be
 carefully optimised to avoid being so slow as to be unusable. We'll start by
@@ -682,11 +671,11 @@ of 3 variables looks like the following:
 \end{center}
 
 The solution is another index: this time an ``injection'' index. This represents
-``how many variables to skip over before you get to the interesting stuff''.
-This particular optimisation is considerably more complex than the previous,
-though: the number of variables in a polynomial is a type-relevant piece of
-information, so any \emph{manipulation} of that index will have to justify
-itself to the typechecker.
+``how many variables to skip over before you get to the interesting stuff''. In
+contrast to the previous index, though, this one is type-relevant: we can't just
+store a \(\Nat\) next to the nested polynomial to represent the gap. Because the
+polynomial is indexed by the number of variables it contains, any encoding of
+the gap will have provide the proper type information to respect that index.
 \subsection{Hanging Indices}
 The problem is a common one: we have a piece of code that works efficiently,
 and we now want to make it ``more typed'', by adding more information to it,
@@ -708,14 +697,16 @@ variables in the outer. All of that is stored in the following proof of \(\le\):
 
 A value of type \(n \; \AgdaDatatype{≤} \; m\) mimics the inductive structure of
 the \(\Nat\) we were storing to represent the distance between \(n\)
-and \(m\). We were able to take this analogy to the extreme: where we needed an
-equivalent of \(\AgdaDatatype{Ordering}\):
+and \(m\). We were able to take this analogy quite far: in a few functions, for
+instance, we needed to compare these gaps. By mimicking the inductive structure
+of \(\Nat\), we were able to directly translate \(\AgdaDatatype{Ordering}\) and
+\(\AgdaFunction{compare}\) on \(\Nat\):
 
 \begin{center}
   \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{ord-type}
 \end{center}
 
-We were able to construct one, with transitivity replacing addition.
+into equivalent functions on \(\le\):
 
 \begin{multicols}{2}
   \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{leq-compare}
@@ -783,10 +774,10 @@ Taking the polynomial \(x^2 + 2\) as an example:
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{for-progress}
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{back-progress}
 \end{multicols}
-In \(\AgdaFunction{⟦\_⟧ₗ}\), progress is immediately blocked when we try to
-scrutinise \(x\). In \(\AgdaFunction{⟦\_⟧ᵣ}\), since all of the constants are
-kept to the left, they're scrutinised first, allowing us to perform much more
-normalisation before being blocked.
+In \(\AgdaFunction{⟦\_⟧ₗ}\), we're blocked pretty much straight away, as \(x\)
+is the first thing we try to scrutinise. In \(\AgdaFunction{⟦\_⟧ᵣ}\), since all
+of the constants are kept to the left, they're scrutinised first, allowing us to
+perform much more normalisation before being blocked.
 
 Surprisingly, this is exactly what you \emph{don't} want! Since both sides of
 the equation will be coming out of the same normalisation function, they should
@@ -861,14 +852,12 @@ To remedy this problem, we took inspiration from \citet{mu_algebra_2009}, and
 relied heavily on abstraction and folds to improve the reuse in proof code. In
 particular, we defined many operations as \emph{metamorphisms}
 \cite{gibbons_metamorphisms_2007}. So, instead of defining (say) negation over
-the polynomial type itself, we will define a metamorphism, which has the
-following type:
+the polynomial type itself, we will define a metamorphism to express negation,
+and then call some higher-order function to run that metamorphism over a
+polynomial.
 \begin{center}
   \ExecuteMetaData[../AbstractionAndFolds.tex]{fold-def}
 \end{center}
-And then we can run a metamorphism over a polynomial with some higher-order
-function.
-
 From here, we can define the \emph{semantics} of a metamorphism. As an example,
 here are the semantics of \(\AgdaFunction{mapR}\), a simple morphism which
 behaves something like \(\AgdaFunction{map}\) on lists:
@@ -882,6 +871,33 @@ Crucially, optimisations like the sparse encoding \emph{respect} these
 semantics, so we only have to change our proof in one place: the definition of
 \(\AgdaFunction{poly-mapR}\).
 \subsection{Benchmarks}
+As expected, the sparse implementation exhibits a significant speedup in
+type-checking over the dense implementation. Fig.~\ref{bench1}
+shows time taken to type check a proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\)
+is equal to its expanded form. The sparse representation is clearly faster
+overall, with a factor of 7.5 speedup for \(d = 8\).
+
+Fig.~\ref{bench2} demonstrates where some of the speedup might come
+from. The expression \(x^d\) is represented very differently in the two
+implementations: in the sparse encoding, it's a single-element list containing a
+tuple of $1$ and $d$; in the dense encoding, however, it's a list of length $d$,
+with a single $1$ at the end. Since the complexities of arithmetic operations
+are bounded by the length of the list, this explains the difference in cost of
+the addition operations.
+
+Fig.~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
+high and low powers and some constants. The sparse representation's advantage is
+even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
+
+The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
+expressions, possibly caused by the overhead of the sparse solver's more complex
+implementation. 3 seconds is quite small in the context of Agda type checking
+(the standard library, for instance, takes several minutes to type check), so we
+feel this slight loss is more than made up for by the several-minute gains.
+Furthermore, we have not been able to find a case where the dense solver is
+significantly faster than the sparse. Nonetheless, if a user really wants to use
+the dense solver, the other components described here are entirely modular, and
+can work with any underlying solver which uses the reflexive technique.
 \begin{figure}
   \newcounter{realxtickpos}
   \pgfplotsset{
@@ -954,33 +970,6 @@ semantics, so we only have to change our proof in one place: the definition of
   }
   \label{benchmarks}
 \end{figure}
-As expected, the sparse implementation exhibits a significant speedup in
-type-checking over the dense implementation. Fig.~\ref{bench1}
-shows time taken to type check a proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\)
-is equal to its expanded form. The sparse representation is clearly faster
-overall, with a factor of 7.5 speedup for \(d = 8\).
-
-Fig.~\ref{bench2} demonstrates where some of the speedup might come
-from. The expression \(x^d\) is represented very differently in the two
-implementations: in the sparse encoding, it's a single-element list containing a
-tuple of $1$ and $d$; in the dense encoding, however, it's a list of length $d$,
-with a single $1$ at the end. Since the complexities of arithmetic operations
-are bounded by the length of the list, this explains the difference in cost of
-the addition operations.
-
-Fig.~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
-high and low powers and some constants. The sparse representation's advantage is
-even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
-
-The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
-expressions, possibly caused by the overhead of the sparse solver's more complex
-implementation. 3 seconds is quite small in the context of Agda type checking
-(the standard library, for instance, takes several minutes to type check), so we
-feel this slight loss is more than made up for by the several-minute gains.
-Furthermore, we have not been able to find a case where the dense solver is
-significantly faster than the sparse. Nonetheless, if a user really wants to use
-the dense solver, the other components described here are entirely modular, and
-can work with any underlying solver which uses the reflexive technique.
 \section{Pedagogical Solutions}
 One of the most widely-used and successful computer algebra systems, especially
 among non-programmers, is Wolfram|Alpha
@@ -999,7 +988,7 @@ input \(x^2 + 5 x + 6 = 0\), it will give the following output:
 These tools can be invaluable for students learning basic mathematics.
 Unfortunately, much of the software capable of generating usable solutions is
 proprietary (including Wolfram Alpha), and little information is available as to
-their implementation techniques.\cite{lioubartsev_constructing_2016} is perhaps
+their implementation techniques. \citet{lioubartsev_constructing_2016} is perhaps
 the best current work on the topic, but even so very little work exists in the
 way of the theoretical basis for pedagogical solutions.
 
@@ -1008,13 +997,13 @@ way of the theoretical basis for pedagogical solutions.
 vertices in a graph, where the edges are single steps to rewrite an expression
 to an equivalent form. A* is used to search.
 
-This approach suffers from a huge search space: every vertex will have an edge
-for almost every one of the ring axioms, and as such a good heuristic is
-essential. Unfortunately, what this should be is not
-clear: \citet{lioubartsev_constructing_2016} uses a measure of the ``simplicity''
-of an expression.
+Unfortunately, this approach has to deal with a huge search space: every vertex
+will have an edge for almost every one of the ring axioms, and as such a good
+heuristic is essential. Unfortunately, what this should be is not clear:
+\citet{lioubartsev_constructing_2016} uses a measure of the ``simplicity'' of an
+expression.
 
-So, with an eye to using our solver instead of A*, we can notice that paths in
+So, with an eye to using our solver to help, we can notice that paths in
 undirected graphs form a perfectly reasonable equivalence relation: transitivity
 is the concatenation of paths, reflexivity is the empty path, and symmetry is
 \emph{reversing} a path. Equivalence classes, in this analogy, are connected
@@ -1027,45 +1016,42 @@ interspersed with the states of the expression (the vertices in the graph).
 \begin{multicols}{2}
   \ExecuteMetaData[../SetoidApplications.tex]{traced}
 \end{multicols}
-
-If we stopped there, however, the solver would output incredibly verbose
-``solutions'': far too verbose to be human-readable. Instead, we must apply a
-number of heuristics to cut down on the solution length:
-\begin{wrapfigure}{r}{0.5\textwidth}
+\begin{wrapfigure}{r}{0.3\textwidth}
   \centering
-  \begin{tikzpicture}
-    \node (n0) at (2,9) {$1 + 2 + y + x$};
-    \node (n1) at (-2,6) {$x + y * 1 + 3$};
-    \node (n2) at (2,7.5) {$3 + y + x$};
-    \node (n3) at (2,6) {$y + 3 + x$};
-    \node (n4) at (0,4.5) {$x + y + 3$};
-    \node (n5) at (-1,3) {$3 + x + y$};
-    \node (n6) at (1,3) {$x + 3 + y$};
-    \draw[-stealth] (n1) to (n4);
-    \draw[-stealth] (n3) to (n2);
-    \draw[-stealth] (n2) to (n0);
-    \draw[-stealth] (n4) to (n3);
-    \draw[-stealth] (n4) to (n5);
-    \draw[-stealth] (n5) to (n6);
-    \draw[-stealth] (n6) to (n4);
-  \end{tikzpicture}
-  \caption{Hourglass-Shaped Graph}
+  \resizebox{0.35\textwidth}{!}{
+    \begin{tikzpicture}
+      \node (n0) at (2,9) {$1 + 2 + y + x$};
+      \node (n1) at (-2,6) {$x + y * 1 + 3$};
+      \node (n2) at (2,7.5) {$3 + y + x$};
+      \node (n3) at (2,6) {$y + 3 + x$};
+      \node (n4) at (0,4.5) {$x + y + 3$};
+      \node (n5) at (-1,3) {$3 + x + y$};
+      \node (n6) at (1,3) {$x + 3 + y$};
+      \draw[-stealth] (n1) to (n4);
+      \draw[-stealth] (n3) to (n2);
+      \draw[-stealth] (n2) to (n0);
+      \draw[-stealth] (n4) to (n3);
+      \draw[-stealth] (n4) to (n5);
+      \draw[-stealth] (n5) to (n6);
+      \draw[-stealth] (n6) to (n4);
+    \end{tikzpicture}
+  } \caption{Hourglass-Shaped Graph}
   \label{h-graph}
 \end{wrapfigure}
+If we stopped there, however, the solver would output incredibly verbose
+``solutions'': far too verbose to be human-readable. Instead, we must apply a
+number of path-compression heuristics to cut down on the solution length:
+
 \begin{enumerate}
-  \item First, we filter out ``uninteresting'' steps. These are steps which are
+  \item First, we run (a version of) Dijkstra's algorithm on the generated path.
+    Fig~\ref{h-graph} shows an example solution without this heuristic applied: 
+    it crosses the same point multiple times, creating the kind of loops we want
+    to avoid. In contrast to using just A* on its own, the search space is
+    minimal (with only one outward edge for each vertex).
+  \item Then, we filter out ``uninteresting'' steps. These are steps which are
     obvious to a human, like associativity, or evaluation of closed terms. When
     a step is divided over two sides of an operator, it is deemed
     ``interesting'' if either side is interesting.
-  \item Next, we remove any ``step, reverse-step'' chains. Since we're
-    converting expressions to normal form, the path may be hourglass-shaped.
-    Fig.~\ref{h-graph} is the output from our solver without this heuristic
-    applied.
-
-    The problem is that both expressions hit a common form early on, at \(x + y
-    + 3\). Nonetheless, the proof will soldier on, giving superfluous steps.
-
-    These sections are what we want to detect, and remove.
 \end{enumerate}
 
 After applying those heuristics, our solver outputs the following for the lemma
