@@ -282,19 +282,28 @@ Agda can be easy, friendly, and fun. This work describes one such tool: an
 Agda library which automates the construction of proofs like
 Fig.~\ref{ring-proof}, making them as easy as Fig.~\ref{the-solver}.
 
-As you might expect, our solver comes accompanied by a formal proof of
-correctness. Beyond that, though, we also satisfied the following requirements:
+While correctness is, of course, an essential feature of any library like ours,
+it's not the whole story. For this work, we also felt that it was important to
+achieve the following:
 \begin{description}
-  \item[Friendliness and Ease of Use] Proofs like the one in
-    Fig.~\ref{ring-proof} aren't just boring: they're \emph{difficult}.
-    The programmer needs to remember the particular syntax for each step (``is
-    it \(\AgdaFunction{+-comm}\) or \(\AgdaFunction{+-commutative}\)?''), and
-    often they have to put up with poor error messages.
+  \item[Ease of Use] Proofs like the one in Fig.~\ref{ring-proof} aren't just
+    boring: they're \emph{difficult}. The programmer needs to remember the
+    particular syntax for each step (``is it \(\AgdaFunction{+-comm}\) or
+    \(\AgdaFunction{+-commutative}\)?''), and often they have to put up with
+    poor error messages.
 
-    We believe this kind of difficulty is why Agda's current ring solver
-    \cite{danielsson_agda_2018} enjoys little widespread use. Its interface
-    (Fig.~\ref{old-solver}) is almost as verbose as the manual proof, and it
-    requires programmers to learn another syntax specific to the solver.
+    This difficulty comprises a large part of the motivation behind a solver
+    like ours: by reducing the amount of uninteresting proof code a programmer
+    needs to write, we hope to make larger formalisations of mathematics more
+    achievable. It's absolutely \emph{vital}, then, that the solver is easy to
+    use: if it's easier to prove something manually than it is to automate it,
+    what was the point of the automation in the first place?
+
+    We feel that we have improved on Agda's current solver
+    \cite{danielsson_agda_2018} in this regard. While it can automate proofs
+    like Fig.~\ref{ring-proof}, its interface (Fig.~\ref{old-solver}) is quite
+    verbose, and it requires programmers to learn another syntax specific to the
+    solver.
 
     Our solver strives to be as easy to use as possible: the high-level
     interface is simple (Fig.~\ref{the-solver}), we don't require anything
@@ -320,11 +329,12 @@ correctness. Beyond that, though, we also satisfied the following requirements:
     surprising part of the program. In terms of both practical use and
     theoretical bounds, our solver is significantly faster than Agda's current
     solver.
-  \item[Educational Features] While our solver comes with the benefit of formal
-    correctness, it's still playing catch-up to other less-rigorous computer
-    algebra systems in terms of features. These features have driven systems
-    like Wolfram|Alpha \cite{wolfram_research_inc._wolframalpha_2019} to
-    widespread popularity among (for instance) students learning mathematics.
+  \item[Educational Features] Outside the rigorous world of dependently-typed
+    languages, computer algebra systems (of one form or another) have had
+    massive success among programmers and non-programmers alike. These days,
+    many of these systems (like Wolfram|Alpha
+    \cite{wolfram_research_inc._wolframalpha_2019}) provide educational
+    features, which have proven invaluable to students learning mathematics.
 
     We will take just one of those features (``pedagogical'', or step-by-step
     solutions \cite{the_development_team_step-by-step_2009}), and re-implement
@@ -382,23 +392,28 @@ As in \citet[section~5]{gregoire_proving_2005}, we use an algebra called an
 \emph{almost-ring}. It has the regular operations (\(+\), \(*\)
 (multiplication), \(-\), \(0\), and \(1\)), such that the following equations
 hold:
+\begin{multicols}{2}
+  \noindent
+  \begin{align}
+    0 + x       &= x \\
+    x + y       &= y + x \\
+    x + (y + z) &= (x + y) + z \\
+    1 * x       &= x \\
+    x * y       &= y * x
+  \end{align}
+  \begin{align}
+    x * (y * z) &= (x * y) * z \\
+    (x + y) * z &= x * z + y * z \\
+    0 * x       &= 0 \label{semiring} \\
+    -(x * y)    &= - x * y \label{ringmul} \\
+    -(x + y)    &= -x + -y \label{ringadd}
+  \end{align}
+\end{multicols}
+The equations up to \ref{semiring} represent a pretty standard definition of a
+(commutative) semiring. From there, though, things are different. The normal
+definition of a commutative ring would have (instead of \ref{ringmul} and
+\ref{ringadd}) the following:
 \begin{align}
-  0 + x       &= x \\
-  x + y       &= y + x \\
-  x + (y + z) &= (x + y) + z \\
-  1 * x       &= x \\
-  x * y       &= y * x \\
-  x * (y * z) &= (x * y) * z \\
-  (x + y) * z &= x * z + y * z \\
-  0 * x       &= 0 \label{semiring} \\
-  -(x * y)    &= - x * y \label{ringmul} \\
-  -(x + y)    &= -x + -y \label{ringadd} \\
-  \intertext{
-  The equations up to \ref{semiring} represent a pretty standard definition of
-  a (commutative) semiring. From there, though, things are different. The normal
-  definition of a commutative ring would have (instead of \ref{ringmul} and
-  \ref{ringadd}) the following:
-  } 
   x + - x     &= 0
 \end{align}
 However, by choosing these slightly more complex laws, we can admit types like
@@ -425,14 +440,34 @@ users to skip it
 (\(\AgdaFunction{is-zero}~=~\AgdaFunction{const}~\AgdaInductiveConstructor{nothing}\))
 if their type doesn't support decidable equivalence, or provide it (and get the
 speedup) if it does.
+\subsection{Correctness}
+The \(\AgdaFunction{correct}\) function amounts to a proof of soundness: i.e.,
+the solver will only ever prove equations which are genuinely equivalent. We
+have not, however, proven completeness (i.e., that every genuine equivalence
+will be proven by our solver), and indeed it is not possible to do so.
+
+In the internal representation of the solver, we prove several data structure
+invariants (like sparsity) intrinsically.
+
+The reflection-based interface is unproven, but this does not invalidate the
+solver: any errors will be caught by the typechecker, meaning that we are still
+prevented from proving things that are untrue.
+\subsection{Flexibility}
+The solver (including the interface) will work with any type which implements
+\(\AgdaDatatype{AlmostCommutativeRing}\), as described above. Furthermore, we
+prove \emph{equivalences} (rather than equalities), meaning that our solver will
+work on custom setoids. A consequence of this particular genericity is the
+step-by-step solutions described below.
 \section{The Interface}
-A decent interface is crucial if we want the solver to be broadly useful. As
-well as ease of use, we had the explicit goal of making the interface as
-\emph{small} as possible: aside from the
-\(\AgdaDatatype{AlmostCommutativeRing}\) type described above, the user-facing
-portion of our library consists of just two macros (\(\AgdaMacro{solve}\) and
-\(\AgdaMacro{solveOver}\)). Each of these infer the goal from their context, and
-automatically construct the required machinery to prove the equivalence.
+As stated in the introduction, we felt an easy-to-use interface was one of the
+most important components of the library as a whole. Since we wanted to minimise
+the amount a user would have to learn to use the solver, we kept the surface
+area of the library quite small: aside from the
+\(\AgdaDatatype{AlmostCommutativeRing}\) type described above, the rest of the
+interface consists of just two macros (\(\AgdaMacro{solve}\) and
+\(\AgdaMacro{solveOver}\)). We tried to make their usage as obvious as possible:
+just stick one of them (with the required arguments) in the place you need a
+proof, and the solver will do the rest for you.
 
 \(\AgdaMacro{solve}\) is demonstrated in Fig.~\ref{the-solver}. It takes a
 single argument: an implementation of the algebra. \(\AgdaMacro{solveOver}\) is
@@ -472,11 +507,6 @@ or rather, what we \emph{don't} require from the user:
     libraries can assist with the task \citep{hinze_engineering_2013,
       norell_agda-prelude_2018} it is still not fully automatic.
 \end{itemize}
-
-Finally, despite the simplicity and ease-of-use described above, the solver is
-\emph{not} specialised to a small number of types like \(\Nat\), \(\Int\) and so
-on. The whole library, including the reflection-based interface, will work with
-any type with an \(\AgdaDatatype{AlmostCommutativeRing}\) instance.
 \subsection{Reflection}
 Agda has powerful metaprogramming facilities, which allow programs to manipulate
 their own code. Here, we'll use reflection to implement the interface to our
@@ -535,8 +565,8 @@ If it \emph{doesn't} manage to match an operator or a variable, it assumes that
 what it has must be a constant, and wraps it up in the
 \(\AgdaInductiveConstructor{K}\) constructor. This is the key trick which allows
 us to avoid ever asking the user to quote their own type. While it may seem
-unsafe at first glance, we actually found it to be more robust than the
-alternative:
+unsafe at first glance, we actually found it to be more robust (for our use
+case) than the alternative:
 \begin{principle}[Don't reimplement the typechecker] While it may seem good and
   fastidious to rigorously check the structure and types of arguments given to a
   macro, we found in general it was a \emph{bad} idea to do validity-checking in
