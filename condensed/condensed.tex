@@ -507,6 +507,54 @@ or rather, what we \emph{don't} require from the user:
     libraries can assist with the task \citep{hinze_engineering_2013,
       norell_agda-prelude_2018} it is still not fully automatic.
 \end{itemize}
+\subsection{Maintaining Invariants}
+One of the great promises of languages like Agda is the ability to encode
+program correctness in types, allowing programmers to \emph{prove} properties
+they would have otherwise only been able to test. Unfortunately, these kinds of
+proofs tend to be very tightly coupled to the implementation of the algorithms
+they verify. This can make iteration difficult, where small optimisations or bug
+fixes can invalidate proofs for other invariants.
+
+To demonstrate the problem, and how our solver can reduce some of the burden,
+we'll look at size-indexed binary trees:
+\begin{center}
+  \ExecuteMetaData[../Invariants.tex]{tree}
+\end{center}
+In contrast to size-indexed lists, this type is one you don't see very often in
+Agda: the reason is that the index (the size) doesn't match the shape of the
+data structure. As a result, almost every function which manipulates the tree in
+someway will have to come accompanied by a verbose, complex proof.
+
+Take this line, for instance, which performs a left-rotation on the tree:
+\begin{center}
+  \ExecuteMetaData[../Invariants.tex]{unproven}
+\end{center}
+
+A sensible invariant to encode here is that the function doesn't change the size
+of the tree. Unfortunately, to \emph{prove} that invariant, we have to prove the
+following:
+\[1 + (1 + a + c) + b = 1 + a + (1 + b + c)\]
+
+Though simple, this is precisely the kind of proof which requires many fussy
+applications of the ring axioms. Here, our solver can help:
+\begin{center}
+  \ExecuteMetaData[../Invariants.tex]{mistake}
+\end{center}
+
+While cutting down on the amount of code we need to write is always a good
+thing, the real strength of this method is that it automatically infers the
+input type. This makes it resilient to small changes in the code. So, when we
+notice the bug in the code above (\(yl\) and \(yr\) are swapped in the
+pattern-match), we can simply \emph{fix it}, without having to touch any of the
+proof code.
+\begin{center}
+  \ExecuteMetaData[../Invariants.tex]{correct}
+\end{center}
+
+If we hadn't used the solver, this fix would have necessitated a totally new
+proof. By automating the proof, we allow the compiler to automatically check
+what we \emph{mean} (``does the size of the tree stay the same?''), while we
+worry about other details.
 \subsection{Reflection}
 Agda has powerful metaprogramming facilities, which allow programs to manipulate
 their own code. Here, we'll use reflection to implement the interface to our
@@ -868,17 +916,18 @@ to, preserving the structure of the expressions as much as is possible. This
 makes a significant difference to both size and syntactic
 similarity as can be seen in Fig.~\ref{normal-forms}.
 \subsection{Verifying the Optimisations}
-Optimising extrinsically-verified code can be a tedious task. Every small change
-to an algorithm (like swapping the order of arguments to \(\AgdaFunction{*}\))
-has the potential to invalidate your verification, occasionally forcing you to
-totally rewrite all of the proofs.
+The output of the solver is a constructive proof of equivalence: this is
+\emph{derived} from a generic proof that the operations on the solver are a ring
+homomorphism from the carrier type. Put another way, for the solver to work
+properly, we would need to prove that addition (and multiplication, and
+negation, etc.) on Horner normal forms corresponds with addition on the carrier
+type.
 
-For our case, we were required to prove a ring homomorphism between Horner
-normal form and the carrier type. These proofs are long (about 1000 lines) and
-complex, and every new optimisation would require a whole new round of proof
-code, with very little reuse.
+These proofs are long (about 1000 lines) and complex. Without careful
+structuring of the proofs, every new optimisation would require a whole new
+round of proof code, with very little reuse.
 
-To remedy this problem, we took inspiration from \citet{mu_algebra_2009}, and
+To avoid this problem, we took inspiration from \citet{mu_algebra_2009}, and
 relied heavily on abstraction and folds to improve the reuse in proof code. In
 particular, we defined many operations as \emph{metamorphisms}
 \cite{gibbons_metamorphisms_2007}. So, instead of defining (say) negation over
