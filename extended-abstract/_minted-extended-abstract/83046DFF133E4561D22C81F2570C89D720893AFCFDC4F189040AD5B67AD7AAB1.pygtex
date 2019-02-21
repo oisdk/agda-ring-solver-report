@@ -1,0 +1,8 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+  \PYG{k+kr}{data} \PYG{k+kt}{Bool} \PYG{o+ow}{=} \PYG{k+kt}{False} \PYG{o}{|} \PYG{k+kt}{True}
+
+  \PYG{p}{(}\PYG{o}{\PYGZam{}\PYGZam{}}\PYG{p}{)} \PYG{o+ow}{::} \PYG{k+kt}{Bool} \PYG{o+ow}{\PYGZhy{}\PYGZgt{}} \PYG{k+kt}{Bool} \PYG{o+ow}{\PYGZhy{}\PYGZgt{}} \PYG{k+kt}{Bool}
+  \PYG{k+kt}{False} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{k+kr}{\PYGZus{}}     \PYG{o+ow}{=} \PYG{k+kt}{False}
+  \PYG{k+kt}{True}  \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{k+kt}{False} \PYG{o+ow}{=} \PYG{k+kt}{False}
+  \PYG{k+kt}{True}  \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{k+kt}{True}  \PYG{o+ow}{=} \PYG{k+kt}{True}
+\end{Verbatim}

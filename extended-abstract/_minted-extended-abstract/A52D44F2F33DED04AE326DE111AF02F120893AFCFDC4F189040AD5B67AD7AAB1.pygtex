@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+  \PYG{k+kt}{And}
+    \PYG{o+ow}{::} \PYG{n}{a} \PYG{c+c1}{\PYGZhy{}\PYGZhy{} A proof of a}
+    \PYG{o+ow}{\PYGZhy{}\PYGZgt{}} \PYG{n}{b} \PYG{c+c1}{\PYGZhy{}\PYGZhy{} A proof of b}
+    \PYG{o+ow}{\PYGZhy{}\PYGZgt{}} \PYG{k+kt}{And} \PYG{n}{a} \PYG{n}{b} \PYG{c+c1}{\PYGZhy{}\PYGZhy{} A proof of (And a b)}
+\end{Verbatim}

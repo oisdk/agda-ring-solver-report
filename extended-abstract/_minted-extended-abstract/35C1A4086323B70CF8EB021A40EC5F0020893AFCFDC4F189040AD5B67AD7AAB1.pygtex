@@ -1,0 +1,4 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+  \PYG{n}{fst} \PYG{o+ow}{::} \PYG{k+kt}{And} \PYG{n}{a} \PYG{n}{b} \PYG{o+ow}{\PYGZhy{}\PYGZgt{}} \PYG{n}{a}
+  \PYG{n}{fst} \PYG{p}{(}\PYG{k+kt}{And} \PYG{n}{x} \PYG{n}{y}\PYG{p}{)} \PYG{o+ow}{=} \PYG{n}{x}
+\end{Verbatim}

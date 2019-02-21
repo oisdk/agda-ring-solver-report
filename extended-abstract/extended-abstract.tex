@@ -1,4 +1,4 @@
-\documentclass[draft, twocolumn]{article}
+\documentclass[twocolumn]{article}
 \usepackage[unicode,draft=false,hidelinks]{hyperref}
 \usepackage{cite}
 \usepackage{catchfilebetweentags}
@@ -88,6 +88,7 @@
 \usepackage{forest}
 \usepackage{pgfplots}
 \usepackage{float}
+\usepackage{minted}
 \author{Donnacha Oisín Kidney}
 \title{Automatically And Efficiently Illustrating Polynomial Equalities in
   Agda---Extended Abstract}
@@ -106,6 +107,153 @@
 \end{abstract}
 \tableofcontents
 \section{Introduction}
+What does it mean to write mathematics in a programming language? One
+interpretation might involve SciPy \cite{jones_scipy_2001} or R
+\cite{r_core_team_r_2013}. These systems definitely seem maths-related: they can
+run calculations, solve equations, and are used extensively in modern maths
+research. But this interpretation doesn't feel quite right: if I were to publish
+a paper tomorrow on something involving SciPy, even if there were loads of code
+snippets included, the proofs would all be in \emph{English}, not Python. 
+
+
+Another interpretation might look at computer science: a huge amount of maths is
+devoted to describing programming languages and their behaviour. Again, though,
+this seems off the mark. Here it feels more like we're doing mathematics
+``about'' a programming language, rather than \emph{with} one.
+
+There is a third interpretation, one which involves a particular type of
+programming languages, which is the focus of this paper. For these languages,
+there is no gap between a program and the mathematical concepts it describes.
+\subsection{Mathematics as a Programming Language}
+While most maths is still today written in prose, there are small\footnotemark
+languages (systems of notation, really) that are closer to programming
+languages. One example might be predicate logic:
+\[ \text{Raining} \wedge \text{Outside} \implies \text{Wet} \]
+\footnotetext{Small in comparison to most programming languages!}
+
+Already, you may be thinking, we can do this in a programming language. Surely
+I'm not saying that we don't have boolean logic in programming?
+
+\begin{minted}{haskell}
+  data Bool = False | True
+
+  (&&) :: Bool -> Bool -> Bool
+  False && _     = False
+  True  && False = False
+  True  && True  = True
+\end{minted}
+
+That's exactly what I'm saying! The code snippet above isn't meaningful in the
+same way the proposition is: the symbols \verb+False+ and \verb+True+ have no
+meaning other than being two constructors for a type named \verb+Bool+. It's not
+the programming language which gives the \verb+&&+ symbol its meaning as logical
+conjunction, it's \emph{us}, the readers!
+
+But that's true for anything written in Haskell, you might think. We're the ones
+who give it meaning, without us a Haskell program is just a text file. However,
+there is a third party, a higher power which \emph{really} gives that program
+above its meaning: the \emph{compiler}. For most Haskell written today, GHC is
+the thing which gets to say what it means, with no arbitrariness of names
+involved.
+
+So it turns out that we do have a language that can be thought of as objectively
+as predicate logic. The next question is \emph{can we do maths in it}?
+\subsection{Programs Are Proofs}
+\begin{figure}
+  \centering
+  \begin{tikzcd}
+    Type    \ar[r, Leftrightarrow] & Proposition  \\
+    Program \ar[r, Leftrightarrow] & Proof
+  \end{tikzcd}
+  \caption{The Curry-Howard Isomorphism}
+  \label{CH}
+\end{figure}
+To understand how it's possible to ``do maths'' in a programming language, it's
+helpful to look at figure~\ref{CH}. The two constructs we're interested on the
+maths end are propositions (``there are infinitely many prime numbers'', or,
+``the square root of two is irrational'') and \emph{proofs} (left to the
+reader).
+
+At first glance, the isomorphism seems strange: types are things like
+\verb+Int+, \verb+String+, and so on. To make the two sides match up, imagine
+before every type you said ``there exists''. For instance, this is the
+proposition that ``an integer exists''
+
+\begin{minted}{haskell}
+  prop :: Integer
+\end{minted}
+
+The proof of this proposition is a very small, but nonetheless valid, program.
+We say ``an integer does exist. Here's one, for example!''
+
+\begin{minted}{haskell}
+  prop = 3
+\end{minted}
+
+Still, this seems quite far from even the simple logical statement above. To
+push the point a little further, let's try and write something which is
+\emph{false}:
+\begin{minted}{haskell}
+  head :: [a] -> a
+\end{minted}
+This is the proposition that ``there exists a program which takes a list of
+\verb+a+s, and gives you back an \verb+a+''. The problem is that such a program
+\emph{doesn't} exist! What would it do, for instance, in the following
+circumstance:
+\begin{minted}{haskell}
+  head []
+\end{minted}
+Throw an error? Loop? Nothing sensible, regardless. Because of that, we say this
+program is \emph{false}, or invalid.
+
+One more example in Haskell: we've seen a better version of \verb+True+
+(programs which compile and don't throw errors), a better version of
+\verb+False+ (programs which don't compile or \emph{do} throw errors), so to
+complete the translation, let's write a better version of \verb+&&+:
+\begin{minted}{haskell}
+  data And a b = And a b
+\end{minted}
+
+Why is this better? Because \verb+And a b+ is really and truly a proof that both
+\verb+a+ and \verb+b+ are true. After all, the type of the constructor says you
+can't prove \verb+And a b+ without first proving \verb+a+ and proving \verb+b+.
+\begin{minted}{haskell}
+  And
+    :: a -- A proof of a
+    -> b -- A proof of b
+    -> And a b -- A proof of (And a b)
+\end{minted}
+We can even write some of our favourite logic rules:
+\[ A \wedge B \implies A \]
+\begin{minted}{haskell}
+  fst :: And a b -> a
+  fst (And x y) = x
+\end{minted}
+\subsection{Agda}
+While the logical rules expressed above are cute, it does become (as you might
+imagine) quite difficult to express more complex propositions in languages like
+Haskell. The idea of the isomorphism is still valid, though, we just need a
+slightly fancier type system to make things more ergonomic.
+
+Agda is a language based on (and implemented in) Haskell, which has one of these
+``slightly fancier type systems''. Its particular flavour was invented by Per
+Martin-Löf \cite{martin-lof_intuitionistic_1980}.
+
+One other difference worth pointing out is that Agda doesn't even allow you to
+\emph{compile} programs like \verb+head+: this ensures that every proof written
+in Agda is really a proof, not just ``a proof as long as it doesn't crash at any
+point''\footnotemark.
+
+\footnotetext{
+  To be totally accurate, this delineates the difference between what people
+  call the ``Curry-Howard Isomorphism'' and the ``Curry-Howard
+  \emph{correspondence}''. Haskell and the vast majority of programming
+  languages can only be described by the latter: proofs in them are only valid
+  modulo nontermination. Agda, Idris, Coq, and others belong to the former camp,
+  which (along with their fancier type systems) makes them more suited to
+  proving things.
+}
+
 
 
 \bibliographystyle{IEEEtranS}
