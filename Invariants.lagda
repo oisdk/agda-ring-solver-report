@@ -13,6 +13,8 @@ subst-syntax : ∀ {a b} {A : Set a} (B : A → Set b) {x : A} → B x → ∀ {
 subst-syntax B Bx x≈y = subst B x≈y Bx
 
 syntax subst-syntax B Bx x≈y = Bx ∶ B ⟨ x≈y ⟩
+
+
 \end{code}
 %</subst-syntax>
 \begin{code}
@@ -46,13 +48,18 @@ module Trees {a} {A : Set a} (_≤_ : A → A → Bool) where
 \end{code}
 %</tree>
 \begin{code}
+
+ _⇒_ : ∀ {n} → Tree n → ∀ {m} → n ≈ m → Tree m
+ x ⇒ n≈m  = subst Tree n≈m x
+ open Nat.Reflection
+
  module M where
   rotˡ : ∀ {n} → Tree n → Tree n
 \end{code}
 %<*mistake>
 \begin{code}
   rotˡ (node {a} x xl (node {b} {c} y yr yl)) = node y (node x xl yl) yr
-    ∶ Tree ⟨ solveOver (a ∷ b ∷ c ∷ []) Nat.ring ⟩
+    ⇒ ∀⟨ a ∷ b ∷ c ∷ [] ⟩
 \end{code}
 %</mistake>
 \begin{code}
@@ -63,7 +70,7 @@ module Trees {a} {A : Set a} (_≤_ : A → A → Bool) where
 %<*correct>
 \begin{code}
  rotˡ (node {a} x xl (node {b} {c} y yl yr)) = node y (node x xl yl) yr
-   ∶ Tree ⟨ solveOver (a ∷ b ∷ c ∷ []) Nat.ring ⟩
+   ⇒ ∀⟨ a ∷ b ∷ c ∷ [] ⟩
 \end{code}
 %</correct>
 \begin{code}

@@ -951,10 +951,11 @@ semantics, so we only have to change our proof in one place: the definition of
 \(\AgdaFunction{poly-mapR}\).
 \subsection{Benchmarks}
 As expected, the sparse implementation exhibits a significant speedup in
-type-checking over the dense implementation. Fig.~\ref{bench1}
-shows time taken to type check a proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\)
-is equal to its expanded form. The sparse representation is clearly faster
-overall, with a factor of 7.5 speedup for \(d = 8\).
+type-checking over the dense implementation, even with the added overhead of the
+reflection-based interface. Fig.~\ref{bench1} shows time taken to type check a
+proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\) is equal to its expanded form.
+The sparse representation is clearly faster overall, with a factor of 7.5
+speedup for \(d = 8\).
 
 Fig.~\ref{bench2} demonstrates where some of the speedup might come
 from. The expression \(x^d\) is represented very differently in the two
@@ -968,15 +969,16 @@ Fig.~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
 high and low powers and some constants. The sparse representation's advantage is
 even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
 
-The dense solver does exhibit a small lead (roughly 2-3 seconds) on very simple
-expressions, possibly caused by the overhead of the sparse solver's more complex
-implementation. 3 seconds is quite small in the context of Agda type checking
-(the standard library, for instance, takes several minutes to type check), so we
-feel this slight loss is more than made up for by the several-minute gains.
-Furthermore, we have not been able to find a case where the dense solver is
-significantly faster than the sparse. Nonetheless, if a user really wants to use
-the dense solver, the other components described here are entirely modular, and
-can work with any underlying solver which uses the reflexive technique.
+The dense solver does exhibit a small lead (roughly 2-3 seconds, which narrows
+to about 1 second without reflection) on very simple expressions, possibly
+caused by the overhead of the sparse solver's more complex implementation. 3
+seconds is quite small in the context of Agda type checking (the standard
+library, for instance, takes several minutes to type check), so we feel this
+slight loss is more than made up for by the several-minute gains. Furthermore,
+we have not been able to find a case where the dense solver is significantly
+faster than the sparse. Nonetheless, if a user really wants to use the dense
+solver, the other components described here are entirely modular, and can work
+with any underlying solver which uses the reflexive technique.
 \begin{figure}
   \newcounter{realxtickpos}
   \pgfplotsset{

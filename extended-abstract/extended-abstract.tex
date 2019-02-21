@@ -101,19 +101,20 @@
 \authorsaddresses{}
 \title{Automatically And Efficiently Illustrating Polynomial Equalities in
   Agda---Extended Abstract}
+\titlenote{The library is available at
+  \url{https://oisdk.github.io/agda-ring-solver/README.html}}
 \begin{document}
-\maketitle
 \begin{abstract}
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
-  programming language Agda\cite{norell_dependently_2008}. It is asymptotically
+  programming language Agda \cite{norell_dependently_2008}. It is asymptotically
   faster than Agda's existing solver. We use Agda's reflection machinery to
   provide a simple interface to the solver, and demonstrate a novel use of the
   constructed relations: step-by-step solutions.
 
-  The library is available at
-  \href{https://oisdk.github.io/agda-ring-solver/README.html}{oisdk.github.io/agda-ring-solver/README.html}.
 \end{abstract}
+\maketitle
+
 \section{Introduction}
 What does it mean to write mathematics in a programming language? One
 interpretation might involve SciPy \cite{jones_scipy_2001} or R
@@ -338,11 +339,10 @@ Along with correctness, the main goals of this work were as follows:
 \end{figure*}
 
 There are a number of ways we can automate proofs in a dependently-typed
-programming language, including Prolog-like proof search \cite{kokke_auto_2015},
-Cooper's algorithm over Presburger arithmetic \cite{allais_deciding_2011}, etc.
-Here, we will use a reflexive technique \cite{boutin_using_1997} in combination
-with sparse Horner Normal Form. The high-level diagram of the proof strategy is
-presented in Fig.~\ref{proof-process}.
+programming language. Here, we will use a reflexive technique
+\cite{boutin_using_1997} in combination with sparse Horner Normal Form. The
+high-level diagram of the proof strategy is presented in
+Fig.~\ref{proof-process}.
 
 The identity we'll be working with is the lemma in Fig.~\ref{comparison}: the
 left and right hand side of the equivalence are at the bottom of the diagram. Our
