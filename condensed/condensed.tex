@@ -209,23 +209,48 @@
 
 %% 2012 ACM Computing Classification System (CSS) concepts
 %% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+
 \begin{CCSXML}
 <ccs2012>
 <concept>
-<concept_id>10011007.10011006.10011008</concept_id>
-<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_id>10002950.10003705.10003707</concept_id>
+<concept_desc>Mathematics of computing~Solvers</concept_desc>
 <concept_significance>500</concept_significance>
 </concept>
 <concept>
-<concept_id>10003456.10003457.10003521.10003525</concept_id>
-<concept_desc>Social and professional topics~History of programming languages</concept_desc>
+<concept_id>10002950.10003705.10011686</concept_id>
+<concept_desc>Mathematics of computing~Mathematical software performance</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010148.10010149.10010159</concept_id>
+<concept_desc>Computing methodologies~Theorem proving algorithms</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010148.10010162</concept_id>
+<concept_desc>Computing methodologies~Computer algebra systems</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010148.10010164.10010168</concept_id>
+<concept_desc>Computing methodologies~Representation of polynomials</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003120.10003145</concept_id>
+<concept_desc>Human-centered computing~Visualization</concept_desc>
 <concept_significance>300</concept_significance>
 </concept>
 </ccs2012>
 \end{CCSXML}
 
-\ccsdesc[500]{Software and its engineering~General programming languages}
-\ccsdesc[300]{Social and professional topics~History of programming languages}
+\ccsdesc[500]{Mathematics of computing~Solvers}
+\ccsdesc[300]{Mathematics of computing~Mathematical software performance}
+\ccsdesc[500]{Computing methodologies~Theorem proving algorithms}
+\ccsdesc[500]{Computing methodologies~Computer algebra systems}
+\ccsdesc[500]{Computing methodologies~Representation of polynomials}
+\ccsdesc[300]{Human-centered computing~Visualization}
 %% End of generated code
 
 
@@ -362,11 +387,16 @@ conversion is correct according to the ring axioms (the
 these proofs, and if the two normal forms are definitionally equal, the entire
 thing will typecheck, and we will have proven the equivalence.
 \subsection{The \(\AgdaDatatype{Expr}\) AST}
-To get started, we'll first define an Abstract Syntax Tree (AST) to describe
-expressions which use the ring operators.
-\begin{center}
+\begin{wrapfigure}{r}{0.45\textwidth}
+  \vspace{-18pt}
   \ExecuteMetaData[../ReflectionSection.tex]{expr-def}
-\end{center}
+  \caption{A Type for Ring Expressions}
+  \label{expr}
+\end{wrapfigure}
+
+To get started, we'll first define an Abstract Syntax Tree (AST) to describe
+expressions which use the ring operators (Fig.~\ref{expr}).
+
 Each of the ring operators has a corresponding constructor (\(x + y = x \;
 \AgdaInductiveConstructor{⊕} \; y\), \(x^y = x \; \AgdaInductiveConstructor{⊗}
 \; y\)), constants are constructed with \(\AgdaInductiveConstructor{K}\), and
@@ -455,6 +485,12 @@ prove \emph{equivalences} (rather than equalities), meaning that our solver will
 work on custom setoids. A consequence of this particular genericity is the
 step-by-step solutions described below.
 \section{The Interface}
+\begin{wrapfigure}{r}{0.5\textwidth}
+  \vspace{-18pt}
+  \ExecuteMetaData[../ReflectionSection.tex]{partial-auto}
+  \caption{The \(\AgdaMacro{solveOver}\) Macro}
+  \label{solveOver}
+\end{wrapfigure}
 As stated in the introduction, we felt an easy-to-use interface was one of the
 most important components of the library as a whole. Since we wanted to minimise
 the amount a user would have to learn to use the solver, we kept the surface
@@ -468,12 +504,8 @@ proof, and the solver will do the rest for you.
 \(\AgdaMacro{solve}\) is demonstrated in Fig.~\ref{the-solver}. It takes a
 single argument: an implementation of the algebra. \(\AgdaMacro{solveOver}\) is
 designed to be used in conjunction with manual proofs, so that a programmer can
-automate a ``boring'' section of a larger more complex proof. It is called like
-so:
-
-\begin{centering}
-  \ExecuteMetaData[../ReflectionSection.tex]{partial-auto}
-\end{centering}
+automate a ``boring'' section of a larger more complex proof
+(Fig.~\ref{solveOver}).
 
 As well as the \(\AgdaDatatype{AlmostCommutativeRing}\) implementation, this
 macro takes a list of free variables to use to compute the solution.
@@ -697,8 +729,8 @@ systems.
 \begin{multicols}{2}
   \ExecuteMetaData[../HornerNormalForm.tex]{impl}
 \end{multicols}
-And finally, evaluation of the polynomial (given \(x\)) is a classic example of
-the \(\AgdaFunction{foldr}\) function.
+And finally, evaluation of the polynomial uses Horner's rule: a classic example
+of the \(\AgdaFunction{foldr}\) function.
 \begin{center}
   \ExecuteMetaData[../HornerNormalForm.tex]{eval}
 \end{center}
@@ -933,49 +965,25 @@ polynomial.
 \begin{center}
   \ExecuteMetaData[../AbstractionAndFolds.tex]{fold-def}
 \end{center}
-From here, we can define the \emph{semantics} of a metamorphism. As an example,
-here are the semantics of \(\AgdaFunction{mapR}\), a simple morphism which
-behaves something like \(\AgdaFunction{map}\) on lists:
 
-\begin{center}
+\begin{wrapfigure}{r}{0.4\textwidth}
+  \vspace{-18pt}
   \ExecuteMetaData[../AbstractionAndFolds.tex]{poly-mapR}
-\end{center}
+  \caption{The Semantics of \(\AgdaFunction{poly-map}\)}
+  \vspace{20pt}
+  \label{poly-map}
+\end{wrapfigure}
+
+From here, we can define the \emph{semantics} of a metamorphism. As an example,
+Fig.~\ref{poly-map} shows the semantics of \(\AgdaFunction{poly-map}\), a simple
+morphism which behaves something like \(\AgdaFunction{map}\) on lists.
 
 Now, each operation only has to be proven up to the semantics defined above.
 Crucially, optimisations like the sparse encoding \emph{respect} these
 semantics, so we only have to change our proof in one place: the definition of
 \(\AgdaFunction{poly-mapR}\).
 \subsection{Benchmarks}
-As expected, the sparse implementation exhibits a significant speedup in
-type-checking over the dense implementation, even with the added overhead of the
-reflection-based interface. Fig.~\ref{bench1} shows time taken to type check a
-proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\) is equal to its expanded form.
-The sparse representation is clearly faster overall, with a factor of 7.5
-speedup for \(d = 8\).
-
-Fig.~\ref{bench2} demonstrates where some of the speedup might come
-from. The expression \(x^d\) is represented very differently in the two
-implementations: in the sparse encoding, it's a single-element list containing a
-tuple of $1$ and $d$; in the dense encoding, however, it's a list of length $d$,
-with a single $1$ at the end. Since the complexities of arithmetic operations
-are bounded by the length of the list, this explains the difference in cost of
-the addition operations.
-
-Fig.~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
-high and low powers and some constants. The sparse representation's advantage is
-even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
-
-The dense solver does exhibit a small lead (roughly 2-3 seconds, which narrows
-to about 1 second without reflection) on very simple expressions, possibly
-caused by the overhead of the sparse solver's more complex implementation. 3
-seconds is quite small in the context of Agda type checking (the standard
-library, for instance, takes several minutes to type check), so we feel this
-slight loss is more than made up for by the several-minute gains. Furthermore,
-we have not been able to find a case where the dense solver is significantly
-faster than the sparse. Nonetheless, if a user really wants to use the dense
-solver, the other components described here are entirely modular, and can work
-with any underlying solver which uses the reflexive technique.
-\begin{figure}
+\begin{figure}[b]
   \newcounter{realxtickpos}
   \pgfplotsset{
       tick label style={font=\scriptsize},
@@ -995,7 +1003,8 @@ with any underlying solver which uses the reflexive technique.
   \begin{subfigure}[t]{0.3\textwidth}
     \begin{tikzpicture}
       \begin{axis}[
-        legend columns=-1,
+        % transpose legend,
+        legend columns=1,
         legend entries={new, old},
         legend to name=benchplots,
         extra y ticks={15},
@@ -1033,8 +1042,12 @@ with any underlying solver which uses the reflexive technique.
     \end{tikzpicture}
     \phantomcaption\label{bench3}
   \end{subfigure}
-  \ref{benchplots}
-  \parbox{0.9\textwidth}{
+  \begin{minipage}{0.13\textwidth}
+    \vspace{-20pt}
+    \ref{benchplots}
+  \end{minipage}%
+  \begin{minipage}{0.87\textwidth}
+    \vspace{-20pt}
     \begin{flushleft}
       \caption{Time (in seconds) to prove each expression is equal to its expanded
         form ($n = 5$ for each).}
@@ -1044,23 +1057,53 @@ with any underlying solver which uses the reflexive technique.
       library at commit-3bd3334a9552490e396f73f96812105a27e5917b, on a 2016
       MacBook Pro, with a 2.9 GHz Intel Core i7 and 16 GB of RAM.
     \end{flushleft}
-  }
+  \end{minipage} 
   \label{benchmarks}
 \end{figure}
+
+As expected, the new implementation exhibits a significant speedup in
+type-checking over the old implementation, even with the added overhead of the
+reflection-based interface. Fig.~\ref{bench1} shows time taken to type check a
+proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\) is equal to its expanded form.
+The new representation is clearly faster overall, with a factor of 7.5
+speedup for \(d = 8\).
+
+Fig.~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
+high and low powers and some constants. The new representation's advantage is
+even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
+
+The old solver does exhibit a small lead (roughly 2-3 seconds, which narrows
+to about 1 second without reflection) on very simple expressions, possibly
+caused by the overhead of the new solver's more complex implementation. 3
+seconds is quite small in the context of Agda type checking (the standard
+library, for instance, takes several minutes to type check), so we feel this
+slight loss is more than made up for by the several-minute gains. Furthermore,
+we have not been able to find a case where the old solver is significantly
+faster than the new. Nonetheless, if a user really wants to use the old
+solver, the other components described here are entirely modular, and can work
+with any underlying solver which uses the reflexive technique.
 \section{Pedagogical Solutions}
+\begin{wrapfigure}{r}{0.22\textwidth}
+  \vspace{-18pt}
+  \begin{minipage}{0.22\textwidth}%
+    \begin{align*}
+      x^2 + 5x + 6   = 0 \\
+      (x + 2)(x + 3) = 0 \\
+      x + 2 = 0   \; \text{or} \; x + 3 = 0 \\
+      x     = -2  \; \text{or} \; x + 2 = 0 \\
+      x     = -2  \; \text{or} \; x     = -3 \\
+    \end{align*}%
+    \vspace{-28pt}
+    \caption{Step-By-Step Solution for \(x^2 + 5x + 6 = 0\)}
+    \label{quad-step}
+  \end{minipage} 
+\end{wrapfigure}
+
 One of the most widely-used and successful computer algebra systems, especially
 among non-programmers, is Wolfram|Alpha
 \cite{wolfram_research_inc._wolframalpha_2019}. It can generate ``pedagogical''
 (step-by-step) solutions to maths
-problems \cite{the_development_team_step-by-step_2009}. For instance, given the
-input \(x^2 + 5 x + 6 = 0\), it will give the following output:
-\begin{align*}
-  x^2 + 5x + 6   = 0 \\
-  (x + 2)(x + 3) = 0 \\
-  x + 2 = 0   \; \text{or} \; x + 3 = 0 \\
-  x     = -2  \; \text{or} \; x + 2 = 0 \\
-  x     = -2  \; \text{or} \; x     = -3
-\end{align*}
+problems \cite{the_development_team_step-by-step_2009} (Fig.~\ref{quad-step}).
 
 These tools can be invaluable for students learning basic mathematics.
 Unfortunately, much of the software capable of generating usable solutions is
@@ -1093,8 +1136,9 @@ interspersed with the states of the expression (the vertices in the graph).
 \begin{multicols}{2}
   \ExecuteMetaData[../SetoidApplications.tex]{traced}
 \end{multicols}
+\pagebreak
 \begin{wrapfigure}{r}{0.3\textwidth}
-  \centering
+  \vspace{-10pt}
   \resizebox{0.35\textwidth}{!}{
     \begin{tikzpicture}
       \node (n0) at (2,9) {$1 + 2 + y + x$};
@@ -1112,9 +1156,13 @@ interspersed with the states of the expression (the vertices in the graph).
       \draw[-stealth] (n5) to (n6);
       \draw[-stealth] (n6) to (n4);
     \end{tikzpicture}
-  } \caption{Hourglass-Shaped Graph}
+  }
+  \vspace{-15pt}
+  \caption{Graph Containing Loops}
   \label{h-graph}
+  \vspace{-20pt}
 \end{wrapfigure}
+
 If we stopped there, however, the solver would output incredibly verbose
 ``solutions'': far too verbose to be human-readable. Instead, we must apply a
 number of path-compression heuristics to cut down on the solution length:
@@ -1133,6 +1181,7 @@ number of path-compression heuristics to cut down on the solution length:
 
 After applying those heuristics, our solver outputs the following for the lemma
 in Fig.~\ref{the-solver}:
+
 \begin{center}
 \begin{BVerbatim}
 x + y * 1 + 3
