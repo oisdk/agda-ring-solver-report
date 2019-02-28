@@ -847,15 +847,15 @@ orders of magnitude.
 \subsubsection{Avoid Identities}
 \begin{figure}[h]
   \centering
-  \begin{subfigure}{0.4\textwidth}
-    \centering
-    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
-    \caption{Dense encoding, without identity-avoiding optimisation}
-  \end{subfigure}
-  \begin{subfigure}{0.4\textwidth}
+  \begin{subfigure}{0.25\textwidth}
     \centering
     \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{small-force}
     \caption{Sparse encoding, with identity-avoiding optimisation}
+  \end{subfigure}
+  \begin{subfigure}{0.25\textwidth}
+    \centering
+    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
+    \caption{Dense encoding, without identity-avoiding optimisation}
   \end{subfigure}
   \caption{Comparison of the normal forms of equation~\ref{example-poly}}
   \label{normal-forms}
@@ -1013,7 +1013,6 @@ polynomial.
   \vspace{-18pt}
   \ExecuteMetaData[../AbstractionAndFolds.tex]{poly-mapR}
   \caption{The Semantics of \(\AgdaFunction{poly-map}\)}
-  \vspace{20pt}
   \label{poly-map}
 \end{wrapfigure}
 
@@ -1026,6 +1025,17 @@ Crucially, optimisations like the sparse encoding \emph{respect} these
 semantics, so we only have to change our proof in one place: the definition of
 \(\AgdaFunction{poly-mapR}\).
 \section{Pedagogical Solutions} \label{pedagogical}
+\begin{wrapfigure}{r}{0.3\textwidth}
+\begin{BVerbatim}
+x + y + 3
+    ={ +-comm(x, y + 3) }
+y + 3 + x
+    ={ +-comm(y, 3) }
+3 + y + x
+\end{BVerbatim}
+  \caption{Step-by-Step Output From Our Solver}
+  \label{step-output}
+\end{wrapfigure}
 One of the core aims of this work is to take a step towards making Agda a useful
 tool for doing mathematics. The rest of this paper has described our efforts to
 compensate for Agda's disadvantage in this area: namely, a pedantic typechecker.
@@ -1065,7 +1075,7 @@ elements of the list are elementary ring axioms. When we want to display a
 step-by-step solution, we simply print out each element of the list in turn,
 interspersed with the states of the expression (the vertices in the graph).
 
-\begin{wrapfigure}{r}{0.3\textwidth}
+\begin{wrapfigure}{l}{0.35\textwidth}
   \vspace{-10pt}
   \resizebox{0.35\textwidth}{!}{
     \begin{tikzpicture}
@@ -1108,17 +1118,6 @@ number of path-compression heuristics to cut down on the solution length:
 After applying those heuristics, our solver outputs the explanation in
 Fig.~\ref{step-output} for the lemma in Fig.~\ref{the-solver}.
 
-\begin{wrapfigure}{l}{0.3\textwidth}
-\begin{BVerbatim}
-x + y + 3
-    ={ +-comm(x, y + 3) }
-y + 3 + x
-    ={ +-comm(y, 3) }
-3 + y + x
-\end{BVerbatim}
-  \caption{Step-by-Step Output From Our Solver}
-  \label{step-output}
-\end{wrapfigure}
 \section{Related Work}
 In dependently-typed programming languages, the state-of-the-art solver for
 polynomial equalities (over commutative rings) was originally presented
