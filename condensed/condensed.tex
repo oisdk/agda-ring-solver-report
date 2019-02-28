@@ -134,6 +134,7 @@
 
 \theoremstyle{remark}
 \newtheorem{principle}{Principle}
+\usepackage{minitoc}
 
 \begin{document}
 
@@ -153,8 +154,6 @@
 
 %% Author with single affiliation.
 \author{Donnacha Oisín Kidney}
-\authornote{with author1 note}          %% \authornote is optional;
-                                        %% can be repeated if necessary
 \orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
 \affiliation{
   \position{Undergraduate}
@@ -239,6 +238,7 @@
     \centering
     \ExecuteMetaData[../Introduction.tex]{lemma}
     \label{ring-lemma}
+    \vspace{-10pt}
   \end{subfigure}
   \begin{subfigure}[b]{.5\textwidth}
     \ExecuteMetaData[../Introduction.tex]{proof}
@@ -254,9 +254,9 @@
   \caption{Comparison Between A Manual Proof and The Automated Solver}
   \label{comparison}
 \end{teaserfigure}
-
 \maketitle
 \begin{multicols}{2}
+\setcounter{tocdepth}{1}
 \tableofcontents
 \end{multicols}
 \section{Introduction}
@@ -303,8 +303,8 @@ The main contributions of our library are as follows:
     implementation (section~\ref{pedagogical}).
 \end{description}
 \section{Scope}
-In this section, we will explain the intended uses and limitations of the
-solver.
+In this section, we will explain the intended uses and necessary limitations of
+the solver.
 
 \begin{description}
   \item[Equivalences] First, an inflexibility: the solver deals very
@@ -324,6 +324,7 @@ solver.
     comparatively permissive ``pseudo-inverse'' operation, which obeys the
     following equations:
     \begin{align}
+      \vspace{-10pt}
       -(x * y)    &= - x * y \label{ringmul} \\
       -(x + y)    &= -x + -y \label{ringadd}
     \end{align}
@@ -363,13 +364,12 @@ solver.
     shouldn't.
 \end{description}
 \section{Overview of the Proof Technique}
-\begin{figure}[t]
+\begin{figure}[h]
   \resizebox{\textwidth}{!}{\includegraphics[draft=false]{graphics/reflexive-process}}
   \vspace*{-50pt}
   \caption{The Reflexive Proof Process}
   \label{proof-process}
 \end{figure}
-
 \begin{wrapfigure}{r}{0.45\textwidth}
   \vspace{-18pt}
   \ExecuteMetaData[../ReflectionSection.tex]{expr-def}
@@ -410,7 +410,7 @@ some of the details of this are explained in section~\ref{verif}.
 Finally, instead of asking the user to construct the AST themselves, we use
 reflection to automate it. This is described in the following section.
 \section{The Interface} \label{interface}
-\begin{figure}
+\begin{figure}[b]
   \ExecuteMetaData[../Introduction.tex]{old-solver}
   \caption{The Old Solver}
   \label{old-solver}
@@ -525,7 +525,7 @@ unsafe at first glance, we actually found it to be more robust (for our use
 case) than the alternative:
 \begin{principle}[Don't reimplement the typechecker] While it may seem good and
   fastidious to rigorously check the structure and types of arguments given to a
-  macro, we found in general it was a \emph{bad} idea to do validity-checking in
+  macro, we found better results by avoiding validity-checking in
   metaprogramming code. Instead, we preferred to proceed as if there were no
   errors (if possible), but arrange the output so that the user would still see
   a type error where the input was incorrect.
@@ -547,34 +547,19 @@ which deals with exponentiation.
 \end{center}
 
 It extracts the last two arguments to the exponentiation operator, and wraps
-them up with the \(\AgdaInductiveConstructor{⊛}\). Something worth noticing is
-that it doesn't care how long the list actually is, it only looks for the last
-two arguments. Again, we found that this looseness was actually a benefit:
-
-\begin{principle}[Don't assume structure] In this example, as well as elsewhere,
-  to find arguments to an \(n\)-ary function we to simply extract the last \(n\)
-  visible arguments to the function. While in theory we might be able to
-  statically know all of the implicit and explicit arguments that will be used
-  at the call-site, it's much simpler to ignore them, and try our best to be
-  flexible. Remember, none of this is typed, so if something changes (like, say,
-  a new universe level in \(\AgdaDatatype{AlmostCommutativeRing}\)), you'll get
-  type errors where you call \(\AgdaMacro{solve}\), not where it's implemented.
-\end{principle}
-
-The next thing to point out is \(\AgdaNumber{3} \; \AgdaFunction{⋯⟅∷⟆}\).
-This applies three hidden arguments as ``unknown'', i.e. asks Agda to infer
-them. We could guess them ourselves: the first is the universe level of the
-carrier type, the second is the carrier type, and the third is the number of
-variables in the expression; however, we advise being as \emph{in}specific as
-possible, relying on the compiler to guess where you can:
+them up with the \(\AgdaInductiveConstructor{⊛}\). It's worth pointing out
+\(\AgdaNumber{3} \; \AgdaFunction{⋯⟅∷⟆}\). This applies three hidden arguments
+as ``unknown'', i.e. asks Agda to infer them. We could guess them ourselves: the
+first is the universe level of the carrier type, the second is the carrier type,
+and the third is the number of variables in the expression; however, we were
+intentionally as \emph{in}specific as possible, relying on the compiler to guess
+as much as possible:
 
 \begin{principle}[Supply the minimal amount of information] There were several
   instances where, in constructing a term, we were tempted to supply explicitly
   some argument that Agda usually infers. Universe levels were a common example.
-  In general, though, this is a bad idea: AST manipulation is fragile and
-  error-prone, so the chances that you'll get some argument wrong are very high.
-  Instead, you should \emph{leverage} the compiler, relying on inference over
-  direct metaprogramming as much as possible.
+  In general, though, we preferred to \emph{leverage} the compiler, relying on
+  inference over direct metaprogramming as much as possible.
 \end{principle}
 
 The final point to make is that the entire interface implementation is itself
@@ -639,11 +624,6 @@ proof. By automating the proof, we allow the compiler to automatically check
 what we \emph{mean} (``does the size of the tree stay the same?''), while we
 worry about other details.
 \section{Performance} \label{performance}
-Type-checking proof-heavy Agda code is notoriously slow. Automated solvers like
-the one presented here can greatly exacerbate this cost: in our experience, it
-wasn't uncommon for Agda's current ring solver to spend several minutes proving
-a single identity.
-
 Our solver is significantly faster than the current solver: the following
 sections will detail how we achieved that speedup. We will start by describing
 the naive implementation; in section~\ref{sparse-opt} we demonstrate how we
@@ -688,14 +668,9 @@ representation will contain long ``gaps'' between the coefficients we're
 actually interested in (non-zero ones).
 
 To fix the problem we'll switch to a \emph{sparse} encoding, by storing a
-``power index'' with every coefficient.
-\begin{center}
-  \ExecuteMetaData[../HornerNormalForm.tex]{sparse-poly}
-\end{center}
-
-This will represent the size of the gap from the previous non-zero coefficient.
-Taking \ref{example-poly} again as an example, we would now represent it as
-follows: 
+``power index'' with every coefficient. This will represent the size of the gap
+from the previous non-zero coefficient. Taking \ref{example-poly} again as an
+example, we would now represent it as follows:
 \begin{center}
   \ExecuteMetaData[../HornerNormalForm.tex]{sparse-example}
 \end{center}
@@ -845,14 +820,14 @@ keep things which are likely to be syntactically equal to the left, and
 arguments (as we do above) resulted in a performance improvement of several
 orders of magnitude.
 \subsubsection{Avoid Identities}
-\begin{figure}[h]
+\begin{figure}[b]
   \centering
-  \begin{subfigure}{0.25\textwidth}
+  \begin{subfigure}{0.4\textwidth}
     \centering
     \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{small-force}
     \caption{Sparse encoding, with identity-avoiding optimisation}
   \end{subfigure}
-  \begin{subfigure}{0.25\textwidth}
+  \begin{subfigure}{0.4\textwidth}
     \centering
     \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
     \caption{Dense encoding, without identity-avoiding optimisation}
@@ -886,7 +861,7 @@ to, preserving the structure of the expressions as much as is possible. This
 makes a significant difference to both size and syntactic
 similarity as can be seen in Fig.~\ref{normal-forms}.
 \subsection{Benchmarks}
-\begin{figure}[b]
+\begin{figure}[t]
   \newcounter{realxtickpos}
   \pgfplotsset{
       tick label style={font=\scriptsize},
@@ -1014,6 +989,7 @@ polynomial.
   \ExecuteMetaData[../AbstractionAndFolds.tex]{poly-mapR}
   \caption{The Semantics of \(\AgdaFunction{poly-map}\)}
   \label{poly-map}
+  \vspace{-15pt}
 \end{wrapfigure}
 
 From here, we can define the \emph{semantics} of a metamorphism. As an example,
@@ -1025,17 +1001,6 @@ Crucially, optimisations like the sparse encoding \emph{respect} these
 semantics, so we only have to change our proof in one place: the definition of
 \(\AgdaFunction{poly-mapR}\).
 \section{Pedagogical Solutions} \label{pedagogical}
-\begin{wrapfigure}{r}{0.3\textwidth}
-\begin{BVerbatim}
-x + y + 3
-    ={ +-comm(x, y + 3) }
-y + 3 + x
-    ={ +-comm(y, 3) }
-3 + y + x
-\end{BVerbatim}
-  \caption{Step-by-Step Output From Our Solver}
-  \label{step-output}
-\end{wrapfigure}
 One of the core aims of this work is to take a step towards making Agda a useful
 tool for doing mathematics. The rest of this paper has described our efforts to
 compensate for Agda's disadvantage in this area: namely, a pedantic typechecker.
@@ -1065,17 +1030,7 @@ heuristic is essential. Furthermore, what this should be is not clear:
 \citet{lioubartsev_constructing_2016} uses a measure of the ``simplicity'' of an
 expression.
 
-Notice, however, that paths in undirected graphs form a perfectly reasonable
-equivalence relation: transitivity is the concatenation of paths, reflexivity is
-the empty path, and symmetry is \emph{reversing} a path. Equivalence classes, in
-this analogy, are connected components of the graph.
-
-More practically speaking, we implement these ``paths'' as lists, where the
-elements of the list are elementary ring axioms. When we want to display a
-step-by-step solution, we simply print out each element of the list in turn,
-interspersed with the states of the expression (the vertices in the graph).
-
-\begin{wrapfigure}{l}{0.35\textwidth}
+\begin{wrapfigure}{r}{0.35\textwidth}
   \vspace{-10pt}
   \resizebox{0.35\textwidth}{!}{
     \begin{tikzpicture}
@@ -1101,9 +1056,21 @@ interspersed with the states of the expression (the vertices in the graph).
   \vspace{-20pt}
 \end{wrapfigure}
 
+
+Notice, however, that paths in undirected graphs form a perfectly reasonable
+equivalence relation: transitivity is the concatenation of paths, reflexivity is
+the empty path, and symmetry is \emph{reversing} a path. Equivalence classes, in
+this analogy, are connected components of the graph.
+
+More practically speaking, we implement these ``paths'' as lists, where the
+elements of the list are elementary ring axioms. When we want to display a
+step-by-step solution, we simply print out each element of the list in turn,
+interspersed with the states of the expression (the vertices in the graph).
+
 If we stopped there, however, the solver would output incredibly verbose
 ``solutions'': far too verbose to be human-readable. Instead, we must apply a
 number of path-compression heuristics to cut down on the solution length:
+
 \begin{enumerate}
   \item First, we remove loops from the graph. Fig~\ref{h-graph} shows an
     example solution without this heuristic applied: it crosses the same point
@@ -1116,8 +1083,20 @@ number of path-compression heuristics to cut down on the solution length:
     ``interesting'' if either side is interesting.
 \end{enumerate}
 After applying those heuristics, our solver outputs the explanation in
-Fig.~\ref{step-output} for the lemma in Fig.~\ref{the-solver}.
-
+Fig.~\ref{step-output} for the lemma in Fig.~\ref{comparison}
+\begin{figure}[h!]
+  \vspace{-10pt}
+\begin{BVerbatim}
+x + y + 3
+    ={ +-comm(x, y + 3) }
+y + 3 + x
+    ={ +-comm(y, 3) }
+3 + y + x
+\end{BVerbatim}
+  \caption{Step-by-Step Output From Our Solver}
+  \label{step-output}
+  \vspace{-20pt}
+\end{figure}
 \section{Related Work}
 In dependently-typed programming languages, the state-of-the-art solver for
 polynomial equalities (over commutative rings) was originally presented

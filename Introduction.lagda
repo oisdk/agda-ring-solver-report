@@ -7,11 +7,13 @@ module OldSolver where
  open import Data.Nat.Solver using (module +-*-Solver)
  open +-*-Solver
 
- lemma : ∀ x y → x + y * 1 + 3 ≡ 2 + 1 + y + x
 \end{code}
 %<*old-solver>
 \begin{code}
- lemma = +-*-Solver.solve 2 (λ x y → x :+ y :* con 1 :+ con 3 := con 2 :+ con 1 :+ y :+ x) refl
+ lemma : ∀ x y → x + y * 1 + 3 ≡ 2 + 1 + y + x
+ lemma = +-*-Solver.solve 2
+    (λ x y → x :+ y :* con 1 :+ con 3 := con 2 :+ con 1 :+ y :+ x)
+    refl
 \end{code}
 %</old-solver>
 \begin{code}

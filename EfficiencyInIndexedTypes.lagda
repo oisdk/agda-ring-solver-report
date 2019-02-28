@@ -175,9 +175,7 @@ infix 4 _≤_
 \begin{code}
 data _≤_ (m : ℕ) : ℕ → Set where
   m≤m  : m ≤ m
-  ≤-s  : ∀ {n}
-        → (m≤n : m ≤ n)
-        → m ≤ suc n
+  ≤-s  : ∀ {n} → m ≤ n → m ≤ suc n
 \end{code}
 %</leq-3>
 %<*leq-trans>
