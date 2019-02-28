@@ -282,7 +282,7 @@ The main contributions of our library are as follows:
     own custom type. 
   \item[Performance] Our solver is significantly faster than Agda's current ring
     solver, cutting type-checking time down from minutes to seconds in several
-    use cases (benchmarks in Fig.~\ref{benchmarks}).
+    use cases (section~\ref{benchmarks}).
 
     As described in \citet{gregoire_proving_2005}, we use a sparse internal
     representation of polynomials (section~\ref{sparse-opt}). However, because
@@ -629,7 +629,7 @@ sections will detail how we achieved that speedup. We will start by describing
 the naive implementation; in section~\ref{sparse-opt} we demonstrate how we
 added the optimisations from \citet{gregoire_proving_2005}; and in
 section~\ref{syntactic-unif} we will describe the Agda-specific optimisations
-which account for the bulk of our speedup. Finally, Fig.~\ref{benchmarks}
+which account for the bulk of our speedup. Finally, section~\ref{benchmarks}
 contains some benchmarks against the current solver.
 \subsection{Normalisation} \label{normalisation}
 Most of code written for the solver is concerned with normalisation: the
@@ -860,8 +860,8 @@ normal form, but also ensures that normalisation stops exactly where we want it
 to, preserving the structure of the expressions as much as is possible. This
 makes a significant difference to both size and syntactic
 similarity as can be seen in Fig.~\ref{normal-forms}.
-\subsection{Benchmarks}
-\begin{figure}[t]
+\subsection{Benchmarks} \label{benchmarks}
+\begin{figure}[h]
   \newcounter{realxtickpos}
   \pgfplotsset{
       tick label style={font=\scriptsize},
@@ -929,7 +929,6 @@ similarity as can be seen in Fig.~\ref{normal-forms}.
     \begin{flushleft}
       \caption{Time (in seconds) to prove each expression is equal to its expanded
         form ($n = 5$ for each).}
-      \label{benchmarks}
       \smallskip
       \footnotesize
       Benchmarks performed on Agda version 2.6-0fa9b13, with the Agda standard
