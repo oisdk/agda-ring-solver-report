@@ -170,8 +170,8 @@
   proofs between polynomials over commutative rings and semirings in the
   programming language Agda \cite{norell_dependently_2008}. It is significantly
   faster than Agda's existing solver. We use reflection to provide a simple
-  interface to the solver, and demonstrate how to use the constructed relations
-  to provide step-by-step solutions.
+  interface to the solver, and demonstrate how to use the constructed proofs to
+  provide step-by-step solutions.
 \end{abstract}
 
 
@@ -391,7 +391,7 @@ their normal forms. The actual proof the solver provides is represented by the
 \(\AgdaField{≈}\) path.
 
 To prove that each expression is equivalent to the canonical form we first
-represent the expressions the using type in Fig.~\ref{expr}. This type
+represent the expressions using the type in Fig.~\ref{expr}. This type
 represents the Abstract Syntax Tree (AST) for expressions in the almost-ring
 algebra: it has constructors corresponding to each ring operation (\(x + y = x
 \; \AgdaInductiveConstructor{⊕} \; y\), \(x * y = x \;
@@ -399,10 +399,11 @@ algebra: it has constructors corresponding to each ring operation (\(x + y = x
 Bruijn index (so \(x\) becomes \(\AgdaInductiveConstructor{I} \;
 \AgdaNumber{0}\)).
 
-The \(\AgdaFunction{⟦\_⟧}\) function converts the AST to the expression we want
-to prove, whereas the \(\AgdaFunction{⟦\_⇓⟧}\) function converts expressions to
-a the canonical form. The implementation of the \(\AgdaFunction{⟦\_⇓⟧}\)
-function is described in section~\ref{normalisation}.
+There are two ways to evaluate the AST: \(\AgdaFunction{⟦\_⟧}\) function
+converts the AST to the expression we want to prove, whereas
+\(\AgdaFunction{⟦\_⇓⟧}\) converts it to a the canonical form. The implementation
+of the \(\AgdaFunction{⟦\_⇓⟧}\) function is described in
+section~\ref{normalisation}.
 
 Equivalence of the canonical forms is proven via \(\AgdaFunction{correct}\):
 some of the details of this are explained in section~\ref{verif}.
@@ -424,19 +425,18 @@ reflection to automate it. This is described in the following section.
 We felt an easy-to-use interface was one of the most important components of the
 library as a whole. Since we wanted to minimise the amount a user would have to
 learn to use the solver, we kept the surface area of the library quite small:
-aside from the \(\AgdaDatatype{AlmostCommutativeRing}\) type described above,
-the rest of the interface consists of just two macros (\(\AgdaMacro{solve}\) and
-\(\AgdaMacro{solveOver}\)). We tried to make their usage as obvious as possible:
-just stick one of them (with the required arguments) in the place you need a
-proof, and the solver will do the rest for you.
+aside from the almost-ring type, the rest of the interface consists of just two
+macros (\(\AgdaMacro{solve}\) and \(\AgdaMacro{solveOver}\)). We tried to make
+their usage as obvious as possible: just stick one of them (with the required
+arguments) in the place you need a proof, and the solver will do the rest for
+you.
 
 \(\AgdaMacro{solve}\) is demonstrated in Fig.~\ref{the-solver}. It takes a
 single argument: an implementation of the algebra. \(\AgdaMacro{solveOver}\) is
 designed to be used in conjunction with manual proofs, so that a programmer can
 automate a ``boring'' section of a larger more complex proof
-(Fig.~\ref{solveOver}). As well as the \(\AgdaDatatype{AlmostCommutativeRing}\)
-implementation, this macro takes a list of free variables to use to compute the
-solution.
+(Fig.~\ref{solveOver}). As well as the algebra implementation, this macro takes
+a list of free variables to use to compute the solution.
 
 Because this interface is quite small, it's worth pointing out what's missing,
 or rather, what we \emph{don't} require from the user:
@@ -547,30 +547,31 @@ which deals with exponentiation.
 \end{center}
 
 It extracts the last two arguments to the exponentiation operator, and wraps
-them up with the \(\AgdaInductiveConstructor{⊛}\). It's worth pointing out
-\(\AgdaNumber{3} \; \AgdaFunction{⋯⟅∷⟆}\). This applies three hidden arguments
-as ``unknown'', i.e. asks Agda to infer them. We could guess them ourselves: the
-first is the universe level of the carrier type, the second is the carrier type,
-and the third is the number of variables in the expression; however, we were
-intentionally as \emph{in}specific as possible, relying on the compiler to guess
-as much as possible:
+them up with the \(\AgdaInductiveConstructor{⊛}\). Before the two visible
+arguments to the exponentiation operator, we first apply \(\AgdaNumber{3} \;
+\AgdaFunction{⋯⟅∷⟆}\). This applies three hidden arguments as ``unknown'', i.e.
+asks Agda to infer them. We could guess them ourselves: the first is the
+universe level of the carrier type, the second is the carrier type, and the
+third is the number of variables in the expression. We decided against it,
+though, instead being intentionally unspecific:
 
 \begin{principle}[Supply the minimal amount of information] There were several
   instances where, in constructing a term, we were tempted to supply explicitly
   some argument that Agda usually infers. Universe levels were a common example.
-  In general, though, we preferred to \emph{leverage} the compiler, relying on
-  inference over direct metaprogramming as much as possible.
+  We found this approach to be error-prone, however: as it turns out, the
+  compiler is better a guessing implicits than we are. Instead, we preferred to
+  \emph{leverage} the compiler, relying on inference over direct metaprogramming
+  as much as possible.
 \end{principle}
 
 The final point to make is that the entire interface implementation is itself
 quite small (fewer than 100 lines). This isn't because our code was terse:
-rather, we intentionally minimised the amount of metaprogramming we did:
+rather, we intentionally minimised the amount of metaprogramming we did.
 
-\begin{principle}[Try and implement as much of the logic outside of reflection
-  as possible] With great power comes poor error messages, fragility, and a loss
-  of first-class status. Therefore, If something can be done without reflection,
-  \emph{do it}, and use reflection as the glue to get from one standard
-  representation to another.
+\begin{principle}[Keep Metaprogramming to the Edges] With great power comes poor
+  error messages, fragility, and a loss of first-class status. Therefore, If
+  something can be done without reflection, \emph{do it}, and use reflection as
+  the glue to get from one standard representation to another.
 \end{principle}
 \subsection{Maintaining Invariants}
 One obvious benefit of reflection is a terse interface. However, we feel that
@@ -588,12 +589,12 @@ we'll look at size-indexed binary trees:
 \begin{center}
   \ExecuteMetaData[../Invariants.tex]{tree}
 \end{center}
-We've deliberately chosen an awkward type here: in contrast to size-indexed
-lists, the index (the size) doesn't match the shape of the data structure. As a
-result, almost every function which manipulates the tree in some way will have
-to come accompanied by a verbose, complex proof.
 
-Take this line, for instance, which performs a left-rotation on the tree:
+We've deliberately chosen an awkward type here: in contrast to the more common
+size-indexed lists, the index (the size) doesn't match the shape of the data
+structure. As a result, almost every function which manipulates the tree in some
+way will have to come accompanied by a verbose, complex proof. Take this line,
+for instance, which performs a left-rotation on the tree:
 \begin{center}
   \ExecuteMetaData[../Invariants.tex]{unproven}
 \end{center}
@@ -748,11 +749,11 @@ typechecks quickly.
 Up until now, we have focused on the \emph{operations} performed on the
 polynomial. Remember, though, the reflexive proof process has several steps:
 only one of them containing the operations (\(\AgdaFunction{⟦\_⇓⟧}\) in
-Fig.~\ref{proof-process}). This isn't necessarily the most expensive step,
-though. Surprisingly, the innocuous-looking \(\AgdaInductiveConstructor{refl}\)
-takes the bulk of the time! Typechecking this step involves unifying the two
-normalised expressions, a task which is quite expensive, with counterintuitive
-performance characteristics. 
+Fig.~\ref{proof-process}). Despite having the most complex implementation, this
+isn't the most expensive step: surprisingly, the innocuous-looking
+\(\AgdaInductiveConstructor{refl}\) takes the bulk of the time! Typechecking
+this step involves unifying the two normalised expressions, a task which is
+quite expensive, with counterintuitive performance characteristics.  
 
 First, the good news. In the general case, unifying two expressions takes time
 proportional to the size of those expressions, so our hard-won optimisations do
@@ -798,7 +799,7 @@ is the first thing we try to scrutinise. In \(\AgdaFunction{⟦\_⟧ᵣ}\), sinc
 of the constants are kept to the left, they're scrutinised first, allowing us to
 perform much more normalisation before being blocked.
 
-Surprisingly, this is exactly what you \emph{don't} want! Since both expressions
+This is exactly what you \emph{don't} want! Since both expressions
 will be coming out of the same evaluation function, they should have the same
 structure, meaning that we don't \emph{need} the reduction of outer terms that
 \(\AgdaFunction{⟦\_⟧ᵣ}\) gives us. We only need to perform normalisation on the
@@ -842,9 +843,9 @@ finding syntactic equality in the argument to the identity (\(x\) in the
 examples above).
 
 Our sparse representation helps significantly in this case by entirely removing
-\(\AgdaNumber{0}\) from the generated expression. Another place we can cut down
-on constants is in identity elements in the base case for recursive functions.
-Take exponentiation, for example:
+\(\AgdaNumber{0}\) from the generated expression. Another place we can make
+improvements is in the base cases for recursive functions. Take exponentiation,
+for example:
 \begin{center}
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{pow-bad}
 \end{center}
@@ -954,7 +955,7 @@ to about 1 second without reflection) on very simple expressions, possibly
 caused by the overhead of the new solver's more complex implementation. 3
 seconds is quite small in the context of Agda type checking (the standard
 library, for instance, takes several minutes to type check), so we feel this
-slight loss is more than made up for by the several-minute gains. Furthermore,
+slight loss is more than made up for by the gains. Furthermore,
 we have not been able to find a case where the old solver is significantly
 faster than the new. Nonetheless, if a user really wants to use the old
 solver, the other components described here are entirely modular, and can work
@@ -1008,9 +1009,9 @@ some of the unique benefits that come from using a programming language to do
 your proofs.
 
 Outside of computer scientists and mathematicians, most people's experience of
-computer algebra probably amounts to the step-by-step solutions Wolfram|Alpha
-(or some similar system) provides online
-\cite{the_development_team_step-by-step_2009}.
+computer algebra probably amounts to the step-by-step solutions from
+Wolfram|Alpha \cite{the_development_team_step-by-step_2009} or some similar
+system. 
 
 Something so high-level and user-facing hardly seems like it's in a
 dependently-typed language's wheelhouse; on the other hand, the very nature of a
@@ -1073,7 +1074,7 @@ number of path-compression heuristics to cut down on the solution length:
 \begin{enumerate}
   \item First, we remove loops from the graph. Fig~\ref{h-graph} shows an
     example solution without this heuristic applied: it crosses the same point
-    multiple times, creating the kind of loops we want to avoid. In contrast to
+    multiple times, creating useless steps in the output. In contrast to
     using just A* on its own, the search space is minimal (with only one outward
     edge for each vertex).
   \item Then, we filter out ``uninteresting'' steps. These are steps which are
