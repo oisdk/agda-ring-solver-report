@@ -286,8 +286,8 @@ The main contributions of our library are as follows:
 
     As described in \citet{gregoire_proving_2005}, we use a sparse internal
     representation of polynomials (section~\ref{sparse-opt}). However, because
-    of differences between Agda and Coq's type checker, we found that these
-    optimisations---on their own---did not deliver a significant speedup, and
+    of differences between Agda and Coq's type checker, we found that this
+    optimisation---on its own---did not deliver a significant speedup, and
     actually damaged performance in a number of cases. Achieving the performance
     we did required an entirely separate kind of optimisation, described in
     section~\ref{syntactic-unif}.
@@ -314,9 +314,9 @@ solver.
   \item[Setoids] On the other hand, we are very flexible about what kind of
     ``equivalence'' we prove. In fact, the solver will work with any equivalence
     relation, as long as it comes with proofs of the relevant ring axioms. This
-    is useful for all of the usual things (approximating quotients, etc.), but
-    it also provides the basis for our ``step-by-step solutions'' implementation
-    in section~\ref{pedagogical}.
+    is useful for all of the usual things (approximating quotients and so on),
+    but it also provides the basis for our ``step-by-step solutions''
+    implementation in section~\ref{pedagogical}.
   \item[Almost Rings] As in \citet[section~5]{gregoire_proving_2005}, we use a
     peculiar algebraic structure which lies somewhere between a semiring and a
     ring. These ``almost-rings'' have all of the usual laws of a commutative
@@ -370,43 +370,45 @@ solver.
   \label{proof-process}
 \end{figure}
 
-Before diving into the specific details of our solver, we will first describe
-a general technique of automatically constructing equivalence proofs based on
-reflection \cite{boutin_using_1997}.
-
-The general idea is to convert the expressions on either side of the equation to
-a canonical form, and then prove that the conversion preserves equivalence
-according to the almost-ring axioms. As long as the canonical forms are
-definitionally equal, the respective proofs of conversion can be joined together
-to prove the overall equation.
-
-Fig.~\ref{proof-process} is a high-level diagram of how this process works on
-the identity in Fig.~\ref{comparison}. The left and right hand side of the
-equivalence are at the bottom of the diagram, and their normal forms at the top.
-The \(\AgdaField{≈}\) path represents the actual constructed proof.
-
 \begin{wrapfigure}{r}{0.45\textwidth}
   \vspace{-18pt}
   \ExecuteMetaData[../ReflectionSection.tex]{expr-def}
   \caption{A Type for Ring Expressions}
   \label{expr}
 \end{wrapfigure}
-Since we can't pattern match on abstract expressions, we instead work with an
-intermediate representation, which can be seen on either side of
-Fig.~\ref{proof-process}. This type (defined in Fig.~\ref{expr}) has
-constructors corresponding to each ring operation (\(x + y = x \;
-\AgdaInductiveConstructor{⊕} \; y\), \(x * y = x \; \AgdaInductiveConstructor{⊗}
-\; y\)), and it can refer to variables via their de Bruijn index (so \(x\)
-becomes \(\AgdaInductiveConstructor{I} \;  \AgdaNumber{0}\)).
 
-From here, we can ``evaluate'' the AST in one of two ways: in a non-normalised
-way (\(\AgdaFunction{⟦\_⟧}\)), or in a normalising way
-(\(\AgdaFunction{⟦\_⇓⟧}\)). In this way, we have created a concrete goal for our
-proof: showing equivalence between \(\AgdaFunction{⟦\_⟧}\) and
-\(\AgdaFunction{⟦\_⇓⟧}\).
+Before diving into to specifics, we'll first give a quick overview of how the
+solver works, so it's clear how the bits of implementation described later in
+the paper fit together.
 
-Finally, we use reflection to automate the construction of this intermediate
-representation.
+The technique we use for automating equivalence proofs comes from
+\citet{boutin_using_1997}: the general idea is that we prove two expressions
+equivalent by proving that they're both equivalent to the same canonical form.
+The diagram in Fig.~\ref{proof-process} demonstrates this for the identity from
+Fig.~\ref{comparison}: on the bottom of the diagram you can see the left and
+right hand side of the identity we want to prove, and on the top we can see
+their normal forms. The actual proof the solver provides is represented by the
+\(\AgdaField{≈}\) path.
+
+To prove that each expression is equivalent to the canonical form we first
+represent the expressions the using type in Fig.~\ref{expr}. This type
+represents the Abstract Syntax Tree (AST) for expressions in the almost-ring
+algebra: it has constructors corresponding to each ring operation (\(x + y = x
+\; \AgdaInductiveConstructor{⊕} \; y\), \(x * y = x \;
+\AgdaInductiveConstructor{⊗} \; y\)), and it can refer to variables via their de
+Bruijn index (so \(x\) becomes \(\AgdaInductiveConstructor{I} \;
+\AgdaNumber{0}\)).
+
+The \(\AgdaFunction{⟦\_⟧}\) function converts the AST to the expression we want
+to prove, whereas the \(\AgdaFunction{⟦\_⇓⟧}\) function converts expressions to
+a the canonical form. The implementation of the \(\AgdaFunction{⟦\_⇓⟧}\)
+function is described in section~\ref{normalisation}.
+
+Equivalence of the canonical forms is proven via \(\AgdaFunction{correct}\):
+some of the details of this are explained in section~\ref{verif}.
+
+Finally, instead of asking the user to construct the AST themselves, we use
+reflection to automate it. This is described in the following section.
 \section{The Interface} \label{interface}
 \begin{figure}
   \ExecuteMetaData[../Introduction.tex]{old-solver}
@@ -649,9 +651,13 @@ added the optimisations from \citet{gregoire_proving_2005}; and in
 section~\ref{syntactic-unif} we will describe the Agda-specific optimisations
 which account for the bulk of our speedup. Finally, Fig.~\ref{benchmarks}
 contains some benchmarks against the current solver.
-\subsection{Horner Normal Form}
-The representation used in Agda's current ring solver (and the one we'll start
-out with here) is known as Horner Normal Form. A polynomial (more specifically,
+\subsection{Normalisation} \label{normalisation}
+Most of code written for the solver is concerned with normalisation: the
+\(\AgdaFunction{⟦\_⇓⟧}\) function in Fig.~\ref{proof-process}. This converts
+from the expression AST (Fig.~\ref{expr}) to a canonical form.
+\subsubsection{Horner Normal Form} \label{hnf}
+The particular ``canonical form'' we'll start with is the same as in Agda's
+current ring solver: Horner normal form. A polynomial (more specifically,
 a monomial) in \(x\) is represented as a list of coefficients of increasing
 powers of \(x\). As an example, the following polynomial:
 \begin{align}
@@ -666,12 +672,14 @@ systems.
 \begin{multicols}{2}
   \ExecuteMetaData[../HornerNormalForm.tex]{impl}
 \end{multicols}
-And finally, evaluation of the polynomial uses Horner's rule: a classic example
-of the \(\AgdaFunction{foldr}\) function.
+So to get from \(\AgdaDatatype{Expr}\) to \(\AgdaDatatype{Poly}\) we map each
+constructor to the relevant polynomial operation. Then, to get from
+\(\AgdaDatatype{Poly}\) to an expression in the underlying ring, we use Horner's
+rule: a classic example of the \(\AgdaFunction{foldr}\) function.
 \begin{center}
   \ExecuteMetaData[../HornerNormalForm.tex]{eval}
 \end{center}
-\subsection{Sparse Encodings} \label{sparse-opt}
+\subsubsection{Sparse Encodings} \label{sparse-opt}
 Our first avenue for optimisation comes from \citet{gregoire_proving_2005}.
 Notice that the encoding above is quite wasteful: it always stores an entry for
 each coefficient, even if it's zero. In practice, we're likely to often find
@@ -719,7 +727,7 @@ contrast to the previous index, though, this one is type-relevant: we can't just
 store a \(\Nat\) next to the nested polynomial to represent the gap. Because the
 polynomial is indexed by the number of variables it contains, any encoding of
 the gap will have provide the proper type information to respect that index.
-\subsection{Hanging Indices}
+\subsubsection{Hanging Indices}
 The problem is a common one: we have a piece of code that works efficiently,
 and we now want to make it ``more typed'', by adding more information to it,
 \emph{without} changing the complexity class.
@@ -755,22 +763,21 @@ into equivalent functions on \(\le\):
   \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{leq-compare}
 \end{multicols}
 \subsection{Unification} \label{syntactic-unif}
-The previous optimisations have focused on the \emph{operations} performed on
-the polynomial. Remember, though, the reflexive proof process has several steps:
+After applying the previous optimisations, we might expect an immediate speedup
+in the solver: unfortunately, this isn't the case. Without some careful
+adjustments, the optimisations in the previous section can actually \emph{slow
+  down} the solver. In this section, we'll try and explain the problem and how
+we fixed it, and give general guidelines on how to write Agda code which
+typechecks quickly.
+
+Up until now, we have focused on the \emph{operations} performed on the
+polynomial. Remember, though, the reflexive proof process has several steps:
 only one of them containing the operations (\(\AgdaFunction{⟦\_⇓⟧}\) in
-Fig.~\ref{proof-process}).
-
-As it happens, we have now optimised these operations so much that they are no
-longer the bottleneck in the process. Surprisingly, the innocuous-looking
-\(\AgdaInductiveConstructor{refl}\) now takes the bulk of the time! Typechecking
-this step involves unifying the two normalised expressions, a task which is
-quite expensive, with counterintuitive performance characteristics. So
-counterintuitive, in fact, that early versions of the solver, with all the
-optimisations from \citet{gregoire_proving_2005} applied, was in many cases
-\emph{slower} than the old, unoptimised solver!
-
-In this section, we'll try and explain the problem and how we fixed it, and give
-general guidelines on how to write Agda code which typechecks quickly.
+Fig.~\ref{proof-process}). This isn't necessarily the most expensive step,
+though. Surprisingly, the innocuous-looking \(\AgdaInductiveConstructor{refl}\)
+takes the bulk of the time! Typechecking this step involves unifying the two
+normalised expressions, a task which is quite expensive, with counterintuitive
+performance characteristics. 
 
 First, the good news. In the general case, unifying two expressions takes time
 proportional to the size of those expressions, so our hard-won optimisations do
@@ -778,24 +785,18 @@ indeed help us.
 
 Unfortunately, though, the ``general case'' isn't really that general: Agda's
 unification algorithm has a very important shortcut which we \emph{must} make
-use of if we want our code to typecheck quickly: \emph{syntactic equivalence}.
+use of if we want our code to typecheck quickly: \emph{syntactic equality}.
 
-Because Agda is a dependently-typed language, types can contain functions,
-variables, and all sorts of complex expressions. One might expect that the
-unification algorithm should compute these expressions as far as it can, getting
-them to normal form, before it checks for any kind of equivalence. This would be
-disastrous for performance! Consider the following:
+Before the full unification algorithm, Agda runs a quick check to see if the two
+expressions it's testing for equality are \emph{syntactically} equal. This can
+make a big difference in unification problems like the following:
 \[ \AgdaFunction{sum} \; [ \AgdaNumber{1} .. \AgdaNumber{100} ] \stackrel{?}{=}
   \AgdaFunction{sum} \; [ \AgdaNumber{1} .. \AgdaNumber{100} ] \]
 
-Running both computations here is an unnecessarily expensive task, and one which
-Agda does indeed avoid. Before the full unification algorithm, the typechecker
-does a quick pass to spot any syntactic equalities like the one above: if it
-sees one, it can avoid any more computation on that particular expression.
-
-Taking advantage of that shortcut is key to achieving decent performance. With
-that in mind, there are two main strategies we'll use to encourage syntactic
-equivalence:
+By noticing that these expressions are syntactically equal, we can avoid
+actually computing the \(\AgdaFunction{sum}\) function. Taking advantage of that
+shortcut is key to achieving decent performance. With that in mind, there are
+two main strategies we'll use to encourage syntactic equality:
 \subsubsection{Avoid Progress at all Costs}
 First, we will consider something which may seem inconsequential: the order of
 arguments to the evaluation functions.
@@ -822,23 +823,28 @@ is the first thing we try to scrutinise. In \(\AgdaFunction{⟦\_⟧ᵣ}\), sinc
 of the constants are kept to the left, they're scrutinised first, allowing us to
 perform much more normalisation before being blocked.
 
-Surprisingly, this is exactly what you \emph{don't} want! Since both sides of
-the equation will be coming out of the same normalisation function, they should
-have similar structures, allowing for syntactic equivalence. The coefficients,
-though, will be computed during manipulations on the Horner normal form, and so
-may contain unevaluated expressions, which require normalisation. If we used
-\(\AgdaFunction{⟦\_⟧ᵣ}\) as our definition, then, the typechecker will likely
-hit an inequivalence very early on, and give up on syntactic equivalence. Even worse,
-because it's able to make progress, it will likely do so, completely changing
-the structure of the expression and ruining any chance for later syntactic
-equalities!
+Surprisingly, this is exactly what you \emph{don't} want! Since both expressions
+will be coming out of the same evaluation function, they should have the same
+structure, meaning that we don't \emph{need} the reduction of outer terms that
+\(\AgdaFunction{⟦\_⟧ᵣ}\) gives us. We only need to perform normalisation on the
+coefficients: these are computed during the manipulations of the polynomial, and
+so may contain unevaluated expressions. If we used \(\AgdaFunction{⟦\_⟧ᵣ}\) as
+our definition, then the type checker will likely hit an inequality on the
+\emph{first} term, and as a result we lose all opportunity for syntactic
+equality. \(\AgdaFunction{⟦\_⟧ₗ}\), on the other hand, front-loads all of the
+variables, maintaining syntactic equality for as long as possible.
+
+As well as that, we don't have any control of the structure we get from the ring
+operators. This means that any reduction, as well as being unnecessary, can
+destroy the structural similarity between the two expressions, and as a result
+their syntactic equality.
 
 The (counterintuitive) lesson learned is as follows: to speed up unification,
 keep things which are likely to be syntactically equal to the left, and
 \emph{don't} structure your functions to encourage progress. Simply swapping the
 arguments (as we do above) resulted in a performance improvement of several
 orders of magnitude.
-\subsubsection{Avoid Constants}
+\subsubsection{Avoid Identities}
 \begin{figure}[h]
   \centering
   \begin{subfigure}{0.4\textwidth}
@@ -854,17 +860,16 @@ orders of magnitude.
   \caption{Comparison of the normal forms of equation~\ref{example-poly}}
   \label{normal-forms}
 \end{figure}
-It's a good idea to avoid constant coefficient expressions in the normal form.
-This will reduce the size of your expression, which is helpful in general, but
-more importantly it will make it less likely that the typechecker will be able
-to run some normalisation on one of the ring operators.
+It's a good idea to avoid identities (expressions like \(0 + x\) or \(1 * x\))
+in the normalised expression. This will reduce the size of your expression,
+which is helpful in general, but more importantly it increases the likelihood of
+finding syntactic equality in the argument to the identity (\(x\) in the
+examples above).
 
-Our sparse representation helps significantly in this case: by removing
-\(\AgdaNumber{0}\) from the generated expression, we significantly improve the
-chances of maintaining structural similarity between the two normal forms.
-
-Another place we can cut down on constants is in identity elements in the base
-case for recursive functions. Take exponentiation, for example:
+Our sparse representation helps significantly in this case by entirely removing
+\(\AgdaNumber{0}\) from the generated expression. Another place we can cut down
+on constants is in identity elements in the base case for recursive functions.
+Take exponentiation, for example:
 \begin{center}
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{pow-bad}
 \end{center}
@@ -981,7 +986,7 @@ faster than the new. Nonetheless, if a user really wants to use the old
 solver, the other components described here are entirely modular, and can work
 with any underlying solver which uses the reflexive technique.
 
-\subsection{Verifying the Optimisations}
+\section{Verification} \label{verif}
 The output of the solver is a constructive proof of equivalence: this is
 \emph{derived} from a generic proof that the operations on the solver are a ring
 homomorphism from the carrier type. Put another way, for the solver to work
@@ -1111,8 +1116,8 @@ y + 3 + x
     ={ +-comm(y, 3) }
 3 + y + x
 \end{BVerbatim}
-  \label{step-output}
   \caption{Step-by-Step Output From Our Solver}
+  \label{step-output}
 \end{wrapfigure}
 \section{Related Work}
 In dependently-typed programming languages, the state-of-the-art solver for
