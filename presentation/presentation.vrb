@@ -1,53 +1,26 @@
-\frametitle{The Correct-by-Construction Approach}
-  \note<1>{
-    The Agda and Coq communities exhibit something of a cultural difference when it
-    comes to proving things. Coq users seem to prefer writing simpler, almost
-    non-dependent code and algorithms, to separately prove properties about that
-    code in auxiliary lemmas. Agda users, on the other hand, seem to prefer baking
-    the properties into the definition of the types themselves, and writing the
-    functions in such a way that they prove those properties as they go (the
-    ``correct-by-construction'' approach).
+\frametitle{This Project}
+  \begin{figure}[t]
+    \ExecuteMetaData[../Introduction.tex]{lemma}
+    \vspace{-10pt}
+  \end{figure}
 
-    There are advantages and disadvantages to each approach. The Coq approach, for
-    instance, allows you to reuse the same functions in different settings,
-    verifying different properties about them depending on what's required. In Agda,
-    this is more difficult: you usually need a new type for every invariant you
-    maintain (lists, and then length-indexed lists, and then sorted lists, etc.). On
-    the other hand, the proofs themselves often contain a lot of duplication of the
-    logic in the implementation: in the Agda style, you avoid this duplication, by
-    doing both at once. Also worth noting is that occasionally attempting to write a
-    function that is correct by construction will lead to a much more elegant
-    formulation of the original algorithm, or expose symmetries between the proof
-    and implementation that would have been difficult to see otherwise.
-  }
-  \note<2>{
-    The gregoire version as an example, is very much in the Coq style: the
-    definition of the polynomial type has no type indices, and makes no requirements
-    on its internal structure:
-
-    The implementation presented here straddles both camps: we verify
-    homomorphism in separate lemmas, but the type itself does carry information:
-    it's indexed by the number of variables it contains, for instance, and it
-    statically ensures it's always in canonical form.
-  }
-  \begin{onlyenv}<2>
-    \bibentry{gregoire_proving_2005}
-
-    \begin{minted}[autogobble]{Coq}
-      Inductive Pol (C:Set) : Set :=
-        | Pc : C -> Pol C
-        | Pinj : positive -> Pol C -> Pol C
-        | PX : Pol C -> positive -> Pol C -> Pol C.
-    \end{minted}
-  \end{onlyenv}
-
-  \only<3>{\bibentry{geuvers_automatically_2017}}
-  \note<3>{
-    The correct-by-construction approach is explored in Idris, but they don't
-    employ the same level of reflection or optimisation as we do.
-  }
-  \only<4>{\ExecuteMetaData[../Constr.tex]{constr-def}}
-  \note<4>{
-    Nonetheless, we do provide an implementation of this version, for
-    comparison.
-  }
+  \begin{minipage}[b]{0.5\textwidth}
+    \begin{figure}[h!]
+      \hspace*{-80pt}\resizebox{0.8\textwidth}{!}{%
+        \begin{minipage}{\textwidth}
+          \ExecuteMetaData[../Introduction.tex]{proof}
+        \end{minipage}
+      }
+      \caption{A Tedious Proof}
+    \end{figure}%
+  \end{minipage}%
+  \begin{minipage}[b]{0.5\textwidth}
+  \begin{figure}[h]
+    \resizebox{\textwidth}{!}{%
+      \begin{minipage}{\textwidth}
+        \ExecuteMetaData[../Introduction.tex]{solver}
+      \end{minipage}
+    }
+    \caption{Our Solver}
+  \end{figure}
+  \end{minipage}
