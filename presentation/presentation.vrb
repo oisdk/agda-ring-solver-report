@@ -1,26 +1,19 @@
-\frametitle{This Project}
-  \begin{figure}[t]
-    \ExecuteMetaData[../Introduction.tex]{lemma}
-    \vspace{-10pt}
-  \end{figure}
+\frametitle{Didactic Solutions}
+  Another implication of ``Proofs are programs'' is that proofs have
+  computational content.
 
-  \begin{minipage}[b]{0.5\textwidth}
-    \begin{figure}[h!]
-      \hspace*{-80pt}\resizebox{0.8\textwidth}{!}{%
-        \begin{minipage}{\textwidth}
-          \ExecuteMetaData[../Introduction.tex]{proof}
-        \end{minipage}
-      }
-      \caption{A Tedious Proof}
-    \end{figure}%
-  \end{minipage}%
-  \begin{minipage}[b]{0.5\textwidth}
-  \begin{figure}[h]
-    \resizebox{\textwidth}{!}{%
-      \begin{minipage}{\textwidth}
-        \ExecuteMetaData[../Introduction.tex]{solver}
-      \end{minipage}
-    }
-    \caption{Our Solver}
-  \end{figure}
-  \end{minipage}
+  For instance, the ``proof'' of equality can be a path. These form equivalence
+  relations, where equivalence classes are connected components in the graph.
+
+  We can then perform some cleaning-up of the path (an A*-like algorithm, as
+  well as some heuristics), and print the result out to the user.
+
+  \centering
+\begin{BVerbatim}
+x + y + 3
+    ={ +-comm(x, y + 3) }
+y + 3 + x
+    ={ +-comm(y, 3) }
+3 + y + x
+\end{BVerbatim}
+

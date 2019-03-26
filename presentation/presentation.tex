@@ -61,9 +61,6 @@
 \usepackage[obeyDraft]{todonotes}
 \usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{decorations.pathmorphing}
-\usetikzlibrary{snakes}
-\usetikzlibrary{arrows}
 \usepackage{forest}
 \usepackage{multicol}
 \usetheme{metropolis}
@@ -72,7 +69,8 @@
 \usepackage{amsmath}
 \usepackage{tabularx}
 \usepackage{adjustbox}
-
+\usepackage{pgfplots}
+\usepackage{fancyvrb}
 \title{Automatically and Efficiently Illustrating Polynomial Equalities in Agda}
 \author{Donnacha Oisín Kidney}
 \begin{document}
@@ -131,7 +129,7 @@
 \end{frame}
 \begin{frame}
   \frametitle{Two Problems}
-  \begin{columns}
+  \begin{columns}[t]
     \column{0.5\textwidth}
     \begin{block}{Formalisms are too Verbose}
       \bibentry{whitehead_principia_1910}
@@ -143,6 +141,11 @@
       \bibentry{appel_solution_1977}
     \end{block}
   \end{columns}
+  \vfill
+  Researchers began to notice that the type systems of programming languages
+  might be a good solution for both of these problems.
+
+  By the Curry-Howard isomorphism, proofs are programs, and programs are proofs.
 \end{frame}
 \begin{frame}[fragile]
   \frametitle{This Project}
@@ -172,17 +175,105 @@
   \end{figure}
   \end{minipage}
 \end{frame}
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{The Algorithm}
-  Horner normal form
+  We convert to Horner Normal Form, and prove the conversion correct.
+
+  \newcounter{realxtickpos}
+  \pgfplotsset{
+      tick label style={font=\scriptsize},
+      extra y tick style={yticklabel pos=right},
+      title style={at={(-0.03,1.05)},anchor=west},
+      xticklabel={%
+        \ifnum \value{realxtickpos}=0%
+          {$d = \pgfmathprintnumber{\tick}$}
+        \else
+          {$\pgfmathprintnumber{\tick}$}
+        \fi
+        \stepcounter{realxtickpos}
+      },
+      width=1.4\textwidth,
+      yticklabel style={anchor=west},
+      yticklabel shift=-2pt,
+      xtick pos=bottom,
+  }
+  \begin{minipage}[t]{0.32\textwidth}%
+    \setcounter{realxtickpos}{0}%
+    \begin{figure}
+      \begin{tikzpicture}
+        \begin{axis}[
+          % transpose legend,
+          legend columns=1,
+          legend entries={new, old},
+          legend to name=benchplots,
+          title={\footnotesize$(x_1 + x_2 + \ldots x_n)^d$},
+          ytick={20,60,100},
+          ]
+          \addplot[color=blue, densely dashed] table {../benchmark-data/sparse1.dat};
+          \addplot[color=red] table {../benchmark-data/dense1.dat};
+        \end{axis}
+      \end{tikzpicture}
+    \end{figure}
+  \end{minipage}
+  \begin{minipage}[t]{0.32\textwidth}%
+    \setcounter{realxtickpos}{0}%
+    \begin{figure}
+      \begin{tikzpicture}
+        \begin{axis}[
+          title={\footnotesize$x_1^d + x_2^d + \ldots x_n^d$},
+          ytick={10,25},
+          ]
+          \addplot[color=blue, densely dashed] table {../benchmark-data/sparse2.dat};
+          \addplot[color=red] table {../benchmark-data/dense2.dat};
+        \end{axis}
+      \end{tikzpicture}
+      \label{bench2}
+    \end{figure}
+  \end{minipage}
+  \begin{minipage}[t]{0.32\textwidth}%
+   \setcounter{realxtickpos}{0}%
+    \begin{figure}
+      \begin{tikzpicture}
+        \begin{axis}[
+          title={\scriptsize$(x_1^n + x_2^{n-1} + \ldots x_n^1 + 1)^d$},
+          ytick={250,750,1250},
+          ]
+          \addplot[color=blue, densely dashed] table {../benchmark-data/sparse3.dat};
+          \addplot[color=red] table {../benchmark-data/dense3.dat};
+        \end{axis}
+      \end{tikzpicture}
+    \end{figure}
+  \end{minipage}
+
+  \vfill
+  \begin{minipage}{0.2\textwidth}
+    \ref{benchplots}
+  \end{minipage}%
+  \begin{minipage}{0.8\textwidth}
+    Time (in seconds) to prove each expression is equal to its expanded form ($n
+    = 5$ for each).
+  \end{minipage}
 \end{frame}
-\begin{frame}
-  \frametitle{The Interface}
-  Reflection
-\end{frame}
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Didactic Solutions}
-  Perfectly suited
+  Another implication of ``Proofs are programs'' is that proofs have
+  computational content.
+
+  For instance, the ``proof'' of equality can be a path. These form equivalence
+  relations, where equivalence classes are connected components in the graph.
+
+  We can then perform some cleaning-up of the path (an A*-like algorithm, as
+  well as some heuristics), and print the result out to the user.
+
+  \centering
+\begin{BVerbatim}
+x + y + 3
+    ={ +-comm(x, y + 3) }
+y + 3 + x
+    ={ +-comm(y, 3) }
+3 + y + x
+\end{BVerbatim}
+
 \end{frame}
 
 \begin{frame}[standout]
