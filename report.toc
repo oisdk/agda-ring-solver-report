@@ -20,5 +20,4 @@
 \contentsline {section}{\numberline {7}Pedagogical Solutions}{13}{section.7}
 \contentsline {section}{\numberline {8}Related Work}{14}{section.8}
 \contentsline {section}{\numberline {9}Conclusion}{14}{section.9}
-\contentsline {section}{Acknowledgments}{15}{section*.13}
-\contentsline {section}{References}{15}{section*.15}
+\contentsline {section}{References}{15}{section*.13}
