@@ -1,5 +1,6 @@
 %% For double-blind review submission, w/o CCS and ACM Reference (max submission space)
-\documentclass[acmsmall,anonymous]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\documentclass[12pt]{article}
+
 %% For double-blind review submission, w/ CCS and ACM Reference
 %\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true}
 %% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
@@ -13,31 +14,31 @@
 %% Journal information
 %% Supplied to authors by publisher for camera-ready submission;
 %% use defaults for review submission.
-\acmJournal{PACMPL}
-\acmVolume{1}
-\acmNumber{CONF} % CONF = POPL or ICFP or OOPSLA
-\acmArticle{1}
-\acmYear{2018}
-\acmMonth{1}
-\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
-\startPage{1}
+% \acmJournal{PACMPL}
+% \acmVolume{1}
+% \acmNumber{CONF} % CONF = POPL or ICFP or OOPSLA
+% \acmArticle{1}
+% \acmYear{2018}
+% \acmMonth{1}
+% \acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+% \startPage{1}
 
 %% Copyright information
 %% Supplied to authors (based on authors' rights management selection;
 %% see authors.acm.org) by publisher for camera-ready submission;
 %% use 'none' for review submission.
-\setcopyright{none}
+% \setcopyright{none}
 %\setcopyright{acmcopyright}
 %\setcopyright{acmlicensed}
 %\setcopyright{rightsretained}
 %\copyrightyear{2018}           %% If different from \acmYear
 
 %% Bibliography style
-\bibliographystyle{ACM-Reference-Format}
+\bibliographystyle{plain}
 %% Citation style
 %% Note: author/year citations are required for papers published as an
 %% issue of PACMPL.
-\citestyle{acmauthoryear}   %% For author/year citations
+% \citestyle{acmauthoryear}   %% For author/year citations
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,7 +59,9 @@
 \usepackage{multicol}
 \usepackage{fancyvrb}
 \usepackage{wrapfig}
-
+\usepackage{minted}
+\usepackage{tikz-cd}
+\usepackage{natbib}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Agda special Characters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -132,38 +135,16 @@
 \newcommand{\Int}{\AgdaDatatype{ℤ}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\theoremstyle{remark}
 \newtheorem{principle}{Principle}
 \usepackage{minitoc}
 
+
 \begin{document}
 
-%% Title information
-\title{Solving Rings in Agda}
+\title{Automatically and Efficiently Illustrating Polynomial Equalities in Agda}
+\author{Donnacha Ois\'in Kidney}
 
-%% Author information
-%% Contents and number of authors suppressed with 'anonymous'.
-%% Each author should be introduced by \author, followed by
-%% \authornote (optional), \orcid (optional), \affiliation, and
-%% \email.
-%% An author may have multiple affiliations and/or emails; repeat the
-%% appropriate command.
-%% Many elements are not rendered, but should be provided for metadata
-%% extraction tools.
-
-%% Author with single affiliation.
-\author{Donnacha Oisín Kidney}
-\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
-\affiliation{
-  \position{Undergraduate}
-  \department{Computer Science}              %% \department is recommended
-  \institution{University College Cork}            %% \institution is required
-  \country{Ireland}                          %% \country is recommended
-}
-\email{115702295@umail.ucc.ie}          %% \email is recommended
-%% Abstract
-%% Note: \begin{abstract}...\end{abstract} environment must come
-%% before \maketitle command
+\maketitle
 \begin{abstract}
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
@@ -172,66 +153,22 @@
   interface to the solver, and demonstrate how to use the constructed proofs to
   provide step-by-step solutions.
 \end{abstract}
+\tableofcontents
+
+\section{Introduction}
+In the early 20th century, the foundations of mathematics began to crumble.
+The first crack was discovered in 1901: Russell's paradox.
+Similar paradoxes soon followed, each representing a core error in some
+fundamental theory.
+Nonetheless, the work of papering over these cracks began in earnest:
+Russell himself (along with Whitehead) published the Principia Mathematica, a
+formalisation of contemporary mathematics based on a theory that accounted for
+Russell's paradox.
 
 
-%% 2012 ACM Computing Classification System (CSS) concepts
-%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\section{A Ring Solver in Agda}
 
-\begin{CCSXML}
-<ccs2012>
-<concept>
-<concept_id>10002950.10003705.10003707</concept_id>
-<concept_desc>Mathematics of computing~Solvers</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10002950.10003705.10011686</concept_id>
-<concept_desc>Mathematics of computing~Mathematical software performance</concept_desc>
-<concept_significance>300</concept_significance>
-</concept>
-<concept>
-<concept_id>10010147.10010148.10010149.10010159</concept_id>
-<concept_desc>Computing methodologies~Theorem proving algorithms</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10010147.10010148.10010162</concept_id>
-<concept_desc>Computing methodologies~Computer algebra systems</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10010147.10010148.10010164.10010168</concept_id>
-<concept_desc>Computing methodologies~Representation of polynomials</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10003120.10003145</concept_id>
-<concept_desc>Human-centered computing~Visualization</concept_desc>
-<concept_significance>300</concept_significance>
-</concept>
-</ccs2012>
-\end{CCSXML}
-
-\ccsdesc[500]{Mathematics of computing~Solvers}
-\ccsdesc[300]{Mathematics of computing~Mathematical software performance}
-\ccsdesc[500]{Computing methodologies~Theorem proving algorithms}
-\ccsdesc[500]{Computing methodologies~Computer algebra systems}
-\ccsdesc[500]{Computing methodologies~Representation of polynomials}
-\ccsdesc[300]{Human-centered computing~Visualization}
-%% End of generated code
-
-
-%% Keywords
-%% comma separated list
-\keywords{proof automation, equivalence, proof by reflection, step-by-step solutions}
-
-
-%% \maketitle
-%% Note: \maketitle command must come after title commands, author
-%% commands, abstract environment, Computing Classification System
-%% environment and commands, and keywords command.
-
-\begin{teaserfigure}
+\begin{figure*}
   \centering
   \begin{subfigure}[b]{\textwidth}
     \centering
@@ -252,13 +189,7 @@
   \end{subfigure}
   \caption{Comparison Between A Manual Proof and The Automated Solver}
   \label{comparison}
-\end{teaserfigure}
-\maketitle
-\begin{multicols}{2}
-\setcounter{tocdepth}{1}
-\tableofcontents
-\end{multicols}
-\section{Introduction}
+\end{figure*}
 Doing mathematics in dependently-typed programming languages like Agda has a
 reputation for being tedious. Even simple arithmetic identities like the one in
 Fig.~\ref{comparison} require fussy proofs (Fig.~\ref{ring-proof}).
@@ -276,7 +207,7 @@ The main contributions of our library are as follows:
     simple to use: the single line in Fig.~\ref{the-solver} solves the lemma.
 
     This interface (section~\ref{interface}) is implemented using a lightweight
-    reflection system (section~\ref{reflection}), which doesn't require the user
+    reflection system (section~\ref{reflection}), which does not require the user
     to write \emph{any} reflection code, even if they use the solver with their
     own custom type. 
   \item[Performance] Our solver is significantly faster than Agda's current ring
@@ -351,7 +282,7 @@ the solver.
   \item[Correctness] The nature of the solver means it is intrinsically sound
     (i.e. it cannot prove an equivalence unless there is one): since all it does
     is rearrange and join together the ring axioms, it cannot prove anything
-    that doesn't derive from them. We have not, however, proven completeness
+    that does not derive from them. We have not, however, proven completeness
     (that every equivalence will be found by our solver).
 
     In the internal representation of the solver, we prove several data structure
@@ -486,11 +417,11 @@ mechanism (which it calls macros) to package metaprogramming code so it looks
 like a normal function call (as in \(\AgdaMacro{solve}\)).
 
 Reflection is obviously a powerful tool, but it has a reputation for being
-unsafe and error-prone. Agda's reflection system doesn't break type safety, but
+unsafe and error-prone. Agda's reflection system does not break type safety, but
 we \emph{are} able to construct \(\AgdaDatatype{Term}\)s which are ill-typed,
 which often result in confusing error-messages on the user's end. Unfortunately,
 constructing ill-typed terms is quite easy to do: the \(\AgdaDatatype{Term}\)
-type itself doesn't contain a whole lot of type information, and it's quite
+type itself does not contain a whole lot of type information, and it's quite
 fragile and sensitive to context. Variables, for instance, are referred to by
 their de Bruijn indices, meaning that the same \(\AgdaDatatype{Term}\) can break
 if it's simply moved under a lambda.
@@ -516,7 +447,7 @@ function (\(\AgdaFunction{getBinOp}\), \(\AgdaFunction{getExp}\), or
 \(\AgdaFunction{getUnOp}\)) which finds the important subterms from the
 operator's argument list.
 
-If it \emph{doesn't} manage to match an operator or a variable, it assumes that
+If it \emph{does not} manage to match an operator or a variable, it assumes that
 what it has must be a constant, and wraps it up in the
 \(\AgdaInductiveConstructor{K}\) constructor. This is the key trick which allows
 us to avoid ever asking the user to quote their own type. While it may seem
@@ -590,7 +521,7 @@ we'll look at size-indexed binary trees:
 \end{center}
 
 We've deliberately chosen an awkward type here: in contrast to the more common
-size-indexed lists, the index (the size) doesn't match the shape of the data
+size-indexed lists, the index (the size) does not match the shape of the data
 structure. As a result, almost every function which manipulates the tree in some
 way will have to come accompanied by a verbose, complex proof. Take this line,
 for instance, which performs a left-rotation on the tree:
@@ -598,7 +529,7 @@ for instance, which performs a left-rotation on the tree:
   \ExecuteMetaData[Invariants.tex]{unproven}
 \end{center}
 
-A sensible invariant to encode here is that the function doesn't change the size
+A sensible invariant to encode here is that the function does not change the size
 of the tree. Unfortunately, to \emph{prove} that invariant, we have to prove the
 following:
 \[1 + (1 + a + c) + b = 1 + a + (1 + b + c)\]
@@ -689,7 +620,7 @@ themselves polynomials in \(n-1\) variables.
 Before running off to use this representation, though, we should notice that we
 have created another kind of ``gap'' which we should avoid with a sparse
 encoding. For a polynomial with \(n\) variables, we will always have \(n\)
-levels of nesting, even if the polynomial doesn't actually refer to all \(n\)
+levels of nesting, even if the polynomial does not actually refer to all \(n\)
 variables. In the extreme case, representing the constant \(6\) in a polynomial
 of 3 variables looks like the following:
 \begin{center}
@@ -1109,7 +1040,7 @@ Agda \cite{norell_dependently_2008} is a dependently-typed programming language
 based on Martin-Löf's Intuitionistic Type
 Theory \cite{martin-lof_intuitionistic_1980}. Its standard
 library \cite{danielsson_agda_2018} currently contains a ring solver which is
-similar in flexibility to Coq's \verb+ring+, but doesn't support the
+similar in flexibility to Coq's \verb+ring+, but does not support the
 reflection-based interface, and is less efficient to the one presented here. 
 
 In \citet{geuvers_automatically_2017}, an implementation of an automated solver
@@ -1152,23 +1083,6 @@ but significant pain points of doing maths in Agda.
 
 
 %% Acknowledgments
-\begin{acks}                            %% acks environment is optional
-                                        %% contents suppressed with 'anonymous'
-  %% Commands \grantsponsor{<sponsorID>}{<name>}{<url>} and
-  %% \grantnum[<url>]{<sponsorID>}{<number>} should be used to
-  %% acknowledge financial support and will be used by metadata
-  %% extraction tools.
-  This material is based upon work supported by the
-  \grantsponsor{GS100000001}{National Science
-    Foundation}{http://dx.doi.org/10.13039/100000001} under Grant
-  No.~\grantnum{GS100000001}{nnnnnnn} and Grant
-  No.~\grantnum{GS100000001}{mmmmmmm}.  Any opinions, findings, and
-  conclusions or recommendations expressed in this material are those
-  of the author and do not necessarily reflect the views of the
-  National Science Foundation.
-\end{acks}
-
-
 %% Bibliography
 \bibliography{bibliography.bib}
 % %% Appendix
