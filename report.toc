@@ -2,22 +2,25 @@
 \contentsline {section}{\numberline {1}Declaration of Originality}{3}
 \contentsline {section}{\numberline {2}Introduction}{6}
 \contentsline {subsection}{\numberline {2.1}Background}{6}
-\contentsline {subsection}{\numberline {2.2}Our Contribution}{7}
+\contentsline {paragraph}{The Foundational Crisis}{6}
+\contentsline {paragraph}{Intuitionism}{6}
+\contentsline {paragraph}{Intuitionistic Type Theory and Agda}{7}
+\contentsline {subsection}{\numberline {2.2}Our Contributions}{8}
 \contentsline {subsection}{\numberline {2.3}Scope}{9}
-\contentsline {section}{\numberline {3}Overview of the Proof Technique}{10}
-\contentsline {section}{\numberline {4}The Interface}{11}
-\contentsline {subsection}{\numberline {4.1}Implementation}{12}
-\contentsline {subsection}{\numberline {4.2}Maintaining Invariants}{15}
-\contentsline {section}{\numberline {5}Performance}{16}
-\contentsline {subsection}{\numberline {5.1}Normalisation}{16}
-\contentsline {subsubsection}{\numberline {5.1.1}Horner Normal Form}{16}
-\contentsline {subsubsection}{\numberline {5.1.2}Sparse Encodings}{17}
-\contentsline {subsubsection}{\numberline {5.1.3}Hanging Indices}{18}
-\contentsline {subsection}{\numberline {5.2}Unification}{20}
+\contentsline {section}{\numberline {3}Overview of the Proof Technique}{11}
+\contentsline {section}{\numberline {4}The Interface}{12}
+\contentsline {subsection}{\numberline {4.1}Implementation}{13}
+\contentsline {subsection}{\numberline {4.2}Maintaining Invariants}{16}
+\contentsline {section}{\numberline {5}Performance}{17}
+\contentsline {subsection}{\numberline {5.1}Normalisation}{17}
+\contentsline {subsubsection}{\numberline {5.1.1}Horner Normal Form}{17}
+\contentsline {subsubsection}{\numberline {5.1.2}Sparse Encodings}{18}
+\contentsline {subsubsection}{\numberline {5.1.3}Hanging Indices}{19}
+\contentsline {subsection}{\numberline {5.2}Unification}{21}
 \contentsline {subsubsection}{\numberline {5.2.1}Avoid Progress at all Costs}{21}
 \contentsline {subsubsection}{\numberline {5.2.2}Avoid Identities}{22}
-\contentsline {subsection}{\numberline {5.3}Benchmarks}{23}
+\contentsline {subsection}{\numberline {5.3}Benchmarks}{24}
 \contentsline {section}{\numberline {6}Verification}{24}
-\contentsline {section}{\numberline {7}Pedagogical Solutions}{24}
-\contentsline {section}{\numberline {8}Related Work}{26}
-\contentsline {section}{\numberline {9}Conclusion}{27}
+\contentsline {section}{\numberline {7}Pedagogical Solutions}{25}
+\contentsline {section}{\numberline {8}Related Work}{27}
+\contentsline {section}{\numberline {9}Conclusion}{28}

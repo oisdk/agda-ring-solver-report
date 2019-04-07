@@ -145,9 +145,10 @@ Conference on Functional Programming.
 
 \section{Introduction}
 \subsection{Background}
+\paragraph{The Foundational Crisis}
 In the early 20th century, the foundations of mathematics began to crumble.
 The first crack was Russell's paradox, discovered in 1901.
-Similar paradoxes soon followed: these represented core errors in the
+Similar paradoxes soon followed: each represented core errors in the
 foundational theories that had underpinned all of mathematics up until that
 point.
 
@@ -188,6 +189,7 @@ the Entscheidungsproblem was unsolvable \cite{church_unsolvable_1936,
   church_._1937}, showing that the third requirement was also impossible to
 satisfy.
 
+\paragraph{Intuitionism}
 Among the rubble stood intuitionism: the third school of thought, once maligned,
 now was more attractive in light of the failure of Hilbert's program.
 Formalists and intuitionists had deep philosophical disagreements: the formalist
@@ -221,6 +223,7 @@ intuitionistically, we would be able to pluck---either from thin air or from an
 algorithm---a proof of its truth or falsehood.
 But of course, via the Entscheidungsproblem, we know that this is impossible.
 
+\paragraph{Intuitionistic Type Theory and Agda}
 Intuitionism has had many incarnations since Brouwer (it gained widespread
 popularity after Bishop), but the particular version of interest to us comes
 from a strange source: the type systems of programming languages.
@@ -228,7 +231,7 @@ In formal terms, we are talking about the ``Curry-Howard isomorphism''
 (Fig.~\ref{CH}): a way to bridge the world of programming languages and
 formalised mathematics.
 
-\begin{wrapfigure}{r}{0.4\textwidth}
+\begin{wrapfigure}{r}{0.5\textwidth}
   \centering
   \begin{tikzcd}
     \textit{Type}    \ar[r, Leftrightarrow] & \textit{Proposition}  \\
@@ -243,12 +246,22 @@ Martin-Löf's intuitionistic type theory \cite{martin-lof_intuitionistic_1980}.
 Its syntax and evaluation strategy is similar to Haskell, but as a formalism it
 can be used to prove mathematical statements.
 
-\subsection{Our Contribution}
-This work intends to assist in the formalisation of mathematics, by using Agda
-as a theorem-prover.
-The particular area we are concerned with is polynomials: proofs of identities
-can be tedious (Fig.~\ref{ring-proof}), so we use Agda's programming capabilities to
-automate this process.
+\subsection{Our Contributions}
+It is over a hundred years since the publication Principia Mathematica, and we are still a
+long way away from formalising all of mathematics.
+There is a popular website which tracks the progress of this formalisation
+against the ``100 greatest theorems'' \cite{wiedijk_formalizing_2018}: at time
+of writing, the number stands at 93.
+
+There are many reasons for why we haven't managed to formalise all 100 yet:
+chief among them is that, while we have come far from the days of the PM, proofs
+are still verbose and tedious.
+
+This work intends to alleviate some of the tedium of constructing a particular
+kind of proof: identities over commutative rings.
+We write a verified and proven library for automation in Agda, to automate the
+construction of proofs like the one in Fig.~\ref{ring-proof}, making them as
+simple as Fig.~\ref{the-solver}.
 
 \begin{figure*}
   \centering
@@ -347,6 +360,7 @@ the solver.
     \begin{center}
       \vspace{-10pt}
       \ExecuteMetaData[ReflexiveProcessRings.tex]{weak-dec}
+      \vspace{-10pt}
     \end{center}
     Just as in Agda's current solver, this allows users to avail of the
     optimisation if their type supports it, or skip it
@@ -366,6 +380,7 @@ the solver.
     can only cause the solver to miss a solution, never to prove something it
     shouldn't.
 \end{description}
+\pagebreak
 \section{Overview of the Proof Technique}
 \begin{figure}[h]
   \resizebox{\textwidth}{!}{\includegraphics[draft=false]{graphics/reflexive-process}}
@@ -373,7 +388,7 @@ the solver.
   \caption{The Reflexive Proof Process}
   \label{proof-process}
 \end{figure}
-\begin{wrapfigure}{r}{0.45\textwidth}
+\begin{wrapfigure}{r}{0.6\textwidth}
   \vspace{-18pt}
   \ExecuteMetaData[ReflectionSection.tex]{expr-def}
   \caption{A Type for Ring Expressions}
@@ -419,7 +434,7 @@ reflection to automate it. This is described in the following section.
   \caption{The Old Solver}
   \label{old-solver}
 \end{figure}
-\begin{wrapfigure}{r}{0.5\textwidth}
+\begin{wrapfigure}{r}{0.6\textwidth}
   \vspace{-18pt}
   \ExecuteMetaData[ReflectionSection.tex]{partial-auto}
   \caption{The \(\AgdaMacro{solveOver}\) Macro}
@@ -778,11 +793,8 @@ two main strategies we'll use to encourage syntactic equality:
 \subsubsection{Avoid Progress at all Costs}
 First, we will consider something which may seem inconsequential: the order of
 arguments to the evaluation functions.
-\begin{multicols}{2}
-  \centering
-  \ExecuteMetaData[PerformanceOfTypeChecking.tex]{forwards-eval}
-  \ExecuteMetaData[PerformanceOfTypeChecking.tex]{backwards-eval}
-\end{multicols}
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{forwards-eval}
+\ExecuteMetaData[PerformanceOfTypeChecking.tex]{backwards-eval}
 \(\AgdaFunction{⟦\_⟧ₗ}\) is the definition we've been working with so far. Some
 readers might find \(\AgdaFunction{⟦\_⟧ᵣ}\) more natural, however. The reason is
 that it's more productive: in lazy languages, the usual convention is that
@@ -792,7 +804,6 @@ left to right. The \(\AgdaFunction{*}\) and \(\AgdaFunction{+}\) functions (on
 \(\AgdaFunction{⟦\_⟧ᵣ}\) is able to make more progress without a concrete \(x\).
 Taking the polynomial \(x^2 + 2\) as an example:
 \begin{multicols}{2}
-  \centering
   \ExecuteMetaData[PerformanceOfTypeChecking.tex]{for-progress}
   \ExecuteMetaData[PerformanceOfTypeChecking.tex]{back-progress}
 \end{multicols}
@@ -823,26 +834,31 @@ keep things which are likely to be syntactically equal to the left, and
 arguments (as we do above) resulted in a performance improvement of several
 orders of magnitude.
 \subsubsection{Avoid Identities}
+
 \begin{figure}[h]
   \centering
+  \vspace{-50pt}
   \begin{subfigure}{0.4\textwidth}
     \centering
+    \vspace{-10pt}
     \ExecuteMetaData[PerformanceOfTypeChecking.tex]{small-force}
     \caption{Sparse encoding, with identity-avoiding optimisation}
   \end{subfigure}
   \begin{subfigure}{0.4\textwidth}
     \centering
+    \vspace{-10pt}
     \ExecuteMetaData[PerformanceOfTypeChecking.tex]{dense-term}
     \caption{Dense encoding, without identity-avoiding optimisation}
   \end{subfigure}
   \caption{Comparison of the normal forms of equation~\ref{example-poly}}
   \label{normal-forms}
 \end{figure}
+
 It's a good idea to avoid identities (expressions like \(0 + x\) or \(1 * x\))
 in the normalised expression. This will reduce the size of your expression,
 which is helpful in general, but more importantly it increases the likelihood of
 finding syntactic equality in the argument to the identity (\(x\) in the
-examples above).
+examples above). \pagebreak
 
 Our sparse representation helps significantly in this case by entirely removing
 \(\AgdaNumber{0}\) from the generated expression. Another place we can make
@@ -1087,6 +1103,7 @@ number of path-compression heuristics to cut down on the solution length:
 After applying those heuristics, our solver outputs the explanation in
 Fig.~\ref{step-output} for the lemma in Fig.~\ref{comparison}
 \begin{figure}[h!]
+  \centering
   \vspace{-10pt}
 \begin{BVerbatim}
 x + y + 3
@@ -1097,7 +1114,6 @@ y + 3 + x
 \end{BVerbatim}
   \caption{Step-by-Step Output From Our Solver}
   \label{step-output}
-  \vspace{-20pt}
 \end{figure}
 \section{Related Work}
 In dependently-typed programming languages, the state-of-the-art solver for
