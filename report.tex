@@ -1,54 +1,7 @@
-%% For double-blind review submission, w/o CCS and ACM Reference (max submission space)
 \documentclass[12pt]{article}
-
-%% For double-blind review submission, w/ CCS and ACM Reference
-%\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true}
-%% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
-%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
-%% For single-blind review submission, w/ CCS and ACM Reference
-%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true}
-%% For final camera-ready submission, w/ required CCS and ACM Reference
-%\documentclass[acmsmall]{acmart}\settopmatter{}
-
-
-%% Journal information
-%% Supplied to authors by publisher for camera-ready submission;
-%% use defaults for review submission.
-% \acmJournal{PACMPL}
-% \acmVolume{1}
-% \acmNumber{CONF} % CONF = POPL or ICFP or OOPSLA
-% \acmArticle{1}
-% \acmYear{2018}
-% \acmMonth{1}
-% \acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
-% \startPage{1}
-
-%% Copyright information
-%% Supplied to authors (based on authors' rights management selection;
-%% see authors.acm.org) by publisher for camera-ready submission;
-%% use 'none' for review submission.
-% \setcopyright{none}
-%\setcopyright{acmcopyright}
-%\setcopyright{acmlicensed}
-%\setcopyright{rightsretained}
-%\copyrightyear{2018}           %% If different from \acmYear
-
-%% Bibliography style
+\usepackage[margin=1.5in]{geometry}
+\usepackage{libertine}
 \usepackage{cite}
-%% Citation style
-%% Note: author/year citations are required for papers published as an
-%% issue of PACMPL.
-% \citestyle{acmauthoryear}   %% For author/year citations
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Note: Authors migrating a paper from PACMPL format to traditional
-%% SIGPLAN proceedings format must update the '\documentclass' and
-%% topmatter commands above; see 'acmart-sigplanproc-template.tex'.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%% Some recommended packages.
 \usepackage{booktabs}   %% For formal tables:
                         %% http://ctan.org/pkg/booktabs
 \usepackage{subcaption} %% For complex figures with subfigures/subcaptions
@@ -61,6 +14,7 @@
 \usepackage{wrapfig}
 \usepackage{minted}
 \usepackage{tikz-cd}
+\usepackage{csquotes}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Agda special Characters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,24 +89,59 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newtheorem{principle}{Principle}
-\usepackage{minitoc}
+\usepackage{authblk}
 
-
-\begin{document}
 
 \title{Automatically and Efficiently Illustrating Polynomial Equalities in Agda}
-\author{Donnacha Ois\'in Kidney}
+\author{
+  Donnacha Ois\'in Kidney \\ \vspace{3cm}
+  Supervisor: Professor Gregory Provan \\ \vspace{3cm}
+  Final-Year Project---BSc in Computer Science \\ \vspace{3cm}
+  Department of Computer Science \\
+  University College Cork
+}
 
+\begin{document}
 \maketitle
-\begin{abstract}
+\pagebreak
+\begin{abstract} \textbf{
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
   programming language Agda \cite{norell_dependently_2008}. It is significantly
   faster than Agda's existing solver. We use reflection to provide a simple
   interface to the solver, and demonstrate how to use the constructed proofs to
-  provide step-by-step solutions.
+  provide step-by-step solutions.}
 \end{abstract}
+\newpage
+\section{Declaration of Originality}
+In signing this declaration, you are conforming, in writing, that the submitted
+work is entirely your own original work, except where clearly attributed
+otherwise, and that it has not been submitted partly or wholly for any other
+educational award.
+
+I hereby declare that:
+\begin{itemize}
+  \item this is all my own work, unless clearly indicated otherwise, with full
+    and proper accreditation;
+  \item with respect to my own work: none of it has been submitted at any ed-
+    ucational institution contributing in any way to an educational award;
+  \item with respect to another’s work: all text, diagrams, code, or ideas,
+    whether verbatim, paraphrased or otherwise modified or adapted, have been
+    duly attributed to the source in a scholarly manner, whether from books,
+    papers, lecture notes or any other student’s work, whether published or
+    unpublished, electronically or in print.
+\end{itemize}
+\begin{tabular}{@{}p{.5in}p{4in}@{}}
+Signed: & \hrulefill \\
+Date: & \hrulefill \\
+\end{tabular}
+\newpage
+
+A version of this work has been submitted for publication to the International
+Conference on Functional Programming.
+\newpage
 \tableofcontents
+\newpage
 
 \section{Introduction}
 \subsection{Background}
@@ -163,7 +152,8 @@ foundational theories that had underpinned all of mathematics up until that
 point.
 
 The work of papering over these cracks began in earnest:
-Russell himself (along with Whitehead) published the Principia Mathematica (PM), a
+Russell himself (along with Whitehead) published the Principia Mathematica (PM)
+\cite{whitehead_principia_1910}, a
 formalisation of contemporary mathematics based on a theory that accounted for
 the discovered paradoxes.
 The task proved to be far more difficult than was anticipated: the PM was
@@ -190,33 +180,33 @@ These requirements became known as Hilbert's program.
 
 While intended to be a scaffolding on which to rebuild, these requirements acted
 more as targets for later attacks.
-Firstly, in 1931, Gödel published his incompleteness theorems, which proved that the
-first two requirements (completeness and consistency) were \emph{impossible} to
-achieve.
+Firstly, in 1931, Gödel published his incompleteness theorems
+\cite{godel_uber_1931}, which proved that the first two requirements
+(completeness and consistency) were \emph{impossible} to achieve.
 And finally, in 1936, Alonzo Church and Alan Turing independently showed that
-the Entscheidungsproblem was unsolvable, rendering the third requirement also
-impossible to satisfy.
+the Entscheidungsproblem was unsolvable \cite{church_unsolvable_1936,
+  church_._1937}, showing that the third requirement was also impossible to
+satisfy.
 
 Among the rubble stood intuitionism: the third school of thought, once maligned,
-now was more attractive in light of the incompleteness and Entscheidungsproblem
-theorems.
+now was more attractive in light of the failure of Hilbert's program.
 Formalists and intuitionists had deep philosophical disagreements: the formalist
 held that mathematics was the pursuit of external truth.
 Hilbert, in particular, insisted that the axioms and rules of a mathematical
 formalism were not arbitrary:
-\begin{quote}
+\blockquote[David Hilbert \cite{hilbert_natur_1992}]{
   We are not speaking here of arbitrariness in any sense. Mathematics is not
   like a game whose tasks are determined by arbitrarily stipulated rules.
   Rather, it is a conceptual system possessing internal necessity that can only
   be so and by no means otherwise.
-\end{quote}
+}
 Intuitionists, on the other hand, believed that mathematics was a pure
 construct of the human mind, and had little or nothing to do with objective
 reality.
-Its main proponent was L. E. J. Brouwer, who engaged in a bitter dispute with
+Its main proponent was L. E. J. Brouwer, who became engaged in a bitter dispute with
 Hilbert, eventually culminating in Brouwer's removal from the Mathematische
 Annalen, on the basis of Hilbert's claim that his theories represented a
-``danger to mathematics''.
+``danger to mathematics'' \cite{van_dalen_war_1990}.
 
 In terms of nuts-and-bolts, the defining feature separating intuitionism from
 classical logic is the absence of the law of the excluded middle, or ``choice'':
@@ -249,12 +239,16 @@ formalised mathematics.
 \end{wrapfigure}
 This brings us, at long last, to Agda, the subject of this work.
 Agda is a programming language and intuitionistic theory based on Per
-Martin-Löf's intuitionistic type theory.
+Martin-Löf's intuitionistic type theory \cite{martin-lof_intuitionistic_1980}.
 Its syntax and evaluation strategy is similar to Haskell, but as a formalism it
 can be used to prove mathematical statements.
 
-\newpage
-\subsection{A Ring Solver in Agda}
+\subsection{Our Contribution}
+This work intends to assist in the formalisation of mathematics, by using Agda
+as a theorem-prover.
+The particular area we are concerned with is polynomials: proofs of identities
+can be tedious (Fig.~\ref{ring-proof}), so we use Agda's programming capabilities to
+automate this process.
 
 \begin{figure*}
   \centering
@@ -278,15 +272,6 @@ can be used to prove mathematical statements.
   \caption{Comparison Between A Manual Proof and The Automated Solver}
   \label{comparison}
 \end{figure*}
-Doing mathematics in dependently-typed programming languages like Agda has a
-reputation for being tedious. Even simple arithmetic identities like the one in
-Fig.~\ref{comparison} require fussy proofs (Fig.~\ref{ring-proof}).
-
-This need not be the case! With the right components and libraries, we believe
-that Agda can be a tool for mathematics that's not only useful, but also easy,
-friendly, and fun. This work describes one such library: a solver which
-automates the construction of proofs like Fig.~\ref{ring-proof}, making them as
-easy as Fig.~\ref{the-solver}.
 
 The main contributions of our library are as follows:
 \begin{description}
@@ -320,7 +305,7 @@ The main contributions of our library are as follows:
     that the constructive nature of our proofs allows for a natural
     implementation (section~\ref{pedagogical}).
 \end{description}
-\section{Scope}
+\subsection{Scope}
 In this section, we will explain the intended uses and necessary limitations of
 the solver.
 
@@ -754,9 +739,7 @@ of \(\Nat\), we were able to directly translate \(\AgdaDatatype{Ordering}\) and
 
 into equivalent functions on \(\le\):
 
-\begin{multicols}{2}
-  \ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-compare}
-\end{multicols}
+\ExecuteMetaData[EfficiencyInIndexedTypes.tex]{leq-compare}
 \subsection{Unification} \label{syntactic-unif}
 After applying the previous optimisations, we might expect an immediate speedup
 in the solver: unfortunately, this isn't the case. Without some careful
@@ -840,7 +823,7 @@ keep things which are likely to be syntactically equal to the left, and
 arguments (as we do above) resulted in a performance improvement of several
 orders of magnitude.
 \subsubsection{Avoid Identities}
-\begin{figure}[b]
+\begin{figure}[h]
   \centering
   \begin{subfigure}{0.4\textwidth}
     \centering
