@@ -34,7 +34,7 @@
 %\copyrightyear{2018}           %% If different from \acmYear
 
 %% Bibliography style
-\bibliographystyle{plain}
+\usepackage{cite}
 %% Citation style
 %% Note: author/year citations are required for papers published as an
 %% issue of PACMPL.
@@ -61,7 +61,6 @@
 \usepackage{wrapfig}
 \usepackage{minted}
 \usepackage{tikz-cd}
-\usepackage{natbib}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Agda special Characters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -156,17 +155,106 @@
 \tableofcontents
 
 \section{Introduction}
+\subsection{Background}
 In the early 20th century, the foundations of mathematics began to crumble.
-The first crack was discovered in 1901: Russell's paradox.
-Similar paradoxes soon followed, each representing a core error in some
-fundamental theory.
-Nonetheless, the work of papering over these cracks began in earnest:
-Russell himself (along with Whitehead) published the Principia Mathematica, a
+The first crack was Russell's paradox, discovered in 1901.
+Similar paradoxes soon followed: these represented core errors in the
+foundational theories that had underpinned all of mathematics up until that
+point.
+
+The work of papering over these cracks began in earnest:
+Russell himself (along with Whitehead) published the Principia Mathematica (PM), a
 formalisation of contemporary mathematics based on a theory that accounted for
-Russell's paradox.
+the discovered paradoxes.
+The task proved to be far more difficult than was anticipated: the PM was
+infamously verbose (350 pages of preparation precede the proof that \(1+1=2\)),
+and both men eventually gave up before reaching their goal of a full
+formalisation.
 
+These repeated attempts and failures to shore up the foundations of mathematics
+became known as the ``Foundational Crisis''.
+There were three competing schools of thought on how to address the crisis:
+Russell and Whitehead belonged to the logicism camp, although this came to be
+overshadowed by the other two philosophies.
+David Hilbert championed the ``formalists'', the leading school of thought at
+the time.
+These mathematicians envisioned a solution to the crisis in the form of a
+finite set of axioms, satisfying a set of requirements (here simplified):
+\begin{description}
+  \item[Completeness] Any true statement can be derived from the axioms.
+  \item[Consistency] No untrue statement can be derived from the axioms.
+  \item[Decidability] Any statement can be decided as true or false using an
+    algorithm.
+\end{description}
+These requirements became known as Hilbert's program.
 
-\section{A Ring Solver in Agda}
+While intended to be a scaffolding on which to rebuild, these requirements acted
+more as targets for later attacks.
+Firstly, in 1931, Gödel published his incompleteness theorems, which proved that the
+first two requirements (completeness and consistency) were \emph{impossible} to
+achieve.
+And finally, in 1936, Alonzo Church and Alan Turing independently showed that
+the Entscheidungsproblem was unsolvable, rendering the third requirement also
+impossible to satisfy.
+
+Among the rubble stood intuitionism: the third school of thought, once maligned,
+now was more attractive in light of the incompleteness and Entscheidungsproblem
+theorems.
+Formalists and intuitionists had deep philosophical disagreements: the formalist
+held that mathematics was the pursuit of external truth.
+Hilbert, in particular, insisted that the axioms and rules of a mathematical
+formalism were not arbitrary:
+\begin{quote}
+  We are not speaking here of arbitrariness in any sense. Mathematics is not
+  like a game whose tasks are determined by arbitrarily stipulated rules.
+  Rather, it is a conceptual system possessing internal necessity that can only
+  be so and by no means otherwise.
+\end{quote}
+Intuitionists, on the other hand, believed that mathematics was a pure
+construct of the human mind, and had little or nothing to do with objective
+reality.
+Its main proponent was L. E. J. Brouwer, who engaged in a bitter dispute with
+Hilbert, eventually culminating in Brouwer's removal from the Mathematische
+Annalen, on the basis of Hilbert's claim that his theories represented a
+``danger to mathematics''.
+
+In terms of nuts-and-bolts, the defining feature separating intuitionism from
+classical logic is the absence of the law of the excluded middle, or ``choice'':
+\begin{equation}
+  \forall P. P \vee \neg P
+\end{equation}
+This axiom has a deep relation with constructiveness and computability.
+Intuitionism is a constructive theory: to say that something is true is to say
+that we have a proof of it.
+Allowing this axiom, then, would imply that once we could state a theorem
+intuitionistically, we would be able to pluck---either from thin air or from an
+algorithm---a proof of its truth or falsehood.
+But of course, via the Entscheidungsproblem, we know that this is impossible.
+
+Intuitionism has had many incarnations since Brouwer (it gained widespread
+popularity after Bishop), but the particular version of interest to us comes
+from a strange source: the type systems of programming languages.
+In formal terms, we are talking about the ``Curry-Howard isomorphism''
+(Fig.~\ref{CH}): a way to bridge the world of programming languages and
+formalised mathematics.
+
+\begin{wrapfigure}{r}{0.4\textwidth}
+  \centering
+  \begin{tikzcd}
+    \textit{Type}    \ar[r, Leftrightarrow] & \textit{Proposition}  \\
+    \textit{Program} \ar[r, Leftrightarrow] & \textit{Proof}
+  \end{tikzcd}
+  \caption{The Curry-Howard Isomorphism}
+  \label{CH}
+\end{wrapfigure}
+This brings us, at long last, to Agda, the subject of this work.
+Agda is a programming language and intuitionistic theory based on Per
+Martin-Löf's intuitionistic type theory.
+Its syntax and evaluation strategy is similar to Haskell, but as a formalism it
+can be used to prove mathematical statements.
+
+\newpage
+\subsection{A Ring Solver in Agda}
 
 \begin{figure*}
   \centering
@@ -214,7 +302,7 @@ The main contributions of our library are as follows:
     solver, cutting type-checking time down from minutes to seconds in several
     use cases (section~\ref{benchmarks}).
 
-    As described in \citet{gregoire_proving_2005}, we use a sparse internal
+    As described in \cite{gregoire_proving_2005}, we use a sparse internal
     representation of polynomials (section~\ref{sparse-opt}). However, because
     of differences between Agda and Coq's type checker, we found that this
     optimisation---on its own---did not deliver a significant speedup, and
@@ -247,7 +335,7 @@ the solver.
     is useful for all of the usual things (approximating quotients and so on),
     but it also provides the basis for our ``step-by-step solutions''
     implementation in section~\ref{pedagogical}.
-  \item[Almost Rings] As in \citet[section~5]{gregoire_proving_2005}, we use a
+  \item[Almost Rings] As in \cite[section~5]{gregoire_proving_2005}, we use a
     peculiar algebraic structure which lies somewhere between a semiring and a
     ring. These ``almost-rings'' have all of the usual laws of a commutative
     ring, but instead of demanding additive inverses, they require the
@@ -312,7 +400,7 @@ solver works, so it's clear how the bits of implementation described later in
 the paper fit together.
 
 The technique we use for automating equivalence proofs comes from
-\citet{boutin_using_1997}: the general idea is that we prove two expressions
+\cite{boutin_using_1997}: the general idea is that we prove two expressions
 equivalent by proving that they're both equivalent to the same canonical form.
 The diagram in Fig.~\ref{proof-process} demonstrates this for the identity from
 Fig.~\ref{comparison}: on the bottom of the diagram you can see the left and
@@ -390,8 +478,9 @@ or rather, what we \emph{don't} require from the user:
     unquoted) would produce an expression equivalent to the quoted value.
 
     This kind of logic is complex, and very difficult to get right. While some
-    libraries can assist with the task \citep{hinze_engineering_2013,
+    libraries can assist with the task \cite{hinze_engineering_2013,
       norell_agda-prelude_2018} it is still not fully automatic.
+
 \end{itemize}
 \subsection{Implementation} \label{reflection}
 Agda has powerful metaprogramming facilities, which allow programs to manipulate
@@ -558,7 +647,7 @@ worry about other details.
 Our solver is significantly faster than the current solver: the following
 sections will detail how we achieved that speedup. We will start by describing
 the naive implementation; in section~\ref{sparse-opt} we demonstrate how we
-added the optimisations from \citet{gregoire_proving_2005}; and in
+added the optimisations from \cite{gregoire_proving_2005}; and in
 section~\ref{syntactic-unif} we will describe the Agda-specific optimisations
 which account for the bulk of our speedup. Finally, section~\ref{benchmarks}
 contains some benchmarks against the current solver.
@@ -591,7 +680,7 @@ rule: a classic example of the \(\AgdaFunction{foldr}\) function.
   \ExecuteMetaData[HornerNormalForm.tex]{eval}
 \end{center}
 \subsubsection{Sparse Encodings} \label{sparse-opt}
-Our first avenue for optimisation comes from \citet{gregoire_proving_2005}.
+Our first avenue for optimisation comes from \cite{gregoire_proving_2005}.
 Notice that the encoding above is quite wasteful: it always stores an entry for
 each coefficient, even if it's zero. In practice, we're likely to often find
 long strings of zeroes (in expressions like \(x^{10}\)), meaning that our
@@ -903,7 +992,7 @@ These proofs are long (about 1000 lines) and complex. Without careful
 structuring of the proofs, every new optimisation would require a whole new
 round of proof code, with very little reuse.
 
-To avoid this problem, we took inspiration from \citet{mu_algebra_2009}, and
+To avoid this problem, we took inspiration from \cite{mu_algebra_2009}, and
 relied heavily on abstraction and folds to improve the reuse in proof code. In
 particular, we defined many operations as \emph{metamorphisms}
 \cite{gibbons_metamorphisms_2007}. So, instead of defining (say) negation over
@@ -948,7 +1037,7 @@ dependently-typed language's wheelhouse; on the other hand, the very nature of a
 proof in Agda is that it has computational content: why not make some of that
 content an explanation for the equality?
 
-Prior work in this area includes \citet{lioubartsev_constructing_2016}: there,
+Prior work in this area includes \cite{lioubartsev_constructing_2016}: there,
 the problem is reformulated  reformulates the problem as one of
 \emph{path-finding}. The left-hand-side and right-hand-side of the equation are
 vertices in a graph, where the edges are single steps to rewrite an expression
@@ -957,7 +1046,7 @@ to an equivalent form. A* is used to search.
 Unfortunately, this approach has to deal with a huge search space: every vertex
 will have an edge for almost every one of the ring axioms, and as such a good
 heuristic is essential. Furthermore, what this should be is not clear:
-\citet{lioubartsev_constructing_2016} uses a measure of the ``simplicity'' of an
+\cite{lioubartsev_constructing_2016} uses a measure of the ``simplicity'' of an
 expression.
 
 \begin{wrapfigure}{r}{0.35\textwidth}
@@ -1030,11 +1119,11 @@ y + 3 + x
 \section{Related Work}
 In dependently-typed programming languages, the state-of-the-art solver for
 polynomial equalities (over commutative rings) was originally presented
-in \citet{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This
+in \cite{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This
 work improved on the already existing solver \cite{Coq:manual} in both efficiency
 and flexibility. In both the old and improved solvers, a reflexive technique is
 used to automate the construction of the proof obligation (as described in
-\citet{boutin_using_1997}).
+\cite{boutin_using_1997}).
 
 Agda \cite{norell_dependently_2008} is a dependently-typed programming language
 based on Martin-Löf's Intuitionistic Type
@@ -1043,30 +1132,30 @@ library \cite{danielsson_agda_2018} currently contains a ring solver which is
 similar in flexibility to Coq's \verb+ring+, but does not support the
 reflection-based interface, and is less efficient to the one presented here. 
 
-In \citet{geuvers_automatically_2017}, an implementation of an automated solver
+In \cite{geuvers_automatically_2017}, an implementation of an automated solver
 for the dependently-typed language Idris \cite{brady_idris_2013} is described.
 The solver is implemented with a ``correct-by-construction'' approach, in
-contrast to \citet{gregoire_proving_2005}. The solver is defined over
+contrast to \cite{gregoire_proving_2005}. The solver is defined over
 \emph{non}commutative rings, meaning that it is more general (can work with more
 types) but less powerful (meaning it can prove fewer identities). It provides a
 reflection-based interface, but internally uses a dense representation.
 
 Reflection and metaprogramming are relatively recent additions to Agda, but form
 an important part of the interfaces to automated proof procedures. Reflection in
-dependent types in general is explored in \citet{christiansen_practical_2015},
-and specific to Agda in \citet{van_der_walt_reflection_2012}.
+dependent types in general is explored in \cite{christiansen_practical_2015},
+and specific to Agda in \cite{van_der_walt_reflection_2012}.
 
 Formalisation of mathematics in general is an ongoing project.
-\citet{wiedijk_formalizing_2018} tracks how much of ``The 100 Greatest Theorems''
+\cite{wiedijk_formalizing_2018} tracks how much of ``The 100 Greatest Theorems''
 \cite{kahl_hundred_2004} have so far been formalised (at time of writing, the
 number stands at 93). DoCon \cite{meshveliani_docon-provable_2018} is a notable
 Agda library in this regard: it contains many tools for basic maths, and
 implementations of several CAS algorithms. Its implementation is described
-in \citet{meshveliani_dependent_2013}. \citet{cheng_functional_2018} describes the
+in \cite{meshveliani_dependent_2013}. \cite{cheng_functional_2018} describes the
 manipulation of polynomials in both Haskell and Agda.
 
 Finally, the study of \emph{pedagogical} CASs which provide step-by-step
-solutions is explored in \citet{lioubartsev_constructing_2016}. One of the most
+solutions is explored in \cite{lioubartsev_constructing_2016}. One of the most
 well-known such system is Wolfram Alpha
 \cite{wolfram_research_inc._wolframalpha_2019}, which has step-by-step solutions
 \cite{the_development_team_step-by-step_2009}.
@@ -1076,19 +1165,7 @@ We have presented an efficient, flexible, and easy-to-use ring solver in the
 programming language Agda. In doing so, we hope we have removed one of the small
 but significant pain points of doing maths in Agda.
 
-% We think the future of mathematics in dependently-typed languages looks bright.
-% To get there, though, we need to make the easy stuff easy, so programmers and
-% mathematicians alike can focus 
-
-
-
-%% Acknowledgments
-%% Bibliography
+\bibliographystyle{plain}
 \bibliography{bibliography.bib}
-% %% Appendix
-% \appendix
-% \section{Appendix}
-
-% Text of appendix \ldots
 
 \end{document}

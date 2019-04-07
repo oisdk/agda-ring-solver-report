@@ -1,4 +1,4 @@
-add_cus_dep('lagda','tex',1,'lagda2tex');
+add_cus_dep('lagda','tex',0,'lagda2tex');
 
 sub lagda2tex {
     my $base = shift @_;
