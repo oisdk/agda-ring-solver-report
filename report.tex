@@ -12,7 +12,6 @@
 \usepackage{multicol}
 \usepackage{fancyvrb}
 \usepackage{wrapfig}
-\usepackage{minted}
 \usepackage{tikz-cd}
 \usepackage{csquotes}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -957,25 +956,34 @@ similarity as can be seen in Fig.~\ref{normal-forms}.
   \end{minipage} 
 \end{figure}
 
-As expected, the new implementation exhibits a significant speedup in
-type-checking over the old implementation, even with the added overhead of the
-reflection-based interface. Fig.~\ref{bench1} shows time taken to type check a
+The main performance benefit of the new solver is that it reduces the size of
+the polynomials, both during manipulation and for unification.
+This reduction is dramatic, even for small expressions: multiplication, for
+example,  generates polynomials with sizes proportional to the product of the
+sizes of its arguments.
+
+We expect that this will yield 5- to 10-fold speedups in many common use cases.
+Fig.~\ref{bench1} shows time taken to type check a
 proof that \((x_1 + x_2 + x_3 + x_4 + x_5)^d\) is equal to its expanded form.
 The new representation is clearly faster overall, with a factor of 7.5
 speedup for \(d = 8\).
+However, the speedup is even more dramatic when the powers of the terms are
+mixed: 
+Fig.~\ref{bench3} demonstrates this, with a \(30\)-factor speedup at \(d = 8\).
+We feel that this represents a much more common use-case.
 
-Fig.~\ref{bench3} demonstrates perhaps a more common use-case, with a mix of
-high and low powers and some constants. The new representation's advantage is
-even more apparent here, with an \(30\)-factor speedup at \(d = 8\).
-
-The old solver does exhibit a small lead (roughly 2-3 seconds, which narrows
-to about 1 second without reflection) on very simple expressions, possibly
-caused by the overhead of the new solver's more complex implementation. 3
-seconds is quite small in the context of Agda type checking (the standard
+These benchmarks cover a broad range of polynomials, with a mix of the three
+operations provided (addition, multiplication, and exponentiation).
+In each, the new solver exhibits an order of magnitude speedup at higher powers.
+We have not been able to find a case where the old solver is significantly
+faster than the new, however, the old solver does exhibit a small lead (roughly
+2-3 seconds, which
+narrows to about 1 second without reflection) on very simple expressions,
+possibly caused by the overhead of the new solver's more complex implementation.
+1 second is quite small in the context of Agda type checking (the standard
 library, for instance, takes several minutes to type check), so we feel this
-slight loss is more than made up for by the gains. Furthermore,
-we have not been able to find a case where the old solver is significantly
-faster than the new. Nonetheless, if a user really wants to use the old
+slight loss is more than made up for by the gains.
+Nonetheless, if a user really wants to use the old
 solver, the other components described here are entirely modular, and can work
 with any underlying solver which uses the reflexive technique.
 
@@ -1160,9 +1168,22 @@ well-known such system is Wolfram Alpha
 \cite{the_development_team_step-by-step_2009}.
 
 \section{Conclusion}
-We have presented an efficient, flexible, and easy-to-use ring solver in the
-programming language Agda. In doing so, we hope we have removed one of the small
-but significant pain points of doing maths in Agda.
+We have presented a ring solver for the programming language and proof assistant
+Agda.
+It is faster than the existing solver: common use-cases can expect to see
+5-fold increases in speed, and some pathological cases can see improvements of
+a factor of 30 or more.
+The interface is easy to use: the solver can be accessed with a single macro
+call, and requires no knowledge of its inner workings.
+The solver is flexible: it works out-of-the-box with any commutative ring or
+semiring defined over a setoid, with no special additions required.
+Finally, we demonstrated this flexibility by implementing, with no modification
+to the solver's code, automatic generation of step-by-step solutions.
+
+We think the future of formalised mathematics looks bright: as well as helping
+keep us honest, we believe computers and proof assistants can make mathematics
+easier and more fun.
+We hope this project gets us closer to that future.
 
 \bibliographystyle{plain}
 \bibliography{bibliography.bib}

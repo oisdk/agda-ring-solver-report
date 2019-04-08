@@ -20,7 +20,7 @@
 \contentsline {subsubsection}{\numberline {5.2.1}Avoid Progress at all Costs}{21}
 \contentsline {subsubsection}{\numberline {5.2.2}Avoid Identities}{22}
 \contentsline {subsection}{\numberline {5.3}Benchmarks}{24}
-\contentsline {section}{\numberline {6}Verification}{24}
+\contentsline {section}{\numberline {6}Verification}{25}
 \contentsline {section}{\numberline {7}Pedagogical Solutions}{25}
 \contentsline {section}{\numberline {8}Related Work}{27}
 \contentsline {section}{\numberline {9}Conclusion}{28}
