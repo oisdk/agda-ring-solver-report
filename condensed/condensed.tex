@@ -1,64 +1,15 @@
-%% For double-blind review submission, w/o CCS and ACM Reference (max submission space)
-\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
-%% For double-blind review submission, w/ CCS and ACM Reference
-%\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true}
-%% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
-%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
-%% For single-blind review submission, w/ CCS and ACM Reference
-%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true}
-%% For final camera-ready submission, w/ required CCS and ACM Reference
-%\documentclass[acmsmall]{acmart}\settopmatter{}
-
-
-%% Journal information
-%% Supplied to authors by publisher for camera-ready submission;
-%% use defaults for review submission.
-\acmJournal{PACMPL}
-\acmVolume{1}
-\acmNumber{CONF} % CONF = POPL or ICFP or OOPSLA
-\acmArticle{1}
-\acmYear{2018}
-\acmMonth{1}
-\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
-\startPage{1}
-
-%% Copyright information
-%% Supplied to authors (based on authors' rights management selection;
-%% see authors.acm.org) by publisher for camera-ready submission;
-%% use 'none' for review submission.
-\setcopyright{none}
-%\setcopyright{acmcopyright}
-%\setcopyright{acmlicensed}
-%\setcopyright{rightsretained}
-%\copyrightyear{2018}           %% If different from \acmYear
-
-%% Bibliography style
-\bibliographystyle{ACM-Reference-Format}
-%% Citation style
-%% Note: author/year citations are required for papers published as an
-%% issue of PACMPL.
-\citestyle{acmauthoryear}   %% For author/year citations
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Note: Authors migrating a paper from PACMPL format to traditional
-%% SIGPLAN proceedings format must update the '\documentclass' and
-%% topmatter commands above; see 'acmart-sigplanproc-template.tex'.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%% Some recommended packages.
-\usepackage{booktabs}   %% For formal tables:
-                        %% http://ctan.org/pkg/booktabs
-\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
-                        %% http://ctan.org/pkg/subcaption
-\usepackage{catchfilebetweentags} %% For importing code snippets
-\usepackage{lineno} %% For line numbers on code snippets
+\documentclass[runningheads,citeauthouryear]{llncs}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{catchfilebetweentags}
+\usepackage{lineno}
 \usepackage{pgfplots}
 \usepackage{multicol}
 \usepackage{fancyvrb}
 \usepackage{wrapfig}
-
+\usepackage{subfig}
+\usepackage{url}
+\usepackage{hyperref}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Agda special Characters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,7 +17,6 @@
 \usepackage{turnstile}
 \usepackage{bbm}
 \usepackage[greek, english]{babel}
-\usepackage{MnSymbol}
 \usepackage{stmaryrd}
 \usepackage{csquotes}
 \newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
@@ -100,7 +50,7 @@
 \newcommand{\sqtri}{\ensuremath{\insquarebin{\triangle}}}
 \makeatother
 \usepackage{ucs}
-\DeclareUnicodeCharacter{8759}{\ensuremath{\squaredots}}
+\DeclareUnicodeCharacter{8759}{\ensuremath{:}}
 \DeclareUnicodeCharacter{951}{\textgreek{\texteta}}
 \DeclareUnicodeCharacter{737}{\ensuremath{^\text{l}}}
 \DeclareUnicodeCharacter{691}{\ensuremath{^\text{r}}}
@@ -111,8 +61,8 @@
 \DeclareUnicodeCharacter{961}{\textgreek{\textrho}}
 \DeclareUnicodeCharacter{929}{\textgreek{\textRho}}
 \DeclareUnicodeCharacter{954}{\textgreek{\textkappa}}
-\DeclareUnicodeCharacter{10214}{\ensuremath{\lsem}}
-\DeclareUnicodeCharacter{10215}{\ensuremath{\rsem}}
+\DeclareUnicodeCharacter{10214}{\ensuremath{\llbracket}}
+\DeclareUnicodeCharacter{10215}{\ensuremath{\rrbracket}}
 \DeclareUnicodeCharacter{8857}{\mdoubleplus}
 \DeclareUnicodeCharacter{8860}{\oeq}
 \DeclareUnicodeCharacter{9043}{\ensuremath{\sqtri}}
@@ -132,39 +82,21 @@
 \newcommand{\Int}{\AgdaDatatype{ℤ}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\theoremstyle{remark}
-\newtheorem{principle}{Principle}
-\usepackage{minitoc}
 
+\newtheorem{principle}{Principle}
+
+\title{Reading and Writing Arithmetic: Automating Ring Equalities
+  in Agda}
+
+\author{Donnacha Oisín Kidney}
+\authorrunning{D. O. Kidney}
+\institute{University College Cork \and
+\email{115702295@umail.ucc.ie}}
 \begin{document}
 
 %% Title information
-\title[Reading and Writing Arithmetic]{Reading and Writing Arithmetic: Automating Ring Equalities
-  in Agda}
 
-%% Author information
-%% Contents and number of authors suppressed with 'anonymous'.
-%% Each author should be introduced by \author, followed by
-%% \authornote (optional), \orcid (optional), \affiliation, and
-%% \email.
-%% An author may have multiple affiliations and/or emails; repeat the
-%% appropriate command.
-%% Many elements are not rendered, but should be provided for metadata
-%% extraction tools.
-
-%% Author with single affiliation.
-\author{Donnacha Oisín Kidney}
-\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
-\affiliation{
-  \position{Undergraduate}
-  \department{Computer Science}              %% \department is recommended
-  \institution{University College Cork}            %% \institution is required
-  \country{Ireland}                          %% \country is recommended
-}
-\email{115702295@umail.ucc.ie}          %% \email is recommended
-%% Abstract
-%% Note: \begin{abstract}...\end{abstract} environment must come
-%% before \maketitle command
+\maketitle
 \begin{abstract}
   We present a new library which automates the construction of equivalence
   proofs between polynomials over commutative rings and semirings in the
@@ -173,92 +105,30 @@
   interface to the solver, and demonstrate how to use the constructed proofs to
   provide step-by-step solutions.
 \end{abstract}
+\renewcommand{\doi}[1]{\textsc{doi}: \href{http://dx.doi.org/#1}{\nolinkurl{#1}}}
 
-
-%% 2012 ACM Computing Classification System (CSS) concepts
-%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
-
-\begin{CCSXML}
-<ccs2012>
-<concept>
-<concept_id>10002950.10003705.10003707</concept_id>
-<concept_desc>Mathematics of computing~Solvers</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10002950.10003705.10011686</concept_id>
-<concept_desc>Mathematics of computing~Mathematical software performance</concept_desc>
-<concept_significance>300</concept_significance>
-</concept>
-<concept>
-<concept_id>10010147.10010148.10010149.10010159</concept_id>
-<concept_desc>Computing methodologies~Theorem proving algorithms</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10010147.10010148.10010162</concept_id>
-<concept_desc>Computing methodologies~Computer algebra systems</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10010147.10010148.10010164.10010168</concept_id>
-<concept_desc>Computing methodologies~Representation of polynomials</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10003120.10003145</concept_id>
-<concept_desc>Human-centered computing~Visualization</concept_desc>
-<concept_significance>300</concept_significance>
-</concept>
-</ccs2012>
-\end{CCSXML}
-
-\ccsdesc[500]{Mathematics of computing~Solvers}
-\ccsdesc[300]{Mathematics of computing~Mathematical software performance}
-\ccsdesc[500]{Computing methodologies~Theorem proving algorithms}
-\ccsdesc[500]{Computing methodologies~Computer algebra systems}
-\ccsdesc[500]{Computing methodologies~Representation of polynomials}
-\ccsdesc[300]{Human-centered computing~Visualization}
-%% End of generated code
-
-
-%% Keywords
-%% comma separated list
-\keywords{proof automation, equivalence, proof by reflection, step-by-step solutions}
-
-
-%% \maketitle
-%% Note: \maketitle command must come after title commands, author
-%% commands, abstract environment, Computing Classification System
-%% environment and commands, and keywords command.
-
-\begin{teaserfigure}
-  \centering
-  \begin{subfigure}[b]{\textwidth}
-    \centering
-    \ExecuteMetaData[../Introduction.tex]{lemma}
-    \label{ring-lemma}
-    \vspace{-10pt}
-  \end{subfigure}
-  \begin{subfigure}[b]{.5\textwidth}
-    \ExecuteMetaData[../Introduction.tex]{proof}
-    \caption{A Tedious Proof}
-    \label{ring-proof}
-  \end{subfigure}%
-  \begin{subfigure}[b]{.3\textwidth}
-    \centering
-    \ExecuteMetaData[../Introduction.tex]{solver}
-    \caption{Our Solver}
-    \label{the-solver}
-  \end{subfigure}
-  \caption{Comparison Between A Manual Proof and The Automated Solver}
-  \label{comparison}
-\end{teaserfigure}
-\maketitle
-\begin{multicols}{2}
-\setcounter{tocdepth}{1}
-\tableofcontents
-\end{multicols}
+% \begin{figure*}
+%   \centering
+%   \begin{subfigure}[b]{\textwidth}
+%     \centering
+%     \ExecuteMetaData[../Introduction.tex]{lemma}
+%     \label{ring-lemma}
+%     \vspace{-10pt}
+%   \end{subfigure}
+%   \begin{subfigure}[b]{.5\textwidth}
+%     \ExecuteMetaData[../Introduction.tex]{proof}
+%     \caption{A Tedious Proof}
+%     \label{ring-proof}
+%   \end{subfigure}%
+%   \begin{subfigure}[b]{.3\textwidth}
+%     \centering
+%     \ExecuteMetaData[../Introduction.tex]{solver}
+%     \caption{Our Solver}
+%     \label{the-solver}
+%   \end{subfigure}
+%   \caption{Comparison Between A Manual Proof and The Automated Solver}
+%   \label{comparison}
+% \end{figure*}
 \section{Introduction}
 Doing mathematics in dependently-typed programming languages like Agda has a
 reputation for being tedious. Even simple arithmetic identities like the one in
@@ -284,7 +154,7 @@ The main contributions of our library are as follows:
     solver, cutting type-checking time down from minutes to seconds in several
     use cases (section~\ref{benchmarks}).
 
-    As described in \citet{gregoire_proving_2005}, we use a sparse internal
+    As described in \cite{gregoire_proving_2005}, we use a sparse internal
     representation of polynomials (section~\ref{sparse-opt}). However, because
     of differences between Agda and Coq's type checker, we found that this
     optimisation---on its own---did not deliver a significant speedup, and
@@ -317,7 +187,7 @@ the solver.
     is useful for all of the usual things (approximating quotients and so on),
     but it also provides the basis for our ``step-by-step solutions''
     implementation in section~\ref{pedagogical}.
-  \item[Almost Rings] As in \citet[section~5]{gregoire_proving_2005}, we use a
+  \item[Almost Rings] As in \cite[section~5]{gregoire_proving_2005}, we use a
     peculiar algebraic structure which lies somewhere between a semiring and a
     ring. These ``almost-rings'' have all of the usual laws of a commutative
     ring, but instead of demanding additive inverses, they require the
@@ -382,7 +252,7 @@ solver works, so it's clear how the bits of implementation described later in
 the paper fit together.
 
 The technique we use for automating equivalence proofs comes from
-\citet{boutin_using_1997}: the general idea is that we prove two expressions
+\cite{boutin_using_1997}: the general idea is that we prove two expressions
 equivalent by proving that they're both equivalent to the same canonical form.
 The diagram in Fig.~\ref{proof-process} demonstrates this for the identity from
 Fig.~\ref{comparison}: on the bottom of the diagram you can see the left and
@@ -398,6 +268,7 @@ algebra: it has constructors corresponding to each ring operation (\(x + y = x
 \AgdaInductiveConstructor{⊗} \; y\)), and it can refer to variables via their de
 Bruijn index (so \(x\) becomes \(\AgdaInductiveConstructor{I} \;
 \AgdaNumber{0}\)).
+
 
 There are two ways to evaluate the AST: the \(\AgdaFunction{⟦\_⟧}\) function
 converts the AST to the expression we want to prove, whereas
@@ -460,7 +331,7 @@ or rather, what we \emph{don't} require from the user:
     unquoted) would produce an expression equivalent to the quoted value.
 
     This kind of logic is complex, and very difficult to get right. While some
-    libraries can assist with the task \citep{hinze_engineering_2013,
+    libraries can assist with the task \cite{hinze_engineering_2013,
       norell_agda-prelude_2018} it is still not fully automatic.
 \end{itemize}
 \subsection{Implementation} \label{reflection}
@@ -628,7 +499,7 @@ worry about other details.
 Our solver is significantly faster than the current solver: the following
 sections will detail how we achieved that speedup. We will start by describing
 the naive implementation; in section~\ref{sparse-opt} we demonstrate how we
-added the optimisations from \citet{gregoire_proving_2005}; and in
+added the optimisations from \cite{gregoire_proving_2005}; and in
 section~\ref{syntactic-unif} we will describe the Agda-specific optimisations
 which account for the bulk of our speedup. Finally, section~\ref{benchmarks}
 contains some benchmarks against the current solver.
@@ -661,7 +532,7 @@ rule: a classic example of the \(\AgdaFunction{foldr}\) function.
   \ExecuteMetaData[../HornerNormalForm.tex]{eval}
 \end{center}
 \subsubsection{Sparse Encodings} \label{sparse-opt}
-Our first avenue for optimisation comes from \citet{gregoire_proving_2005}.
+Our first avenue for optimisation comes from \cite{gregoire_proving_2005}.
 Notice that the encoding above is quite wasteful: it always stores an entry for
 each coefficient, even if it's zero. In practice, we're likely to often find
 long strings of zeroes (in expressions like \(x^{10}\)), meaning that our
@@ -823,16 +694,13 @@ orders of magnitude.
 \subsubsection{Avoid Identities}
 \begin{figure}[b]
   \centering
-  \begin{subfigure}{0.4\textwidth}
-    \centering
     \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{small-force}
-    \caption{Sparse encoding, with identity-avoiding optimisation}
-  \end{subfigure}
-  \begin{subfigure}{0.4\textwidth}
-    \centering
+    % \caption{Sparse encoding, with identity-avoiding optimisation}
+  % \subfloat[]{
+  %   \centering
     \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
-    \caption{Dense encoding, without identity-avoiding optimisation}
-  \end{subfigure}
+  %   \caption{Dense encoding, without identity-avoiding optimisation}
+  % }
   \caption{Comparison of the normal forms of equation~\ref{example-poly}}
   \label{normal-forms}
 \end{figure}
@@ -879,7 +747,7 @@ similarity as can be seen in Fig.~\ref{normal-forms}.
       width=1.2\textwidth,
   }
   \setcounter{realxtickpos}{0}
-  \begin{subfigure}[t]{0.3\textwidth}
+  \subfloat[]{
     \begin{tikzpicture}
       \begin{axis}[
         % transpose legend,
@@ -894,9 +762,9 @@ similarity as can be seen in Fig.~\ref{normal-forms}.
       \end{axis}
     \end{tikzpicture}
     \phantomcaption \label{bench1}
-  \end{subfigure}
+  }
   \setcounter{realxtickpos}{0}
-  \begin{subfigure}[t]{0.3\textwidth}
+  \subfloat[]{
     \begin{tikzpicture}
       \begin{axis}[
         extra y ticks={5},
@@ -907,9 +775,9 @@ similarity as can be seen in Fig.~\ref{normal-forms}.
       \end{axis}
     \end{tikzpicture}
     \phantomcaption\label{bench2}
-  \end{subfigure}
+  }
   \setcounter{realxtickpos}{0}
-  \begin{subfigure}[t]{0.3\textwidth}
+  \subfloat[]{
     \begin{tikzpicture}
       \begin{axis}[
         extra y ticks={40},
@@ -920,7 +788,7 @@ similarity as can be seen in Fig.~\ref{normal-forms}.
       \end{axis}
     \end{tikzpicture}
     \phantomcaption\label{bench3}
-  \end{subfigure}
+  }
   \begin{minipage}{0.13\textwidth}
     \vspace{-20pt}
     \ref{benchplots}
@@ -973,7 +841,7 @@ These proofs are long (about 1000 lines) and complex. Without careful
 structuring of the proofs, every new optimisation would require a whole new
 round of proof code, with very little reuse.
 
-To avoid this problem, we took inspiration from \citet{mu_algebra_2009}, and
+To avoid this problem, we took inspiration from \cite{mu_algebra_2009}, and
 relied heavily on abstraction and folds to improve the reuse in proof code. In
 particular, we defined many operations as \emph{metamorphisms}
 \cite{gibbons_metamorphisms_2007}. So, instead of defining (say) negation over
@@ -1018,7 +886,7 @@ dependently-typed language's wheelhouse; on the other hand, the very nature of a
 proof in Agda is that it has computational content: why not make some of that
 content an explanation for the equality?
 
-Prior work in this area includes \citet{lioubartsev_constructing_2016}: there,
+Prior work in this area includes \cite{lioubartsev_constructing_2016}: there,
 the problem is reformulated  reformulates the problem as one of
 \emph{path-finding}. The left-hand-side and right-hand-side of the equation are
 vertices in a graph, where the edges are single steps to rewrite an expression
@@ -1027,7 +895,7 @@ to an equivalent form. A* is used to search.
 Unfortunately, this approach has to deal with a huge search space: every vertex
 will have an edge for almost every one of the ring axioms, and as such a good
 heuristic is essential. Furthermore, what this should be is not clear:
-\citet{lioubartsev_constructing_2016} uses a measure of the ``simplicity'' of an
+\cite{lioubartsev_constructing_2016} uses a measure of the ``simplicity'' of an
 expression.
 
 \begin{wrapfigure}{r}{0.35\textwidth}
@@ -1100,11 +968,11 @@ y + 3 + x
 \section{Related Work}
 In dependently-typed programming languages, the state-of-the-art solver for
 polynomial equalities (over commutative rings) was originally presented
-in \citet{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This
+in \cite{gregoire_proving_2005}, and is used in Coq's \verb+ring+ solver. This
 work improved on the already existing solver \cite{Coq:manual} in both efficiency
 and flexibility. In both the old and improved solvers, a reflexive technique is
 used to automate the construction of the proof obligation (as described in
-\citet{boutin_using_1997}).
+\cite{boutin_using_1997}).
 
 Agda \cite{norell_dependently_2008} is a dependently-typed programming language
 based on Martin-Löf's Intuitionistic Type
@@ -1113,30 +981,30 @@ library \cite{danielsson_agda_2018} currently contains a ring solver which is
 similar in flexibility to Coq's \verb+ring+, but doesn't support the
 reflection-based interface, and is less efficient to the one presented here. 
 
-In \citet{geuvers_automatically_2017}, an implementation of an automated solver
+In \cite{geuvers_automatically_2017}, an implementation of an automated solver
 for the dependently-typed language Idris \cite{brady_idris_2013} is described.
 The solver is implemented with a ``correct-by-construction'' approach, in
-contrast to \citet{gregoire_proving_2005}. The solver is defined over
+contrast to \cite{gregoire_proving_2005}. The solver is defined over
 \emph{non}commutative rings, meaning that it is more general (can work with more
 types) but less powerful (meaning it can prove fewer identities). It provides a
 reflection-based interface, but internally uses a dense representation.
 
 Reflection and metaprogramming are relatively recent additions to Agda, but form
 an important part of the interfaces to automated proof procedures. Reflection in
-dependent types in general is explored in \citet{christiansen_practical_2015},
-and specific to Agda in \citet{van_der_walt_reflection_2012}.
+dependent types in general is explored in \cite{christiansen_practical_2015},
+and specific to Agda in \cite{van_der_walt_reflection_2012}.
 
 Formalisation of mathematics in general is an ongoing project.
-\citet{wiedijk_formalizing_2018} tracks how much of ``The 100 Greatest Theorems''
+\cite{wiedijk_formalizing_2018} tracks how much of ``The 100 Greatest Theorems''
 \cite{kahl_hundred_2004} have so far been formalised (at time of writing, the
 number stands at 93). DoCon \cite{meshveliani_docon-provable_2018} is a notable
 Agda library in this regard: it contains many tools for basic maths, and
 implementations of several CAS algorithms. Its implementation is described
-in \citet{meshveliani_dependent_2013}. \citet{cheng_functional_2018} describes the
+in \cite{meshveliani_dependent_2013}. \cite{cheng_functional_2018} describes the
 manipulation of polynomials in both Haskell and Agda.
 
 Finally, the study of \emph{pedagogical} CASs which provide step-by-step
-solutions is explored in \citet{lioubartsev_constructing_2016}. One of the most
+solutions is explored in \cite{lioubartsev_constructing_2016}. One of the most
 well-known such system is Wolfram Alpha
 \cite{wolfram_research_inc._wolframalpha_2019}, which has step-by-step solutions
 \cite{the_development_team_step-by-step_2009}.
@@ -1146,36 +1014,7 @@ We have presented an efficient, flexible, and easy-to-use ring solver in the
 programming language Agda. In doing so, we hope we have removed one of the small
 but significant pain points of doing maths in Agda.
 
-% We think the future of mathematics in dependently-typed languages looks bright.
-% To get there, though, we need to make the easy stuff easy, so programmers and
-% mathematicians alike can focus 
 
-
-
-%% Acknowledgments
-\begin{acks}                            %% acks environment is optional
-                                        %% contents suppressed with 'anonymous'
-  %% Commands \grantsponsor{<sponsorID>}{<name>}{<url>} and
-  %% \grantnum[<url>]{<sponsorID>}{<number>} should be used to
-  %% acknowledge financial support and will be used by metadata
-  %% extraction tools.
-  This material is based upon work supported by the
-  \grantsponsor{GS100000001}{National Science
-    Foundation}{http://dx.doi.org/10.13039/100000001} under Grant
-  No.~\grantnum{GS100000001}{nnnnnnn} and Grant
-  No.~\grantnum{GS100000001}{mmmmmmm}.  Any opinions, findings, and
-  conclusions or recommendations expressed in this material are those
-  of the author and do not necessarily reflect the views of the
-  National Science Foundation.
-\end{acks}
-
-
-%% Bibliography
+\bibliographystyle{splncs04}
 \bibliography{../bibliography.bib}
-% %% Appendix
-% \appendix
-% \section{Appendix}
-
-% Text of appendix \ldots
-
 \end{document}
