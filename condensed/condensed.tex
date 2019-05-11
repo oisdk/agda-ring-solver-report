@@ -107,28 +107,34 @@
 \end{abstract}
 \renewcommand{\doi}[1]{\textsc{doi}: \href{http://dx.doi.org/#1}{\nolinkurl{#1}}}
 
-% \begin{figure*}
-%   \centering
-%   \begin{subfigure}[b]{\textwidth}
-%     \centering
-%     \ExecuteMetaData[../Introduction.tex]{lemma}
-%     \label{ring-lemma}
-%     \vspace{-10pt}
-%   \end{subfigure}
-%   \begin{subfigure}[b]{.5\textwidth}
-%     \ExecuteMetaData[../Introduction.tex]{proof}
-%     \caption{A Tedious Proof}
-%     \label{ring-proof}
-%   \end{subfigure}%
-%   \begin{subfigure}[b]{.3\textwidth}
-%     \centering
-%     \ExecuteMetaData[../Introduction.tex]{solver}
-%     \caption{Our Solver}
-%     \label{the-solver}
-%   \end{subfigure}
-%   \caption{Comparison Between A Manual Proof and The Automated Solver}
-%   \label{comparison}
-% \end{figure*}
+\begin{figure*}
+  \centering
+  \subfloat{%
+    \begin{minipage}[b]{\textwidth}
+      \centering
+      \ExecuteMetaData[../Introduction.tex]{lemma}
+      \label{ring-lemma}
+      \vspace{-10pt}
+    \end{minipage}
+  }
+
+  \subfloat[A Tedious Proof]{%
+    \begin{minipage}[b]{.5\textwidth}
+      \centering
+      \ExecuteMetaData[../Introduction.tex]{proof}
+      \label{ring-proof}
+    \end{minipage}%
+  }
+  \subfloat[Our Solver]{
+    \begin{minipage}[b]{.3\textwidth}
+      \centering
+      \ExecuteMetaData[../Introduction.tex]{solver}
+      \label{the-solver}
+    \end{minipage}
+  }
+  \caption{Comparison Between A Manual Proof and The Automated Solver}
+  \label{comparison}
+\end{figure*}
 \section{Introduction}
 Doing mathematics in dependently-typed programming languages like Agda has a
 reputation for being tedious. Even simple arithmetic identities like the one in
@@ -149,18 +155,20 @@ The main contributions of our library are as follows:
     This interface (section~\ref{interface}) is implemented using a lightweight
     reflection system (section~\ref{reflection}), which doesn't require the user
     to write \emph{any} reflection code, even if they use the solver with their
-    own custom type. 
+    own custom type.
   \item[Performance] Our solver is significantly faster than Agda's current ring
     solver, cutting type-checking time down from minutes to seconds in several
     use cases (section~\ref{benchmarks}).
 
     As described in \cite{gregoire_proving_2005}, we use a sparse internal
-    representation of polynomials (section~\ref{sparse-opt}). However, because
-    of differences between Agda and Coq's type checker, we found that this
-    optimisation---on its own---did not deliver a significant speedup, and
-    actually damaged performance in a number of cases. Achieving the performance
-    we did required an entirely separate kind of optimisation, described in
-    section~\ref{syntactic-unif}.
+    representation of polynomials (section~\ref{sparse-opt}).
+    Our technique, however, relies on optimisation of the shape of the generated
+    terms for unification.
+    This allowed us to achieve good performance without sacrificing any
+    generality (section~\ref{syntactic-unif}).
+  \item[Techniques for Efficient, Verified Code] In sections \ref{hanging} and
+    \ref{verification} we demonstrate some techniques for verifying algorithms
+    without changing their complexity class.
   \item[Pedagogical Solutions] Computer algebra systems (CASs) outside the
     rigorous world of dependently-typed languages do far more than just check
     proofs for mistakes: they have a wealth of other features which can help
@@ -240,12 +248,12 @@ the solver.
   \caption{The Reflexive Proof Process}
   \label{proof-process}
 \end{figure}
-\begin{wrapfigure}{r}{0.45\textwidth}
-  \vspace{-18pt}
+\begin{figure}[h]
+  \centering
   \ExecuteMetaData[../ReflectionSection.tex]{expr-def}
   \caption{A Type for Ring Expressions}
   \label{expr}
-\end{wrapfigure}
+\end{figure}
 
 Before diving into to specifics, we'll first give a quick overview of how the
 solver works, so it's clear how the bits of implementation described later in
@@ -287,12 +295,12 @@ reflection to automate it. This is described in the following section.
   \caption{The Old Solver}
   \label{old-solver}
 \end{figure}
-\begin{wrapfigure}{r}{0.5\textwidth}
-  \vspace{-18pt}
+\begin{figure}[t]
+  \centering
   \ExecuteMetaData[../ReflectionSection.tex]{partial-auto}
   \caption{The \(\AgdaMacro{solveOver}\) Macro}
   \label{solveOver}
-\end{wrapfigure}
+\end{figure}
 We felt an easy-to-use interface was one of the most important components of the
 library as a whole. Since we wanted to minimise the amount a user would have to
 learn to use the solver, we kept the surface area of the library quite small:
@@ -337,25 +345,9 @@ or rather, what we \emph{don't} require from the user:
 \subsection{Implementation} \label{reflection}
 Agda has powerful metaprogramming facilities, which allow programs to manipulate
 their own code. Here, we'll use reflection to implement the interface to our
-solver.
-
-Agda's reflection API is mostly encapsulated by the following three types:
-\begin{description}
-  \item[\(\AgdaDatatype{Term}\)] The representation of Agda's AST, retrievable
-    via \(\AgdaKeyword{quoteTerm}\).
-  \item[\(\AgdaDatatype{Name}\)] The representation of identifiers, retrievable
-    via \(\AgdaKeyword{quote}\).
-  \item[\(\AgdaDatatype{TC}\)] The type-checker monad, which includes scoping
-    and environment information, can raise type errors, unify variables, or
-    provide fresh names. Computations in the \(\AgdaDatatype{TC}\) monad can be
-    run with \(\AgdaKeyword{unquote}\).
-\end{description}
-
-While \(\AgdaKeyword{quote}\), \(\AgdaKeyword{quoteTerm}\), and
-\(\AgdaKeyword{unquote}\) provide all the functionality we need, they're
-somewhat low-level and noisy (syntactically speaking). Agda also provides a
-mechanism (which it calls macros) to package metaprogramming code so it looks
-like a normal function call (as in \(\AgdaMacro{solve}\)).
+solver. Agda also provides a mechanism (which it calls macros) to package
+metaprogramming code so it looks like a normal function call (as in
+\(\AgdaMacro{solve}\)).
 
 Reflection is obviously a powerful tool, but it has a reputation for being
 unsafe and error-prone. Agda's reflection system doesn't break type safety, but
@@ -367,12 +359,8 @@ fragile and sensitive to context. Variables, for instance, are referred to by
 their de Bruijn indices, meaning that the same \(\AgdaDatatype{Term}\) can break
 if it's simply moved under a lambda.
 
-Building a robust interface using reflection required a great deal of care. To
-demonstrate some of the techniques we used, we'll look at two functions from the
-core of the interface. First, \(\AgdaFunction{toExpr}\):
-\begin{center}
-  \ExecuteMetaData[../ReflectionSection.tex]{to-expr}
-\end{center}
+Building a robust interface using reflection required a great deal of care.
+The central functionality is provided by the \(\AgdaFunction{toExpr}\) function.
 This function is called on the \(\AgdaDatatype{Term}\) representing one side of
 the target equivalence. It converts it to the corresponding
 \(\AgdaDatatype{Expr}\). In other words, it performs the following
@@ -383,14 +371,11 @@ transformation:
   \includegraphics[trim={25 14 22 10}]{graphics/lhs-ast}
 \]
 
-When it encounters one of the ring operators, it calls the corresponding helper
-function (\(\AgdaFunction{getBinOp}\), \(\AgdaFunction{getExp}\), or
-\(\AgdaFunction{getUnOp}\)) which finds the important subterms from the
-operator's argument list.
-
+When it encounters one of the ring operators, it builds the corresponding
+expression from it.
 If it \emph{doesn't} manage to match an operator or a variable, it assumes that
 what it has must be a constant, and wraps it up in the
-\(\AgdaInductiveConstructor{K}\) constructor. This is the key trick which allows
+\(\AgdaInductiveConstructor{K}\) (constant) constructor. This is the key trick which allows
 us to avoid ever asking the user to quote their own type. While it may seem
 unsafe at first glance, we actually found it to be more robust (for our use
 case) than the alternative:
@@ -411,16 +396,9 @@ case) than the alternative:
   has no such difficulty.
 \end{principle}
 
-Next, we'll look at one of the helper functions: \(\AgdaFunction{getExp}\),
-which deals with exponentiation.
-\begin{center}
-  \ExecuteMetaData[../ReflectionSection.tex]{getExp}
-\end{center}
-
-It extracts the last two arguments to the exponentiation operator, and wraps
-them up with the \(\AgdaInductiveConstructor{⊛}\). Before the two visible
-arguments to the exponentiation operator, we first apply \(\AgdaNumber{3} \;
-\AgdaFunction{⋯⟅∷⟆}\). This applies three hidden arguments as ``unknown'', i.e.
+Next, we'll look at one of the helper functions, which constructs the
+\(\AgdaDatatype{Expr}\), given its arguments.
+As well as the visible arguments, it applies three hidden arguments as ``unknown'', i.e.
 asks Agda to infer them. We could guess them ourselves: the first is the
 universe level of the carrier type, the second is the carrier type, and the
 third is the number of variables in the expression. We decided against it,
@@ -473,7 +451,7 @@ for instance, which performs a left-rotation on the tree:
 A sensible invariant to encode here is that the function doesn't change the size
 of the tree. Unfortunately, to \emph{prove} that invariant, we have to prove the
 following:
-\[1 + (1 + a + c) + b = 1 + a + (1 + b + c)\]
+\[(a + c + 1) + b + 1 = a + (b + c + 1) + 1\]
 
 Though simple, this is precisely the kind of proof which requires many fussy
 applications of the ring axioms. Here, our solver can help:
@@ -510,7 +488,7 @@ from the expression AST (Fig.~\ref{expr}) to a canonical form.
 \subsubsection{Horner Normal Form} \label{hnf}
 The particular ``canonical form'' we'll start with is the same as in Agda's
 current ring solver: Horner normal form. A polynomial (more specifically,
-a monomial) in \(x\) is represented as a list of coefficients of increasing
+a univariate polynomial) in \(x\) is represented as a list of coefficients of increasing
 powers of \(x\). As an example, the following polynomial:
 \begin{align}
   3 + 2x^2 + 4x^5 + 2x^7 \label{example-poly}
@@ -521,9 +499,7 @@ Is represented by this list:
 \end{center}
 Operations on these polynomials are similar to operations in positional number
 systems.
-\begin{multicols}{2}
-  \ExecuteMetaData[../HornerNormalForm.tex]{impl}
-\end{multicols}
+\begin{center} \ExecuteMetaData[../HornerNormalForm.tex]{impl} \end{center}
 So to get from \(\AgdaDatatype{Expr}\) to \(\AgdaDatatype{Poly}\) we map each
 constructor to the relevant polynomial operation. Then, to get from
 \(\AgdaDatatype{Poly}\) to an expression in the underlying ring, we use Horner's
@@ -574,7 +550,7 @@ contrast to the previous index, though, this one is type-relevant: we can't just
 store a \(\Nat\) next to the nested polynomial to represent the gap. Because the
 polynomial is indexed by the number of variables it contains, any encoding of
 the gap will have provide the proper type information to respect that index.
-\subsubsection{Hanging Indices}
+\subsubsection{Hanging Indices} \label{hanging}
 The problem is a common one: we have a piece of code that works efficiently,
 and we now want to make it ``more typed'', by adding more information to it,
 \emph{without} changing the complexity class.
@@ -604,11 +580,8 @@ of \(\Nat\), we were able to directly translate \(\AgdaDatatype{Ordering}\) and
   \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{ord-type}
 \end{center}
 
-into equivalent functions on \(\le\):
+into equivalent functions on \(\le\).
 
-\begin{multicols}{2}
-  \ExecuteMetaData[../EfficiencyInIndexedTypes.tex]{leq-compare}
-\end{multicols}
 \subsection{Unification} \label{syntactic-unif}
 After applying the previous optimisations, we might expect an immediate speedup
 in the solver: unfortunately, this isn't the case. Without some careful
@@ -647,11 +620,11 @@ two main strategies we'll use to encourage syntactic equality:
 \subsubsection{Avoid Progress at all Costs}
 First, we will consider something which may seem inconsequential: the order of
 arguments to the evaluation functions.
-\begin{multicols}{2}
+{
   \centering
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{forwards-eval}
   \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{backwards-eval}
-\end{multicols}
+}
 \(\AgdaFunction{⟦\_⟧ₗ}\) is the definition we've been working with so far. Some
 readers might find \(\AgdaFunction{⟦\_⟧ᵣ}\) more natural, however. The reason is
 that it's more productive: in lazy languages, the usual convention is that
@@ -692,18 +665,6 @@ keep things which are likely to be syntactically equal to the left, and
 arguments (as we do above) resulted in a performance improvement of several
 orders of magnitude.
 \subsubsection{Avoid Identities}
-\begin{figure}[b]
-  \centering
-    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{small-force}
-    % \caption{Sparse encoding, with identity-avoiding optimisation}
-  % \subfloat[]{
-  %   \centering
-    \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
-  %   \caption{Dense encoding, without identity-avoiding optimisation}
-  % }
-  \caption{Comparison of the normal forms of equation~\ref{example-poly}}
-  \label{normal-forms}
-\end{figure}
 It's a good idea to avoid identities (expressions like \(0 + x\) or \(1 * x\))
 in the normalised expression. This will reduce the size of your expression,
 which is helpful in general, but more importantly it increases the likelihood of
@@ -729,8 +690,30 @@ normal form, but also ensures that normalisation stops exactly where we want it
 to, preserving the structure of the expressions as much as is possible. This
 makes a significant difference to both size and syntactic
 similarity as can be seen in Fig.~\ref{normal-forms}.
+\begin{figure}[b]
+  \vspace{-5cm}
+  \centering
+  \subfloat[Sparse encoding, with identity-avoiding optimisation]{
+    \begin{minipage}[b]{0.3\textwidth}
+      \centering
+      \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{small-force}
+    \end{minipage}
+  }
+  \hfill
+  \subfloat[Dense encoding, without identity-avoiding optimisation]{
+    \begin{minipage}[b]{0.5\textwidth}
+      \centering
+      \ExecuteMetaData[../PerformanceOfTypeChecking.tex]{dense-term}
+    \end{minipage}
+  }
+  \caption{Comparison of the normal forms of equation~\ref{example-poly}}
+  \label{normal-forms}
+\end{figure}
+\clearpage
 \subsection{Benchmarks} \label{benchmarks}
-\begin{figure}[h]
+\begin{wrapfigure}{r}[2cm]{0.4\textwidth}
+  \vspace{-2cm}
+  \begin{minipage}[b]{0.4\textwidth}
   \newcounter{realxtickpos}
   \pgfplotsset{
       tick label style={font=\scriptsize},
@@ -745,67 +728,64 @@ similarity as can be seen in Fig.~\ref{normal-forms}.
         \stepcounter{realxtickpos}
       },
       width=1.2\textwidth,
+      yticklabel style={
+        anchor=west,
+        xshift=1pt,
+      },
   }
   \setcounter{realxtickpos}{0}
-  \subfloat[]{
-    \begin{tikzpicture}
-      \begin{axis}[
-        % transpose legend,
-        legend columns=1,
-        legend entries={new, old},
-        legend to name=benchplots,
-        extra y ticks={15},
-        title={(\subref{bench1}) $(x_1 + x_2 + \ldots + x_n)^d$},
-        ]
-        \addplot[color=blue, densely dashed] table {../benchmark-data/sparse1.dat};
-        \addplot[color=red] table {../benchmark-data/dense1.dat};
-      \end{axis}
-    \end{tikzpicture}
-    \phantomcaption \label{bench1}
+  \subfloat{
+      \begin{tikzpicture}
+        \begin{axis}[
+          % transpose legend,
+          legend columns=2,
+          legend entries={new, old},
+          legend to name=benchplots,
+          extra y ticks={15},
+          title={\subref{bench1} $(x_1 + x_2 + \ldots + x_n)^d$},
+          ]
+          \addplot[color=blue, densely dashed] table {../benchmark-data/sparse1.dat};
+          \addplot[color=red] table {../benchmark-data/dense1.dat};
+        \end{axis}
+      \end{tikzpicture}
+      \label{bench1}
   }
   \setcounter{realxtickpos}{0}
-  \subfloat[]{
-    \begin{tikzpicture}
-      \begin{axis}[
-        extra y ticks={5},
-        title={(\subref{bench2}) $x_1^d + x_2^d + \ldots + x_n^d$},
-        ]
-        \addplot[color=blue, densely dashed] table {../benchmark-data/sparse2.dat};
-        \addplot[color=red] table {../benchmark-data/dense2.dat};
-      \end{axis}
-    \end{tikzpicture}
-    \phantomcaption\label{bench2}
+  \subfloat{
+      \begin{tikzpicture}
+        \begin{axis}[
+          extra y ticks={5},
+          title={\subref{bench2} $x_1^d + x_2^d + \ldots + x_n^d$},
+          ]
+          \addplot[color=blue, densely dashed] table {../benchmark-data/sparse2.dat};
+          \addplot[color=red] table {../benchmark-data/dense2.dat};
+        \end{axis}
+      \end{tikzpicture}
+      \label{bench2}
   }
   \setcounter{realxtickpos}{0}
-  \subfloat[]{
-    \begin{tikzpicture}
-      \begin{axis}[
-        extra y ticks={40},
-        title={(\subref{bench3}) $(x_1^n + x_2^{n-1} + \ldots + x_n^1 + 1)^d$},
-        ]
-        \addplot[color=blue, densely dashed] table {../benchmark-data/sparse3.dat};
-        \addplot[color=red] table {../benchmark-data/dense3.dat};
-      \end{axis}
-    \end{tikzpicture}
-    \phantomcaption\label{bench3}
+  \subfloat{
+      \begin{tikzpicture}
+        \begin{axis}[
+          extra y ticks={40},
+          title={\subref{bench3} $(x_1^n + x_2^{n-1} + \ldots + x_n^1 + 1)^d$},
+          ]
+          \addplot[color=blue, densely dashed] table {../benchmark-data/sparse3.dat};
+          \addplot[color=red] table {../benchmark-data/dense3.dat};
+        \end{axis}
+      \end{tikzpicture}
+      \label{bench3}
   }
-  \begin{minipage}{0.13\textwidth}
-    \vspace{-20pt}
-    \ref{benchplots}
-  \end{minipage}%
-  \begin{minipage}{0.87\textwidth}
-    \vspace{-20pt}
-    \begin{flushleft}
-      \caption{Time (in seconds) to prove each expression is equal to its expanded
-        form ($n = 5$ for each).}
-      \smallskip
-      \footnotesize
-      Benchmarks performed on Agda version 2.6-0fa9b13, with the Agda standard
-      library at commit-3bd3334a9552490e396f73f96812105a27e5917b, on a 2016
-      MacBook Pro, with a 2.9 GHz Intel Core i7 and 16 GB of RAM.
-    \end{flushleft}
-  \end{minipage} 
-\end{figure}
+  \begin{center} \ref{benchplots} \end{center}%
+  \caption{Time (in seconds) to prove each expression is equal to its expanded
+    form ($n = 5$ for each).}
+  \smallskip
+  \footnotesize
+  Benchmarks performed on Agda version 2.6-0fa9b13, with the Agda standard
+  library at commit-3bd3334a9552490e396f73f96812105a27e5917b, on a 2016
+  MacBook Pro, with a 2.9 GHz Intel Core i7 and 16 GB of RAM.
+  \end{minipage}
+\end{wrapfigure}
 
 As expected, the new implementation exhibits a significant speedup in
 type-checking over the old implementation, even with the added overhead of the
@@ -828,7 +808,6 @@ we have not been able to find a case where the old solver is significantly
 faster than the new. Nonetheless, if a user really wants to use the old
 solver, the other components described here are entirely modular, and can work
 with any underlying solver which uses the reflexive technique.
-
 \section{Verification} \label{verif}
 The output of the solver is a constructive proof of equivalence: this is
 \emph{derived} from a generic proof that the operations on the solver are a ring
@@ -841,33 +820,41 @@ These proofs are long (about 1000 lines) and complex. Without careful
 structuring of the proofs, every new optimisation would require a whole new
 round of proof code, with very little reuse.
 
-To avoid this problem, we took inspiration from \cite{mu_algebra_2009}, and
-relied heavily on abstraction and folds to improve the reuse in proof code. In
-particular, we defined many operations as \emph{metamorphisms}
-\cite{gibbons_metamorphisms_2007}. So, instead of defining (say) negation over
-the polynomial type itself, we will define a metamorphism to express negation,
-and then call some higher-order function to run that metamorphism over a
-polynomial.
+To avoid this problem, we will use a variation of the foldr fusion theorem:
+\begin{equation}
+  h (x \oplus y) = x \otimes h \; y \implies h \circ \mathit{foldr} \oplus e = foldr \otimes (h \; e)
+\end{equation}
+\clearpage
+The above theorem is too specific for our purposes: remember that we are
+producing proofs in a setoid, so we will need to generalise the statement to
+some relation.
+As it happens, a preorder is strong enough to prove fusion, as long as it
+respects the operator:
+\begin{equation}
+  y \lesssim z \implies x \otimes y \lesssim x \otimes z
+\end{equation}
+The proof is as follows:
+\ExecuteMetaData[../ListProofs.tex]{fusion}
+When defined on polynomials, the proof resembles a \emph{metamorphism}
+\cite{gibbons_metamorphisms_2007}.
+We define the functions on the polynomial in terms of this metamorphism:
 \begin{center}
   \ExecuteMetaData[../AbstractionAndFolds.tex]{fold-def}
 \end{center}
 
-\begin{wrapfigure}{r}{0.4\textwidth}
-  \vspace{-18pt}
-  \ExecuteMetaData[../AbstractionAndFolds.tex]{poly-mapR}
-  \caption{The Semantics of \(\AgdaFunction{poly-map}\)}
-  \label{poly-map}
-  \vspace{-15pt}
-\end{wrapfigure}
 
 From here, we can define the \emph{semantics} of a metamorphism. As an example,
-Fig.~\ref{poly-map} shows the semantics of \(\AgdaFunction{poly-map}\), a simple
+the following shows the semantics of \(\AgdaFunction{poly-map}\), a simple
 morphism which behaves something like \(\AgdaFunction{map}\) on lists.
+\begin{center}
+\ExecuteMetaData[../AbstractionAndFolds.tex]{poly-mapR}
+\end{center}
 
 Now, each operation only has to be proven up to the semantics defined above.
 Crucially, optimisations like the sparse encoding \emph{respect} these
 semantics, so we only have to change our proof in one place: the definition of
 \(\AgdaFunction{poly-mapR}\).
+
 \section{Pedagogical Solutions} \label{pedagogical}
 One of the core aims of this work is to take a step towards making Agda a useful
 tool for doing mathematics. The rest of this paper has described our efforts to
@@ -898,7 +885,7 @@ heuristic is essential. Furthermore, what this should be is not clear:
 \cite{lioubartsev_constructing_2016} uses a measure of the ``simplicity'' of an
 expression.
 
-\begin{wrapfigure}{r}{0.35\textwidth}
+\begin{wrapfigure}{R}{0.35\textwidth}
   \vspace{-10pt}
   \resizebox{0.35\textwidth}{!}{
     \begin{tikzpicture}
@@ -954,6 +941,7 @@ After applying those heuristics, our solver outputs the explanation in
 Fig.~\ref{step-output} for the lemma in Fig.~\ref{comparison}
 \begin{figure}[h!]
   \vspace{-10pt}
+  \centering
 \begin{BVerbatim}
 x + y + 3
     ={ +-comm(x, y + 3) }

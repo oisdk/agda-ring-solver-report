@@ -657,7 +657,7 @@ from the expression AST (Fig.~\ref{expr}) to a canonical form.
 \subsubsection{Horner Normal Form} \label{hnf}
 The particular ``canonical form'' we'll start with is the same as in Agda's
 current ring solver: Horner normal form. A polynomial (more specifically,
-a monomial) in \(x\) is represented as a list of coefficients of increasing
+a univariate polynomial) in \(x\) is represented as a list of coefficients of increasing
 powers of \(x\). As an example, the following polynomial:
 \begin{align}
   3 + 2x^2 + 4x^5 + 2x^7 \label{example-poly}
